@@ -1,0 +1,66 @@
+body {
+	margin: 0;
+	padding: 0;
+	font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+}
+.tile-board {
+	width: 600px;
+	height: 480px;
+	background-color: #ccc;
+	padding: 0;
+	position: relative;
+}
+.tile {
+	display: block;
+	list-style-type: none;
+	width: 200px;
+	height: 160px;
+	background-color: #999;
+	box-shadow: 0 0 0 1px #333 inset;
+	float: left;
+	background-image: url(../img/robot.jpg);
+	background-size: auto 480px;
+	position: absolute;
+	transition: left .3s,
+				top .3s;
+}
+.tile.tile-1 {
+	background-position: 0 0;
+	top: 0;
+	left: 0;
+}
+.tile.tile-2 {
+	background-position: -200px 0;
+	top: 0;
+	left: 200px;
+}
+.tile.tile-3 {
+	background-position: -400px 0;
+	top: 0;
+	left: 400px;
+}
+.tile.tile-4 {
+	background-position: 0 -160px;
+	top: 160px;
+	left: 0;
+}
+.tile.tile-5 {
+	background-position: -200px -160px;
+	top: 160px;
+	left: 200px;
+}
+.tile.tile-6 {
+	background-position: -400px -160px;
+	top: 160px;
+	left: 400px;
+}
+.tile.tile-7 {
+	background-position: 0 -320px;
+	top: 320px;
+	left: 0;
+}
+.tile.tile-8 {
+	background-position: -200px -320px;
+	top: 320px;
+	left: 200px;
+}
