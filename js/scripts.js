@@ -26,6 +26,21 @@ $(function() {
 			for (var i = 1; i <= tileToCreate; i++) {
 				this.tiles.push(new Tile(this, i));
 			}
+			$(window).on('resize', function() {
+				Board.resizeTiles();
+			}).trigger('resize');
+		},
+		resizeTiles: function() {
+			var tileDimensions = this.getTileDimensions();
+			this.tiles.forEach(function(tile) {
+				tile.fragment.css(tileDimensions);
+			});
+		},
+		getTileDimensions: function() {
+			return {
+				width: Math.floor(this.fragment.width() / 3),
+				height: Math.floor(this.fragment.height() / 3)
+			}
 		}
 	};
 

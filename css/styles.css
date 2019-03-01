@@ -4,17 +4,19 @@ body {
 	font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
 }
 .tile-board {
-	width: 600px;
-	height: 480px;
+	/* width: 600px;
+	height: 480px; */
+	width: 100%;
+	height: 100%;
 	background-color: #ccc;
 	padding: 0;
-	position: relative;
+	margin: 0;
+	position: absolute;
+	overflow: hidden;
 }
 .tile {
 	display: block;
 	list-style-type: none;
-	width: 200px;
-	height: 160px;
 	background-color: #999;
 	box-shadow: 0 0 0 1px #333 inset;
 	float: left;
