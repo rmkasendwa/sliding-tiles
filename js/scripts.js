@@ -5,12 +5,12 @@ $(function() {
 		reset: function() {
 			this.fragment.empty();
 			this.tiles = [];
-			var tileToCreate = (this.grid.dimensions[0] * this.grid.dimensions[1]) - 1;
+			var tileToCreate = (this.grid.dimensions[0] * this.grid.dimensions[1]);
 			for (var i = 0; i < tileToCreate; i++) {
 				this.tiles.push(new Tile(this));
 				this.tiles[i].slot = [(i % this.grid.dimensions[0]), Math.floor(i / this.grid.dimensions[0])];
 			}
-			this.grid.emptySlot = [this.grid.dimensions[0] - 1, this.grid.dimensions[1] - 1];
+			this.grid.emptySlot = this.tiles[this.tiles.length - 1].slot;
 			this.winningTileConfig = this.tiles.map(function(tile) {
 				return tile.slot;
 			});
@@ -32,11 +32,17 @@ $(function() {
 			$(window).on('resize', function() {
 				Board.caliberate();
 			}).on('mousedown', function() {
-				var hintTimeout = setTimeout(function() {
-					Board.hint();
-				}, 500);
+				var boardCompleteTimeout,
+					hintTimeout = setTimeout(function() {
+						Board.hint();
+						boardCompleteTimeout = setTimeout(function() {
+							Board.fragment.addClass('complete');
+						}, 200);
+					}, 500);
 				$(window).on('blur mouseup', function() {
 					clearTimeout(hintTimeout);
+					clearTimeout(boardCompleteTimeout);
+					Board.fragment.removeClass('complete');
 					Board.caliberate();
 					$(window).off('blur mouseup');
 				})
@@ -65,6 +71,7 @@ $(function() {
 			});
 		},
 		randomizeTiles: function() {
+			var randomizableTiles = this.tiles.slice(0, this.tiles.length - 1);
 			for (var i = 0, j = this.grid.dimensions[0] * this.grid.dimensions[1] * 100; i < j; i++) {
 				var movableSlots = [
 					[this.grid.emptySlot[0] - 1, this.grid.emptySlot[1]],
@@ -75,7 +82,7 @@ $(function() {
 				movableSlots = movableSlots.map(function(slot) {
 					return slot.join('1');
 				});
-				var movableTiles = this.tiles.filter(function(tile) {
+				var movableTiles = randomizableTiles.filter(function(tile) {
 					return movableSlots.indexOf(tile.slot.join('1')) !== -1;
 				});
 				var index = Math.floor(Math.random() * movableTiles.length);
@@ -171,7 +178,7 @@ $(function() {
 			this.fragment.append(winnerScreen);
 			setTimeout(function() {
 				winnerScreen.remove();
-				callback();
+				(typeof callback !== "function") || callback();
 			}, 3000);
 		},
 		checkTileConfig: function() {
@@ -181,13 +188,15 @@ $(function() {
 			for (var i = 0, j = this.winningTileConfig.length; i < j; i++) {
 				if (tileConfig[i][0] !== this.winningTileConfig[i][0] || tileConfig[i][1] !== this.winningTileConfig[i][1]) return;
 			}
-			if (this.grid.dimensions[0] < this.grid.dimensions[1]) {
+			if (this.grid.dimensions[0] === this.grid.dimensions[1]) {
 				this.grid.dimensions[0]++;
 			} else {
 				this.grid.dimensions[1]++;
 			}
 			this.level++;
+			this.fragment.addClass('complete');
 			this.overlayMessage("You win!", function() {
+				Board.fragment.removeClass('complete');
 				Board.reset();
 			});
 		}

@@ -16,6 +16,9 @@
     border-radius: 2px;
     transition: left .3s, top .3s;
 }
+.tile-board:not(.complete) .tile:last-of-type {
+	display: none;
+}
 .tile:before {
     display: none;
     counter-increment: tile-number;
