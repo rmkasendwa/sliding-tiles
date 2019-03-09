@@ -90,6 +90,7 @@ $(function() {
 				this.grid.emptySlot = movableTiles[index].slot;
 				movableTiles[index].slot = emptySlot;
 			}
+			this.tiles[this.tiles.length - 1].slot = this.grid.emptySlot;
 			this.caliberate();
 		},
 		hint: function() {
@@ -101,6 +102,14 @@ $(function() {
 					"z-index": Board.winningTileConfig[index][0] + (Board.winningTileConfig[index][1]) * Board.grid.dimensions[0]
 				});
 			});
+		},
+		getEligibleTileForPosition: function(position, callback) {
+			for (var i = 0, j = this.winningTileConfig.length; i < j; i++) {
+				if (position[0] === this.winningTileConfig[i][0] && position[1] === this.winningTileConfig[i][1]) {
+					callback(this.tiles[i]);
+					break;
+				}
+			}
 		},
 		caliberate: function() {
 			this.fragment.width(Math.floor(window.innerWidth / this.grid.dimensions[0]) * this.grid.dimensions[0]);
@@ -125,6 +134,11 @@ $(function() {
 						y: Math.floor(index / Board.grid.dimensions[0]) * tileDimensions.height
 					}
 				});
+			});
+			this.tiles[this.tiles.length - 1].moveTo({
+				"left": this.grid.emptySlot[0] * tileDimensions.width,
+				"top": this.grid.emptySlot[1] * tileDimensions.height,
+				"z-index": 0
 			});
 		},
 		getTileDimensions: function() {
@@ -159,11 +173,18 @@ $(function() {
 			var tileDimensions = this.getTileDimensions(),
 				emptySlot = this.grid.emptySlot;
 			this.grid.emptySlot = tile.slot;
+			var emptySlotTile = this.tiles[this.tiles.length - 1];
+			emptySlotTile.slot = this.grid.emptySlot;
 			tile.slot = emptySlot;
 			tile.moveTo({
 				"left": tile.slot[0] * tileDimensions.width,
 				"top": tile.slot[1] * tileDimensions.height,
 				"z-index": tile.slot[0] + (tile.slot[1]) * this.grid.dimensions[0]
+			});
+			emptySlotTile.moveTo({
+				"left": emptySlotTile.slot[0] * tileDimensions.width,
+				"top": emptySlotTile.slot[1] * tileDimensions.height,
+				"z-index": 0
 			});
 			clearTimeout(this.tileConfigCheckTimeout);
 			this.tileConfigCheckTimeout = setTimeout(function() {
@@ -208,6 +229,22 @@ $(function() {
 		board.fragment.append(this.fragment.on('click', function() {
 			Board.moveTile(tile);
 		}));
+		this.fragment.on('mouseenter', function() {
+			var eligibleTileFragment,
+				directionHintTimeout = setTimeout(function() {
+					Board.getEligibleTileForPosition(tile.slot, function(eligibleTile) {
+						if (tile !== eligibleTile) {
+							eligibleTileFragment = eligibleTile.fragment.addClass('move-hint');
+							tile.fragment.addClass('slot-hint');
+						}
+					});
+				}, 2000);
+			tile.fragment.on('mouseout', function() {
+				clearTimeout(directionHintTimeout);
+				tile.fragment.removeClass('slot-hint').off('mouseout');
+				!eligibleTileFragment || eligibleTileFragment.removeClass('move-hint');
+			});
+		});
 	}
 	Tile.prototype = {
 		constructor: Tile,

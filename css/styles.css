@@ -16,8 +16,28 @@
     border-radius: 2px;
     transition: left .3s, top .3s;
 }
+.tile.move-hint {
+    box-shadow: rgb(0, 255, 0) 0px 0px 10px, rgb(0, 255, 0) 0px 0px 10px inset !important;
+    z-index: 999 !important;
+}
+@keyframes ants {
+    to {
+        background-position: 100% 100%
+    }
+}
+.tile.slot-hint {
+    border: 1px solid transparent;
+    background: linear-gradient(#ccc, #ccc) padding-box, repeating-linear-gradient(-45deg, #333 0, #333 25%, transparent 0, transparent 50%) 0 / .6em .6em !important;
+    animation: ants 12s linear infinite;
+}
+.tile-board.complete .tile:last-of-type {
+    z-index: 999 !important;
+}
 .tile-board:not(.complete) .tile:last-of-type {
-	display: none;
+    box-shadow: none;
+}
+.tile-board:not(.complete) .tile:not(.slot-hint):last-of-type {
+    background: transparent !important;
 }
 .tile:before {
     display: none;
