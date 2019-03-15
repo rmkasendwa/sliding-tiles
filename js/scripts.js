@@ -73,7 +73,7 @@ $(function() {
 		randomizeTiles: function() {
 			var randomizableTiles = this.tiles.slice(0, this.tiles.length - 1),
 				randomizationMoves = (this.grid.dimensions[0] * this.grid.dimensions[1]) - 1;
-			if(randomizationMoves > 3) {
+			if (randomizationMoves > 3) {
 				randomizationMoves *= 100;
 			}
 			for (var i = 0, j = randomizationMoves; i < j; i++) {
@@ -116,8 +116,18 @@ $(function() {
 			}
 		},
 		caliberate: function() {
-			this.fragment.width(Math.floor(window.innerWidth / this.grid.dimensions[0]) * this.grid.dimensions[0]);
-			this.fragment.height(Math.floor(window.innerHeight / this.grid.dimensions[1]) * this.grid.dimensions[1]);
+			var imageAspectRatio = this.getBoardImageAspectRatio(),
+				boardWidth = window.innerWidth,
+				boardHeight = window.innerHeight,
+				imageSize = [imageAspectRatio * boardHeight, boardHeight];
+			if (imageSize[0] > boardWidth) {
+				imageSize = [boardWidth, boardWidth / (this.image.width || 1) * this.image.height];
+				boardHeight = imageSize[1];
+			} else {
+				boardWidth = imageSize[0];
+			}
+			this.fragment.width(Math.floor(boardWidth / this.grid.dimensions[0]) * this.grid.dimensions[0]);
+			this.fragment.height(Math.floor(boardHeight / this.grid.dimensions[1]) * this.grid.dimensions[1]);
 			this.fragment.css({
 				'top': (window.innerHeight - this.fragment.height()) / 2,
 				'left': (window.innerWidth - this.fragment.width()) / 2
@@ -157,6 +167,9 @@ $(function() {
 				height: this.fragment.height()
 			}
 		},
+		// AspectRatio > 1 = PORTRAIT
+		// AspectRatio < 1 = LANDSCAPE
+		// AspectRatio == 1 = SQUARE
 		getBoardImageAspectRatio: function() {
 			return this.image.width / (this.image.height || 1);
 		},
