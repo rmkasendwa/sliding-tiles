@@ -1,3 +1,6 @@
+body {
+    background-color: #262626;
+}
 .tile-board {
     background-color: #ccc;
     padding: 0;

@@ -19,7 +19,6 @@ $(function() {
 		},
 		init: function() {
 			$('body').append(this.fragment);
-			$('body').append('Max Touch Points: ' + navigator.maxTouchPoints + '<br>' + 'platform: ' + navigator.platform + '<br>' + 'Memory: ' + navigator.deviceMemory + '<br>')
 			this.level = 1;
 			this.grid = {
 				dimensions: [2, 1]
@@ -32,7 +31,8 @@ $(function() {
 			this.reset();
 			$(window).on('resize', function() {
 				Board.caliberate();
-			}).on('mousedown', function() {
+			});
+			this.fragment.on('mousedown touchstart', function() {
 				var boardCompleteTimeout,
 					hintTimeout = setTimeout(function() {
 						Board.hint();
@@ -40,13 +40,14 @@ $(function() {
 							Board.fragment.addClass('complete');
 						}, 200);
 					}, 500);
-				$(window).on('blur mouseup', function() {
+				var hintEndCallback = function() {
 					clearTimeout(hintTimeout);
 					clearTimeout(boardCompleteTimeout);
 					Board.fragment.removeClass('complete');
 					Board.caliberate();
-					$(window).off('blur mouseup');
-				})
+					Board.fragment.off('blur mouseup touchend touchcancel', hintEndCallback);
+				};
+				Board.fragment.on('blur mouseup touchend touchcancel', hintEndCallback)
 			});
 			const controlKeys = {
 				CONTROL_UP: 38,
@@ -129,10 +130,6 @@ $(function() {
 			}
 			this.fragment.width(Math.floor(boardWidth / this.grid.dimensions[0]) * this.grid.dimensions[0]);
 			this.fragment.height(Math.floor(boardHeight / this.grid.dimensions[1]) * this.grid.dimensions[1]);
-			this.fragment.css({
-				'top': (window.innerHeight - this.fragment.height()) / 2,
-				'left': (window.innerWidth - this.fragment.width()) / 2
-			})
 			var boardDimensions = this.getBoardDimensions(),
 				tileDimensions = this.getTileDimensions(),
 				tileBackgroundImage = "url(" + this.image.src + ")",
@@ -168,9 +165,7 @@ $(function() {
 				height: this.fragment.height()
 			}
 		},
-		// AspectRatio > 1 = PORTRAIT
-		// AspectRatio < 1 = LANDSCAPE
-		// AspectRatio == 1 = SQUARE
+		// AspectRatio > 1 = PORTRAIT | AspectRatio < 1 = LANDSCAPE | AspectRatio == 1 = SQUARE
 		getBoardImageAspectRatio: function() {
 			return this.image.width / (this.image.height || 1);
 		},
@@ -247,22 +242,24 @@ $(function() {
 		board.fragment.append(this.fragment.on('click', function() {
 			Board.moveTile(tile);
 		}));
-		this.fragment.on('mouseenter', function() {
-			var eligibleTileFragment,
-				directionHintTimeout = setTimeout(function() {
-					Board.getEligibleTileForPosition(tile.slot, function(eligibleTile) {
-						if (tile !== eligibleTile) {
-							eligibleTileFragment = eligibleTile.fragment.addClass('move-hint');
-							tile.fragment.addClass('slot-hint');
-						}
-					});
-				}, 2000);
-			tile.fragment.on('mouseout', function() {
-				clearTimeout(directionHintTimeout);
-				tile.fragment.removeClass('slot-hint').off('mouseout');
-				!eligibleTileFragment || eligibleTileFragment.removeClass('move-hint');
+		if (navigator && navigator.maxTouchPoints === 0) {
+			this.fragment.on('mouseenter', function() {
+				var eligibleTileFragment,
+					directionHintTimeout = setTimeout(function() {
+						Board.getEligibleTileForPosition(tile.slot, function(eligibleTile) {
+							if (tile !== eligibleTile) {
+								eligibleTileFragment = eligibleTile.fragment.addClass('move-hint');
+								tile.fragment.addClass('slot-hint');
+							}
+						});
+					}, 2000);
+				tile.fragment.on('mouseout', function() {
+					clearTimeout(directionHintTimeout);
+					tile.fragment.removeClass('slot-hint').off('mouseout');
+					!eligibleTileFragment || eligibleTileFragment.removeClass('move-hint');
+				});
 			});
-		});
+		}
 	}
 	Tile.prototype = {
 		constructor: Tile,
