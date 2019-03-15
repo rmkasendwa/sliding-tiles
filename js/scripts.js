@@ -19,6 +19,7 @@ $(function() {
 		},
 		init: function() {
 			$('body').append(this.fragment);
+			$('body').append('Max Touch Points: ' + navigator.maxTouchPoints + '<br>' + 'platform: ' + navigator.platform + '<br>' + 'Memory: ' + navigator.deviceMemory + '<br>')
 			this.level = 1;
 			this.grid = {
 				dimensions: [2, 1]
