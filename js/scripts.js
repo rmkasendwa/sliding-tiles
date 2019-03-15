@@ -21,13 +21,13 @@ $(function() {
 			$('body').append(this.fragment);
 			this.level = 1;
 			this.grid = {
-				dimensions: [2, 2]
+				dimensions: [2, 1]
 			};
 			this.image = new Image();
 			this.image.onload = function() {
 				Board.caliberate();
 			};
-			this.image.src = "img/robot.jpg";
+			this.image.src = "img/frog.svg";
 			this.reset();
 			$(window).on('resize', function() {
 				Board.caliberate();
@@ -71,8 +71,12 @@ $(function() {
 			});
 		},
 		randomizeTiles: function() {
-			var randomizableTiles = this.tiles.slice(0, this.tiles.length - 1);
-			for (var i = 0, j = this.grid.dimensions[0] * this.grid.dimensions[1] * 100; i < j; i++) {
+			var randomizableTiles = this.tiles.slice(0, this.tiles.length - 1),
+				randomizationMoves = (this.grid.dimensions[0] * this.grid.dimensions[1]) - 1;
+			if(randomizationMoves > 3) {
+				randomizationMoves *= 100;
+			}
+			for (var i = 0, j = randomizationMoves; i < j; i++) {
 				var movableSlots = [
 					[this.grid.emptySlot[0] - 1, this.grid.emptySlot[1]],
 					[this.grid.emptySlot[0], this.grid.emptySlot[1] - 1],
