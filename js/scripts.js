@@ -45,9 +45,9 @@ $(function() {
 					clearTimeout(boardCompleteTimeout);
 					Board.fragment.removeClass('complete');
 					Board.caliberate();
-					Board.fragment.off('blur mouseup touchend touchcancel', hintEndCallback);
+					$(window).off('blur mouseup touchend touchcancel', hintEndCallback);
 				};
-				Board.fragment.on('blur mouseup touchend touchcancel', hintEndCallback)
+				$(window).on('blur mouseup touchend touchcancel', hintEndCallback)
 			});
 			const controlKeys = {
 				CONTROL_UP: 38,
@@ -110,10 +110,12 @@ $(function() {
 			});
 		},
 		getEligibleTileForPosition: function(position, callback) {
-			for (var i = 0, j = this.winningTileConfig.length; i < j; i++) {
-				if (position[0] === this.winningTileConfig[i][0] && position[1] === this.winningTileConfig[i][1]) {
-					callback(this.tiles[i]);
-					break;
+			if (!this.fragment.hasClass('complete')) {
+				for (var i = 0, j = this.winningTileConfig.length; i < j; i++) {
+					if (position[0] === this.winningTileConfig[i][0] && position[1] === this.winningTileConfig[i][1]) {
+						callback(this.tiles[i]);
+						break;
+					}
 				}
 			}
 		},
@@ -228,8 +230,10 @@ $(function() {
 				this.grid.dimensions[1]++;
 			}
 			this.level++;
+			this.levelCompleted = true;
 			this.fragment.addClass('complete');
 			this.overlayMessage("You win!", function() {
+				delete Board.levelCompleted;
 				Board.fragment.removeClass('complete');
 				Board.reset();
 			});
@@ -248,6 +252,7 @@ $(function() {
 					directionHintTimeout = setTimeout(function() {
 						Board.getEligibleTileForPosition(tile.slot, function(eligibleTile) {
 							if (tile !== eligibleTile) {
+								Board.fragment.addClass('complete');
 								eligibleTileFragment = eligibleTile.fragment.addClass('move-hint');
 								tile.fragment.addClass('slot-hint');
 							}
@@ -256,6 +261,7 @@ $(function() {
 				tile.fragment.on('mouseout', function() {
 					clearTimeout(directionHintTimeout);
 					tile.fragment.removeClass('slot-hint').off('mouseout');
+					Board.levelCompleted || Board.fragment.removeClass('complete');
 					!eligibleTileFragment || eligibleTileFragment.removeClass('move-hint');
 				});
 			});
