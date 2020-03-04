@@ -1,4 +1,5 @@
 var Board = {
+	config: {},
 	tiles: [],
 	fragment: $('<ul class="tile-board">'),
 	reset: function() {
@@ -20,7 +21,7 @@ var Board = {
 		$('body').append(this.fragment);
 		this.level = 1;
 		this.grid = {
-			dimensions: [2, 1]
+			dimensions: [4, 4]
 		};
 		this.image = new Image();
 		this.image.onload = function() {
@@ -70,6 +71,7 @@ var Board = {
 					break;
 			}
 		});
+		this.initSounds();
 	},
 	randomizeTiles: function() {
 		var randomizableTiles = this.tiles.slice(0, this.tiles.length - 1),
@@ -236,5 +238,31 @@ var Board = {
 			Board.fragment.removeClass('complete');
 			Board.reset();
 		});
+	},
+	initSounds(){
+		$(document).ready(function(){
+			var sound = new Howl({
+				src: ['/sounds/backgroundSound.mp3'],
+				autoplay: false,
+				loop: true,
+				volume: 0.3
+			  });
+			  console.log(sound);
+			sound.once('load', function(){
+			  let back1 = sound.play();
+				console.log(back1);
+			});
+		});
+		
+		// Howler.volume(0.5);
+		// sound.unload()
+		// var sound = new Howl({
+		// 	src: ['sounds.webm', 'sounds.mp3'],
+		// 	sprite: {
+		// 	  blast: [0, 3000],
+		// 	  laser: [4000, 1000],
+		// 	  winner: [6000, 5000]
+		// 	}
+		//   });
 	}
 };
