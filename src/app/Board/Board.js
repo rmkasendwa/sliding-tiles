@@ -21,7 +21,7 @@ var Board = {
 		$('body').append(this.fragment);
 		this.level = 1;
 		this.grid = {
-			dimensions: [4, 4]
+			dimensions: [2, 2]
 		};
 		this.image = new Image();
 		this.image.onload = function() {
@@ -183,6 +183,8 @@ var Board = {
 				return boardTile.slot[0] === tile[0] && boardTile.slot[1] === tile[1];
 			})[0];
 			!tile || this.moveTileToEmptySlot(tile);
+		} else {
+			this.config.sound.wrongMove.play();
 		}
 	},
 	moveTileToEmptySlot: function(tile, callback) {
@@ -192,6 +194,7 @@ var Board = {
 		var emptySlotTile = this.tiles[this.tiles.length - 1];
 		emptySlotTile.slot = this.grid.emptySlot;
 		tile.slot = emptySlot;
+		this.config.sound.move.play();
 		tile.moveTo({
 			"left": tile.slot[0] * tileDimensions.width,
 			"top": tile.slot[1] * tileDimensions.height,
@@ -233,36 +236,52 @@ var Board = {
 		this.level++;
 		this.levelCompleted = true;
 		this.fragment.addClass('complete');
+		this.pauseBackGroundSound();
+		this.config.sound.win.play();
 		this.overlayMessage("You win!", function() {
 			delete Board.levelCompleted;
 			Board.fragment.removeClass('complete');
 			Board.reset();
 		});
+		this.playBackGroundSound();
 	},
-	initSounds(){
+	initSounds: function(){
+		const board = this;
+		this.config.sound = {};
 		$(document).ready(function(){
-			var sound = new Howl({
-				src: ['/sounds/backgroundSound.mp3'],
-				autoplay: false,
+			board.config.sound.backgroundSound1 = new Howl({
+				src: ["/sounds/flowing-canal.wav"],
+				autoplay: true,
 				loop: true,
-				volume: 0.3
-			  });
-			  console.log(sound);
-			sound.once('load', function(){
-			  let back1 = sound.play();
-				console.log(back1);
+				volume: 0.1
+			});
+			board.config.sound.backgroundSound2 = new Howl({
+				src: ['/sounds/backgroundSound.mp3'],
+				autoplay: true,
+				loop: true,
+				volume: 0.2
+			});
+
+			board.config.sound.move = new Howl({
+				src: ["/sounds/move.wav"],
+				volume: 0.9
+			});
+			board.config.sound.wrongMove = new Howl({
+				src: ["/sounds/wrong-move.mp3"],
+				volume: 0.7
+			});
+			board.config.sound.win = new Howl({
+				src: ["/sounds/win.wav"],
+				volume: 0.1
 			});
 		});
-		
-		// Howler.volume(0.5);
-		// sound.unload()
-		// var sound = new Howl({
-		// 	src: ['sounds.webm', 'sounds.mp3'],
-		// 	sprite: {
-		// 	  blast: [0, 3000],
-		// 	  laser: [4000, 1000],
-		// 	  winner: [6000, 5000]
-		// 	}
-		//   });
+	},
+	pauseBackGroundSound: function(){
+		this.config.sound.backgroundSound1.pause();
+		this.config.sound.backgroundSound2.pause();
+	},
+	playBackGroundSound: function(){
+		this.config.sound.backgroundSound1.play();
+		this.config.sound.backgroundSound2.play();
 	}
 };
