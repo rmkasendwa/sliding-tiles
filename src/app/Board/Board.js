@@ -258,7 +258,7 @@ var Board = {
 		const board = this;
 		$(document).ready(function(){
 			board.backGroundSounds();
-			// board.boardMovesSounds();
+			board.boardMovesSounds();
 			board.config.sound.win = new Howl({
 				src: ["/sounds/win.wav"],
 				volume: 0.1
@@ -266,37 +266,36 @@ var Board = {
 		});
 	},
 	backGroundSounds: function() {
-		// this.config.sound.backgroundSound1 = new Howl({
-		// 	src: ["/sounds/flowing-canal.wav"],
-		// 	autoplay: true,
-		// 	loop: true,
-		// 	volume: 0.1
-		// });
-		// this.config.sound.backgroundSound2 = new Howl({
-		// 	src: ['/sounds/backgroundSound.mp3'],
-		// 	autoplay: true,
-		// 	loop: true,
-		// 	volume: 0.2
-		// });
-		this.frogSounds(new Howl({
-			src: [this.config.sound.paths.twoFrogsLong],
-			volume: 0.9
-		}));
+		this.config.sound.backgroundSound1 = new Howl({
+			src: ["/sounds/flowing-canal.wav"],
+			autoplay: true,
+			loop: true,
+			volume: 0.1
+		});
+		this.config.sound.backgroundSound2 = new Howl({
+			src: ['/sounds/backgroundSound.mp3'],
+			autoplay: true,
+			loop: true,
+			volume: 0.2
+		});
 		this.frogSounds(new Howl({
 			src: [this.config.sound.paths.cuteFrogMidLength],
-			volume: 0.9
-		}));
+			volume: 0.1
+		}), "cuteFrogMidLength");
 		this.frogSounds(new Howl({
 			src: [this.config.sound.paths.beautifulFrogsLong],
-			volume: 0.9
-		}));
+			volume: 0.1
+		}), "beautifulFrogsLong");
 	},
-	frogSounds: function(sound) {
+	frogSounds: function(sound, name) {
 		const board = this;
+		let delay = Math.ceil(Math.random() * 120000);
+		console.log(`${name}: ${delay/10000}`)
 		setTimeout(function() {
+			sound.stop();
 			sound.play();
-			board.frogSounds(sound);
-		}, Math.ceil(Math.random() * 1000))
+			board.frogSounds(sound, name);
+		}, delay)
 	},
 	boardMovesSounds: function() {
 		this.config.sound.move = new Howl({
@@ -307,14 +306,13 @@ var Board = {
 			src: ["/sounds/wrong-move.mp3"],
 			volume: 0.7
 		});
-			board.config.sound.hint = new Howl({
-				src: ["/sounds/hint.wav"],
-				volume: 0.7
-			});
-			board.config.sound.win = new Howl({
-				src: ["/sounds/win.wav"],
-				volume: 0.1
-			});
+		this.config.sound.hint = new Howl({
+			src: ["/sounds/hint.wav"],
+			volume: 0.7
+		});
+		this.config.sound.win = new Howl({
+			src: ["/sounds/win.wav"],
+			volume: 0.1
 		});
 	},
 	pauseBackGroundSound: function() {
