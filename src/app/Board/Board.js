@@ -101,6 +101,7 @@ var Board = {
 		this.caliberate();
 	},
 	hint: function() {
+		this.config.sound.hint.play();
 		var tileDimensions = this.getTileDimensions();
 		this.tiles.forEach(function(tile, index) {
 			tile.moveTo({
@@ -270,6 +271,10 @@ var Board = {
 				src: ["/sounds/wrong-move.mp3"],
 				volume: 0.7
 			});
+			board.config.sound.hint = new Howl({
+				src: ["/sounds/hint.wav"],
+				volume: 0.7
+			});
 			board.config.sound.win = new Howl({
 				src: ["/sounds/win.wav"],
 				volume: 0.1
@@ -277,8 +282,8 @@ var Board = {
 		});
 	},
 	pauseBackGroundSound: function(){
-		this.config.sound.backgroundSound1.pause();
-		this.config.sound.backgroundSound2.pause();
+		this.config.sound.backgroundSound1.stop();
+		this.config.sound.backgroundSound2.stop();
 	},
 	playBackGroundSound: function(){
 		this.config.sound.backgroundSound1.play();
