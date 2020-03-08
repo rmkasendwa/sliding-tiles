@@ -290,7 +290,6 @@ var Board = {
 	frogSounds: function(sound, name) {
 		const board = this;
 		let delay = Math.ceil(Math.random() * 120000);
-		console.log(`${name}: ${delay/10000}`)
 		setTimeout(function() {
 			sound.stop();
 			sound.play();
