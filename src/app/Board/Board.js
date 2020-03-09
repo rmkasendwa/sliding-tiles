@@ -1,5 +1,13 @@
 var Board = {
-	config: {},
+	config: {
+		sound: {
+			paths: {
+				twoFrogsLong: "/sounds/2frogsLong.wav",
+				cuteFrogMidLength: "/sounds/cutefrogmedium.wav",
+				beautifulFrogsLong: "/sounds/beautifullvlong.wav",
+			}
+		}
+	},
 	tiles: [],
 	fragment: $('<ul class="tile-board">'),
 	reset: function() {
@@ -101,6 +109,7 @@ var Board = {
 		this.caliberate();
 	},
 	hint: function() {
+		this.config.sound.hint.play();
 		var tileDimensions = this.getTileDimensions();
 		this.tiles.forEach(function(tile, index) {
 			tile.moveTo({
@@ -247,40 +256,69 @@ var Board = {
 	},
 	initSounds: function(){
 		const board = this;
-		this.config.sound = {};
 		$(document).ready(function(){
-			board.config.sound.backgroundSound1 = new Howl({
-				src: ["/sounds/flowing-canal.wav"],
-				autoplay: true,
-				loop: true,
-				volume: 0.1
-			});
-			board.config.sound.backgroundSound2 = new Howl({
-				src: ['/sounds/backgroundSound.mp3'],
-				autoplay: true,
-				loop: true,
-				volume: 0.2
-			});
-
-			board.config.sound.move = new Howl({
-				src: ["/sounds/move.wav"],
-				volume: 0.9
-			});
-			board.config.sound.wrongMove = new Howl({
-				src: ["/sounds/wrong-move.mp3"],
-				volume: 0.7
-			});
+			board.backGroundSounds();
+			board.boardMovesSounds();
 			board.config.sound.win = new Howl({
 				src: ["/sounds/win.wav"],
 				volume: 0.1
 			});
 		});
 	},
-	pauseBackGroundSound: function(){
-		this.config.sound.backgroundSound1.pause();
-		this.config.sound.backgroundSound2.pause();
+	backGroundSounds: function() {
+		this.config.sound.backgroundSound1 = new Howl({
+			src: ["/sounds/flowing-canal.wav"],
+			autoplay: true,
+			loop: true,
+			volume: 0.1
+		});
+		this.config.sound.backgroundSound2 = new Howl({
+			src: ['/sounds/backgroundSound.mp3'],
+			autoplay: true,
+			loop: true,
+			volume: 0.2
+		});
+		this.frogSounds(new Howl({
+			src: [this.config.sound.paths.cuteFrogMidLength],
+			volume: 0.1
+		}), "cuteFrogMidLength");
+		this.frogSounds(new Howl({
+			src: [this.config.sound.paths.beautifulFrogsLong],
+			volume: 0.1
+		}), "beautifulFrogsLong");
 	},
-	playBackGroundSound: function(){
+	frogSounds: function(sound, name) {
+		const board = this;
+		let delay = Math.ceil(Math.random() * 120000);
+		setTimeout(function() {
+			sound.stop();
+			sound.play();
+			board.frogSounds(sound, name);
+		}, delay)
+	},
+	boardMovesSounds: function() {
+		this.config.sound.move = new Howl({
+			src: ["/sounds/move.wav"],
+			volume: 0.9
+		});
+		this.config.sound.wrongMove = new Howl({
+			src: ["/sounds/wrong-move.mp3"],
+			volume: 0.7
+		});
+		this.config.sound.hint = new Howl({
+			src: ["/sounds/hint.wav"],
+			volume: 0.7
+		});
+		this.config.sound.win = new Howl({
+			src: ["/sounds/win.wav"],
+			volume: 0.1
+		});
+	},
+	pauseBackGroundSound: function() {
+		this.config.sound.backgroundSound1.stop();
+		this.config.sound.backgroundSound2.stop();
+	},
+	playBackGroundSound: function() {
 		this.config.sound.backgroundSound1.play();
 		this.config.sound.backgroundSound2.play();
 	}
