@@ -1,10 +1,8 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { ISlot } from '../interfaces';
+import { ISlot, ITile } from '../interfaces';
 
-interface ITileProps {
-  slot: ISlot;
-}
+interface ITileProps extends ITile {}
 
 const useStyles = makeStyles(() => ({
   tile: {
@@ -16,6 +14,15 @@ const useStyles = makeStyles(() => ({
     position: 'absolute',
     borderRadius: '2px',
     transition: 'left .3s, top .3s',
+    '&:before': {
+      display: 'none',
+      counterIncrement: 'tile-number',
+      content: 'counter(tile-number)',
+      paddingLeft: '10px',
+      paddingTop: '10px',
+      color: '#ddd',
+      textShadow: '0 1px 1px #000',
+    },
   },
   moveHint: {
     boxShadow:
@@ -24,10 +31,28 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const Tile: React.FC<ITileProps> = () => {
+const Tile: React.FC<ITileProps> = ({
+  background,
+  position,
+  dimensions,
+  slot,
+}) => {
   const classes = useStyles();
 
-  return <div className={classes.tile}></div>;
+  return (
+    <div
+      className={classes.tile}
+      style={{
+        width: dimensions.width,
+        height: dimensions.height,
+        backgroundImage: background.image,
+        backgroundSize: background.size,
+        backgroundPosition: `${-position.x}px ${-position.y}px`,
+        left: slot[0] * dimensions.width,
+        top: slot[1] * dimensions.height,
+      }}
+    ></div>
+  );
 };
 
 export default Tile;

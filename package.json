@@ -1,5 +1,5 @@
 {
-  "name": "sliding-tiles-react",
+  "name": "sliding-tiles",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -21,7 +21,7 @@
     ]
   },
   "dependencies": {
-    "@material-ui/core": "^4.12.1",
+    "@material-ui/core": "^4.11.4",
     "@material-ui/icons": "^4.11.2",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^11.2.7",
