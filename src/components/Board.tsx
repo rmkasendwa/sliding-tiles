@@ -19,8 +19,8 @@ const useStyles = makeStyles(() => ({
     position: 'absolute',
     overflow: 'hidden',
     counterReset: 'tile-number',
-    width: 600,
-    height: 600,
+    width: 1280,
+    height: 1280,
     borderRadius: 4,
   },
 }));
@@ -36,8 +36,8 @@ const Board: React.FC<IBoardProps> = () => {
   }>({
     dimensions: [2, 2],
   });
-  const [width, setWidth] = useState(600);
-  const [height, setHeight] = useState(600);
+  const [width, setWidth] = useState(1280);
+  const [height, setHeight] = useState(1280);
   const [winningTileConfig, setWinningTileConfig] = useState<ISlot[]>([]);
   const [tiles, setTiles] = useState<ITile[]>([]);
   const [scaleFactor, setScaleFactor] = useState(1);
@@ -52,7 +52,7 @@ const Board: React.FC<IBoardProps> = () => {
   const reset = () => {
     const tileDimensions = getTileDimensions();
     const tileBackgroundImage = `url(${frog})`;
-    const tileBackgroundSize = `600px auto`;
+    const tileBackgroundSize = `1280px auto`;
     const tiles = Array.from({
       length: grid.dimensions[0] * grid.dimensions[1],
     }).map((a, index): ITile => {
@@ -95,8 +95,8 @@ const Board: React.FC<IBoardProps> = () => {
             offsetHeight: boardParentHeight,
             offsetWidth: boardParentWidth,
           } = parentElement;
-          const heightScaleFactor = boardParentHeight / (boardHeight + 50);
-          const widthScaleFactor = boardParentWidth / (boardWidth + 50);
+          const heightScaleFactor = boardParentHeight / (boardHeight + 120);
+          const widthScaleFactor = boardParentWidth / (boardWidth + 120);
           if (heightScaleFactor < 1 || widthScaleFactor < 1) {
             setScaleFactor(
               heightScaleFactor < widthScaleFactor
@@ -114,6 +114,7 @@ const Board: React.FC<IBoardProps> = () => {
     };
     window.addEventListener('resize', resizeCallback);
     window.addEventListener('keyup', keyupCallback);
+    resizeCallback();
     return () => {
       window.removeEventListener('resize', resizeCallback);
       window.removeEventListener('keyup', keyupCallback);
