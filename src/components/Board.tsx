@@ -34,10 +34,11 @@ const moveTile = (
 } => {
   const [emptySlotX, emptySlotY] = emptySlot;
   const [movableX, movableY] = movableSlot;
-  tileGrid[emptySlotX][emptySlotY] = tileGrid[movableX][movableY];
   tileGrid[emptySlotX][emptySlotY].slot = tileGrid[movableX][movableY].slot;
-  tileGrid[movableX][movableY] = tileGrid[emptySlotX][emptySlotY];
   tileGrid[movableX][movableY].slot = emptySlot;
+  const placeholderTile = tileGrid[emptySlotX][emptySlotY];
+  tileGrid[emptySlotX][emptySlotY] = tileGrid[movableX][movableY];
+  tileGrid[movableX][movableY] = placeholderTile;
   return {
     emptySlot: movableSlot,
   };
@@ -115,7 +116,6 @@ const generateTileGrid = ({
     emptySlot,
     movableSlots,
   } = randomizeTileGrid(tileGrid, randomizationMoves);
-  console.log(JSON.stringify(randomizedTileGrid, null, 2));
   return {
     tileGrid: randomizedTileGrid,
     emptySlot,
@@ -141,13 +141,22 @@ const Board: React.FC<IBoardProps> = () => {
   const boardRef = useRef<HTMLDivElement>(null);
   const [width] = useState(BASE_DIMENSION);
   const [height, setHeight] = useState(BASE_DIMENSION);
-  const [tileGrid, setTileGrid] = useState<ITileGrid | null>(null);
-  const [emptySlot, setEmptySlot] = useState<ISlot | null>(null);
+  const [tileGrid, setTileGrid] = useState<ITileGrid>([]);
+  const [emptySlot, setEmptySlot] = useState<ISlot>([0, 0]);
   const [movableSlots, setMovableSlots] = useState<string[]>([]);
   const [scaleFactor, setScaleFactor] = useState(1);
 
   const handleClickTile = (slot: ISlot) => {
     console.log(slot);
+    const { emptySlot: newEmptySlot } = moveTile(tileGrid, emptySlot, slot);
+    setEmptySlot(newEmptySlot);
+    setMovableSlots(
+      getMovableSlots(emptySlot, [
+        tileGrid[0].length - 1,
+        tileGrid.length - 1,
+      ]).map((slot): string => slot.join())
+    );
+    setTileGrid([...tileGrid]);
   };
 
   useEffect(() => {
@@ -221,8 +230,8 @@ const Board: React.FC<IBoardProps> = () => {
             });
           })
           .flat()
-          .map((tile, index) => (
-            <Tile {...tile} key={index} onClick={handleClickTile} />
+          .map((tile) => (
+            <Tile {...tile} key={tile.position} onClick={handleClickTile} />
           ))}
     </div>
   );
