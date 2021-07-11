@@ -10,20 +10,21 @@ type ITileGrid = ITile[][];
 const BASE_DIMENSION = 1280;
 const BASE_IMAGE = frog;
 
-const getMovableSlot = (
+const getMovableSlots = (
   [emptyX, emptyY]: ISlot,
   [maxX, maxY]: ISlot
 ): ISlot[] => {
-  const neibouringSlots: ISlot[] = [
+  const closest: ISlot[] = [
     [emptyX - 1, emptyY],
     [emptyX + 1, emptyY],
     [emptyX, emptyY - 1],
     [emptyX, emptyY + 1],
   ];
-  return neibouringSlots.filter(([x, y]) => {
+  return closest.filter(([x, y]) => {
     return x >= 0 && x <= maxX && y >= 0 && y <= maxY;
   });
 };
+
 const randomizeTileGrid = (
   tileGrid: ITileGrid,
   randomizationMoves: number
@@ -36,20 +37,18 @@ const randomizeTileGrid = (
   const maxSlot: ISlot = [tileGrid[0].length - 1, tileGrid.length - 1];
   let emptySlot: ISlot = [...maxSlot];
   for (let i = 0; i < randomizationMoves; i++) {
-    const movableSlots: ISlot[] = getMovableSlot(emptySlot, maxSlot);
+    const movableSlots: ISlot[] = getMovableSlots(emptySlot, maxSlot);
     const [emptySlotX, emptySlotY] = emptySlot;
-    const [movedSlotX, movedSlotY] =
+    const slotInTransit =
       movableSlots[Math.floor(Math.random() * movableSlots.length)];
-    // throw 1;
-    const movedTile = tileGrid[movedSlotX][movedSlotY];
-    const prevEmptySlot = emptySlot;
-    emptySlot = movedTile.slot;
-    movedTile.slot = prevEmptySlot;
+    const [transitX, transitY] = slotInTransit;
     if (lastTile) {
-      if (emptySlotX !== movedSlotX || emptySlotY !== movedSlotY) {
-        tileGrid[emptySlotX][emptySlotY] = movedTile;
-        tileGrid[movedSlotX][movedSlotY] = lastTile;
-      }
+      const tileInTransit = tileGrid[transitX][transitY];
+      tileGrid[emptySlotX][emptySlotY] = tileInTransit;
+      tileGrid[transitX][transitY] = lastTile;
+
+      tileInTransit.slot = emptySlot;
+      emptySlot = slotInTransit;
     }
   }
   return {
@@ -57,6 +56,7 @@ const randomizeTileGrid = (
     emptySlot,
   };
 };
+
 const generateTileGrid = ({
   width,
   height,
@@ -78,8 +78,9 @@ const generateTileGrid = ({
   const tileGrid: ITileGrid = Array.from({ length: rowCount }).map(
     (a, rowIndex) => {
       return Array.from({ length: columnCount }).map((a, columnIndex) => {
-        const x = columnIndex * tileDimensions.width;
-        const y = rowIndex * tileDimensions.height;
+        const { width, height } = tileDimensions;
+        const x = columnIndex * width;
+        const y = rowIndex * height;
         return {
           slot: [columnIndex, rowIndex],
           dimensions: tileDimensions,
@@ -123,8 +124,11 @@ const Board: React.FC<IBoardProps> = () => {
   const boardRef = useRef<HTMLDivElement>(null);
   const [width] = useState(BASE_DIMENSION);
   const [height, setHeight] = useState(BASE_DIMENSION);
-  const [tileGrid, setGrid] = useState<ITileGrid | null>(null);
+  const [tileGrid, setTileGrid] = useState<ITileGrid | null>(null);
+  const [emptySlot, setEmptySlot] = useState<ISlot | null>(null);
   const [scaleFactor, setScaleFactor] = useState(1);
+
+  const handleClickTile = () => {};
 
   useEffect(() => {
     const image = new Image();
@@ -137,7 +141,7 @@ const Board: React.FC<IBoardProps> = () => {
         dimensions: [3, 3],
         image: BASE_IMAGE,
       });
-      setGrid(tileGrid);
+      setTileGrid(tileGrid);
     };
     image.src = BASE_IMAGE;
     const resizeCallback = () => {
