@@ -1,8 +1,10 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { ITile } from '../interfaces';
+import { ISlot, ITile } from '../interfaces';
 
-interface ITileProps extends ITile {}
+interface ITileProps extends ITile {
+  onClick: (slot: ISlot) => void;
+}
 
 const useStyles = makeStyles(() => ({
   tile: {
@@ -43,7 +45,14 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const Tile: React.FC<ITileProps> = ({ background, dimensions, type, slot }) => {
+const Tile: React.FC<ITileProps> = ({
+  background,
+  dimensions,
+  type,
+  slot,
+  onClick,
+  isLocked,
+}) => {
   const classes = useStyles();
   const classList = [classes.tile];
   const style = {
@@ -52,7 +61,6 @@ const Tile: React.FC<ITileProps> = ({ background, dimensions, type, slot }) => {
     left: slot[0] * dimensions.width,
     top: slot[1] * dimensions.height,
   };
-
   switch (type) {
     case 'PLACEHOLDER':
       break;
@@ -76,7 +84,17 @@ const Tile: React.FC<ITileProps> = ({ background, dimensions, type, slot }) => {
     if (type === 'MOVE_HINT') classList.push(classes.moveHint);
   }
 
-  return <div className={classList.join(' ')} style={style}></div>;
+  const handleClick = () => {
+    isLocked || onClick(slot);
+  };
+
+  return (
+    <div
+      onClick={handleClick}
+      className={classList.join(' ')}
+      style={style}
+    ></div>
+  );
 };
 
 export default Tile;

@@ -1,6 +1,8 @@
 export type ISlot = [number, number];
 export interface ITile {
   slot: ISlot;
+  position: number;
+  isLocked?: boolean;
   type?: 'PLACEHOLDER' | 'MOVE_HINT' | 'SLOT_HINT';
   dimensions: { width: number; height: number };
   background: {
