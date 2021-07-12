@@ -1,108 +1,22 @@
+import Box from '@material-ui/core/Box';
 import { makeStyles } from '@material-ui/core/styles';
+import Typography from '@material-ui/core/Typography';
 import React, { useEffect, useRef, useState } from 'react';
 import frog from '../img/frog.svg';
 import { ISlot, ITileGrid } from '../interfaces';
-import { moveTile } from '../utils/board';
+import {
+  BASE_DIMENSION,
+  generateTileGrid,
+  getMovableSlots,
+  moveTileLogically as moveTile,
+  isTileGridInOrder,
+} from '../utils/board';
 import Tile from './Tile';
 
 interface IBoardProps {}
 
-const BASE_DIMENSION = 1280;
 const BASE_IMAGE = frog;
-
-const getMovableSlots = (
-  [emptyX, emptyY]: ISlot,
-  [maxX, maxY]: ISlot
-): ISlot[] => {
-  const closest: ISlot[] = [
-    [emptyX - 1, emptyY],
-    [emptyX + 1, emptyY],
-    [emptyX, emptyY - 1],
-    [emptyX, emptyY + 1],
-  ];
-  return closest.filter(([x, y]) => {
-    return x >= 0 && x <= maxX && y >= 0 && y <= maxY;
-  });
-};
-
-const randomizeTileGrid = (
-  tileGrid: ITileGrid,
-  randomizationMoves: number
-): {
-  tileGrid: ITileGrid;
-  emptySlot: ISlot;
-  movableSlots: ISlot[];
-} => {
-  const maxSlot: ISlot = [tileGrid[0].length - 1, tileGrid.length - 1];
-  let emptySlot: ISlot = [...maxSlot];
-  let movableSlots: ISlot[] = getMovableSlots(emptySlot, maxSlot);
-  for (let i = 0; i < randomizationMoves; i++) {
-    const { emptySlot: newEmptySlot } = moveTile(
-      tileGrid,
-      emptySlot,
-      movableSlots[Math.floor(Math.random() * movableSlots.length)]
-    );
-    emptySlot = newEmptySlot;
-    movableSlots = getMovableSlots(emptySlot, maxSlot);
-  }
-  return {
-    tileGrid: [...tileGrid],
-    emptySlot,
-    movableSlots,
-  };
-};
-
-const generateTileGrid = ({
-  width,
-  height,
-  dimensions,
-  image,
-}: {
-  width: number;
-  height: number;
-  dimensions: number[];
-  image: string;
-}): { emptySlot: ISlot; tileGrid: ITileGrid; movableSlots: ISlot[] } => {
-  const [columnCount, rowCount] = dimensions;
-  const tileDimensions = {
-    width: width / columnCount,
-    height: height / rowCount,
-  };
-  const tileBackgroundImage = `url(${image})`;
-  const tileBackgroundSize = `${BASE_DIMENSION}px auto`;
-  const tileGrid: ITileGrid = Array.from({ length: rowCount }).map(
-    (a, rowIndex) => {
-      return Array.from({ length: columnCount }).map((a, columnIndex) => {
-        const { width, height } = tileDimensions;
-        const x = columnIndex * width;
-        const y = rowIndex * height;
-        return {
-          slot: [rowIndex, columnIndex],
-          position: rowIndex * rowCount + columnIndex,
-          dimensions: tileDimensions,
-          background: {
-            image: tileBackgroundImage,
-            size: tileBackgroundSize,
-            position: `${-x}px ${-y}px`,
-          },
-        };
-      });
-    }
-  );
-  tileGrid[rowCount - 1][columnCount - 1].type = 'PLACEHOLDER';
-  let randomizationMoves = columnCount * rowCount - 1;
-  randomizationMoves > 3 && (randomizationMoves *= 100);
-  const {
-    tileGrid: randomizedTileGrid,
-    emptySlot,
-    movableSlots,
-  } = randomizeTileGrid(tileGrid, randomizationMoves);
-  return {
-    tileGrid: randomizedTileGrid,
-    emptySlot,
-    movableSlots,
-  };
-};
+const BASE_LEVEL = 1;
 
 const useStyles = makeStyles(() => ({
   board: {
@@ -120,6 +34,9 @@ const Board: React.FC<IBoardProps> = () => {
   const classes = useStyles();
 
   const boardRef = useRef<HTMLDivElement>(null);
+  const [level, setLevel] = useState(BASE_LEVEL);
+  const [isLevelLoaded, setILevelLoaded] = useState(false);
+  const [overlayMessage, setOverlayMessage] = useState('');
   const [width] = useState(BASE_DIMENSION);
   const [height, setHeight] = useState(BASE_DIMENSION);
   const [tileGrid, setTileGrid] = useState<ITileGrid>([]);
@@ -128,14 +45,31 @@ const Board: React.FC<IBoardProps> = () => {
   const [scaleFactor, setScaleFactor] = useState(1);
 
   const handleClickTile = (slot: ISlot) => {
-    const { emptySlot: newEmptySlot } = moveTile(tileGrid, emptySlot, slot);
-    setEmptySlot(newEmptySlot);
-    setMovableSlots(
-      getMovableSlots(newEmptySlot, [
-        tileGrid[0].length - 1,
-        tileGrid.length - 1,
-      ]).map((slot): string => slot.join(''))
-    );
+    moveTile(tileGrid, emptySlot, slot);
+    setEmptySlot(slot);
+    if (isTileGridInOrder(tileGrid)) {
+      setMovableSlots([]);
+      setTimeout(() => {
+        setOverlayMessage(`You've completed level ${level}`);
+        tileGrid.flat().forEach((tile) => {
+          delete tile.type;
+        });
+        setTileGrid([...tileGrid]);
+      }, 400);
+      setTimeout(() => {
+        setLevel((prevLevel) => prevLevel + 1);
+        setTileGrid([]);
+        setILevelLoaded(false);
+        setOverlayMessage('');
+      }, 5000);
+    } else {
+      setMovableSlots(
+        getMovableSlots(slot, [
+          tileGrid[0].length - 1,
+          tileGrid.length - 1,
+        ]).map((slot): string => slot.join(''))
+      );
+    }
     setTileGrid([...tileGrid]);
   };
 
@@ -144,10 +78,12 @@ const Board: React.FC<IBoardProps> = () => {
     image.onload = () => {
       const height = BASE_DIMENSION / (image.width / image.height);
       setHeight(height);
+      let x = level + 2;
+      let y = level + 2;
       const { tileGrid, emptySlot, movableSlots } = generateTileGrid({
         width,
         height,
-        dimensions: [3, 3],
+        dimensions: [x, y],
         image: BASE_IMAGE,
       });
       setTileGrid(tileGrid);
@@ -191,7 +127,22 @@ const Board: React.FC<IBoardProps> = () => {
       window.removeEventListener('resize', resizeCallback);
       window.removeEventListener('keyup', keyupCallback);
     };
-  }, [width]);
+  }, [width, level]);
+
+  useEffect(() => {
+    if (!isLevelLoaded) {
+      if (tileGrid.length > 0) {
+        setOverlayMessage(`Level ${level}`);
+        const timeout = setTimeout(() => {
+          setOverlayMessage('');
+          setILevelLoaded(true);
+        }, 3000);
+        return () => clearTimeout(timeout);
+      } else {
+        setOverlayMessage(`Loading level ${level}...`);
+      }
+    }
+  }, [level, tileGrid, isLevelLoaded]);
 
   return (
     <div
@@ -200,19 +151,28 @@ const Board: React.FC<IBoardProps> = () => {
       style={{ transform: `scale(${scaleFactor})`, width, height }}
     >
       {tileGrid &&
-        tileGrid
-          .map((tileRow, rowIndex) => {
-            return tileRow.map((tile, columnIndex) => {
-              tile.isLocked = !movableSlots.includes(
-                `${rowIndex}${columnIndex}`
-              );
-              return tile;
-            });
-          })
-          .flat()
-          .map((tile) => (
+        tileGrid.flat().map((tile) => {
+          const [x, y] = tile.slot;
+          tile.isLocked = !movableSlots.includes(`${x}${y}`);
+          return (
             <Tile {...tile} key={tile.position} onClick={handleClickTile} />
-          ))}
+          );
+        })}
+      {overlayMessage && (
+        <Box
+          display="flex"
+          position="absolute"
+          width="100%"
+          height="100%"
+          zIndex={9999}
+          alignItems="center"
+          justifyContent="center"
+          bgcolor="rgba(0,0,0,.7)"
+          color="#fff"
+        >
+          <Typography variant="h1">{overlayMessage}</Typography>
+        </Box>
+      )}
     </div>
   );
 };

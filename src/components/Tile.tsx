@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { CSSProperties } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { ISlot, ITile } from '../interfaces';
 
@@ -12,7 +12,7 @@ const useStyles = makeStyles(() => ({
     backgroundRepeat: 'no-repeat',
     position: 'absolute',
     borderRadius: '6px',
-    transition: 'left .3s, top .3s',
+    transition: 'left .2s, top .2s',
     '&:before': {
       display: 'none',
       counterIncrement: 'tile-number',
@@ -55,11 +55,12 @@ const Tile: React.FC<ITileProps> = ({
 }) => {
   const classes = useStyles();
   const classList = [classes.tile];
-  const style = {
+  const style: CSSProperties = {
     width: dimensions.width,
     height: dimensions.height,
     top: slot[0] * dimensions.width,
     left: slot[1] * dimensions.height,
+    zIndex: slot[0],
   };
   switch (type) {
     case 'PLACEHOLDER':
