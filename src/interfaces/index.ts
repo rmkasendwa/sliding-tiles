@@ -11,3 +11,4 @@ export interface ITile {
     position: string;
   };
 }
+export type ITileGrid = ITile[][];

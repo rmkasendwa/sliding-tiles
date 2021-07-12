@@ -1,11 +1,11 @@
 import { makeStyles } from '@material-ui/core/styles';
 import React, { useEffect, useRef, useState } from 'react';
 import frog from '../img/frog.svg';
-import { ISlot, ITile } from '../interfaces';
+import { ISlot, ITileGrid } from '../interfaces';
+import { moveTile } from '../utils/board';
 import Tile from './Tile';
 
 interface IBoardProps {}
-type ITileGrid = ITile[][];
 
 const BASE_DIMENSION = 1280;
 const BASE_IMAGE = frog;
@@ -23,25 +23,6 @@ const getMovableSlots = (
   return closest.filter(([x, y]) => {
     return x >= 0 && x <= maxX && y >= 0 && y <= maxY;
   });
-};
-
-const moveTile = (
-  tileGrid: ITileGrid,
-  emptySlot: ISlot,
-  movableSlot: ISlot
-): {
-  emptySlot: ISlot;
-} => {
-  const [emptySlotX, emptySlotY] = emptySlot;
-  const [movableX, movableY] = movableSlot;
-  tileGrid[emptySlotX][emptySlotY].slot = movableSlot;
-  tileGrid[movableX][movableY].slot = emptySlot;
-  const placeholderTile = tileGrid[emptySlotX][emptySlotY];
-  tileGrid[emptySlotX][emptySlotY] = tileGrid[movableX][movableY];
-  tileGrid[movableX][movableY] = placeholderTile;
-  return {
-    emptySlot: movableSlot,
-  };
 };
 
 const randomizeTileGrid = (
