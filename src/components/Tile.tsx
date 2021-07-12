@@ -58,8 +58,8 @@ const Tile: React.FC<ITileProps> = ({
   const style = {
     width: dimensions.width,
     height: dimensions.height,
-    left: slot[0] * dimensions.width,
-    top: slot[1] * dimensions.height,
+    top: slot[0] * dimensions.width,
+    left: slot[1] * dimensions.height,
   };
   switch (type) {
     case 'PLACEHOLDER':

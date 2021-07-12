@@ -34,7 +34,7 @@ const moveTile = (
 } => {
   const [emptySlotX, emptySlotY] = emptySlot;
   const [movableX, movableY] = movableSlot;
-  tileGrid[emptySlotX][emptySlotY].slot = tileGrid[movableX][movableY].slot;
+  tileGrid[emptySlotX][emptySlotY].slot = movableSlot;
   tileGrid[movableX][movableY].slot = emptySlot;
   const placeholderTile = tileGrid[emptySlotX][emptySlotY];
   tileGrid[emptySlotX][emptySlotY] = tileGrid[movableX][movableY];
@@ -96,7 +96,7 @@ const generateTileGrid = ({
         const x = columnIndex * width;
         const y = rowIndex * height;
         return {
-          slot: [columnIndex, rowIndex],
+          slot: [rowIndex, columnIndex],
           position: rowIndex * rowCount + columnIndex,
           dimensions: tileDimensions,
           background: {
@@ -147,14 +147,13 @@ const Board: React.FC<IBoardProps> = () => {
   const [scaleFactor, setScaleFactor] = useState(1);
 
   const handleClickTile = (slot: ISlot) => {
-    console.log(slot);
     const { emptySlot: newEmptySlot } = moveTile(tileGrid, emptySlot, slot);
     setEmptySlot(newEmptySlot);
     setMovableSlots(
-      getMovableSlots(emptySlot, [
+      getMovableSlots(newEmptySlot, [
         tileGrid[0].length - 1,
         tileGrid.length - 1,
-      ]).map((slot): string => slot.join())
+      ]).map((slot): string => slot.join(''))
     );
     setTileGrid([...tileGrid]);
   };
@@ -224,7 +223,7 @@ const Board: React.FC<IBoardProps> = () => {
           .map((tileRow, rowIndex) => {
             return tileRow.map((tile, columnIndex) => {
               tile.isLocked = !movableSlots.includes(
-                `${columnIndex}${rowIndex}`
+                `${rowIndex}${columnIndex}`
               );
               return tile;
             });
