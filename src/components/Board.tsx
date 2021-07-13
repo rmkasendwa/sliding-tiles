@@ -1,7 +1,7 @@
 import Box from '@material-ui/core/Box';
 import { makeStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import frog from '../img/frog.svg';
 import { ISlot, ITileGrid } from '../interfaces';
 import {
@@ -47,42 +47,49 @@ const Board: React.FC<IBoardProps> = () => {
   const [movableSlots, setMovableSlots] = useState<string[]>([]);
   const [scaleFactor, setScaleFactor] = useState(1);
 
-  const handleClickTile = (slot: ISlot) => {
-    moveTile(tileGrid, emptySlot, slot);
-    setEmptySlot(slot);
-    if (isTileGridInOrder(tileGrid)) {
-      setMovableSlots([]);
-      setTimeout(() => {
-        setOverlayMessage(`You've completed level ${level}`);
-        tileGrid.flat().forEach((tile) => {
-          delete tile.type;
-        });
-        setTileGrid([...tileGrid]);
-      }, 400);
-      setTimeout(() => {
-        setLevel((prevLevel) => prevLevel + 1);
-        setTileGridDimensions(([x, y]) => {
-          if (y >= x) {
-            x++;
-          } else {
-            y++;
-          }
-          return [x, y];
-        });
-        setTileGrid([]);
-        setILevelLoaded(false);
-        setOverlayMessage('');
-      }, 5000);
-    } else {
-      setMovableSlots(
-        getMovableSlots(slot, [
-          tileGrid.length - 1,
-          tileGrid[0].length - 1,
-        ]).map((slot): string => slot.join(''))
-      );
-    }
-    setTileGrid([...tileGrid]);
-  };
+  const nextLevel = useCallback(() => {
+    setMovableSlots([]);
+    setTimeout(() => {
+      setOverlayMessage(`You've completed level ${level}`);
+      tileGrid.flat().forEach((tile) => {
+        delete tile.type;
+      });
+      setTileGrid([...tileGrid]);
+    }, 400);
+    setTimeout(() => {
+      setLevel((prevLevel) => prevLevel + 1);
+      setTileGridDimensions(([x, y]) => {
+        if (y >= x) {
+          x++;
+        } else {
+          y++;
+        }
+        return [x, y];
+      });
+      setTileGrid([]);
+      setILevelLoaded(false);
+      setOverlayMessage('');
+    }, 5000);
+  }, [level, tileGrid]);
+
+  const handleTileMoveRequest = useCallback(
+    (slot: ISlot) => {
+      moveTile(tileGrid, emptySlot, slot);
+      setEmptySlot(slot);
+      if (isTileGridInOrder(tileGrid)) {
+        nextLevel();
+      } else {
+        setMovableSlots(
+          getMovableSlots(slot, [
+            tileGrid.length - 1,
+            tileGrid[0].length - 1,
+          ]).map((slot): string => slot.join(''))
+        );
+      }
+      setTileGrid([...tileGrid]);
+    },
+    [emptySlot, nextLevel, tileGrid]
+  );
 
   useEffect(() => {
     const image = new Image();
@@ -102,6 +109,9 @@ const Board: React.FC<IBoardProps> = () => {
       );
     };
     image.src = BASE_IMAGE;
+  }, [width, tileGridDimensions]);
+
+  useEffect(() => {
     const resizeCallback = () => {
       if (boardRef.current) {
         const { offsetHeight: boardHeight, offsetWidth: boardWidth } =
@@ -126,17 +136,43 @@ const Board: React.FC<IBoardProps> = () => {
         }
       }
     };
-    const keyupCallback = () => {
-      // Navigate
-    };
     window.addEventListener('resize', resizeCallback);
-    window.addEventListener('keyup', keyupCallback);
     resizeCallback();
     return () => {
       window.removeEventListener('resize', resizeCallback);
-      window.removeEventListener('keyup', keyupCallback);
     };
-  }, [width, tileGridDimensions]);
+  }, []);
+
+  useEffect(() => {
+    if (isLevelLoaded) {
+      const keyupCallback = (event: KeyboardEvent) => {
+        const [x, y] = emptySlot;
+        const slotToMove: ISlot = ((): ISlot => {
+          switch (event.key) {
+            case 'ArrowUp':
+            case 'w':
+              return [x + 1, y];
+            case 'ArrowRight':
+            case 'd':
+              return [x, y - 1];
+            case 'ArrowDown':
+            case 's':
+              return [x - 1, y];
+            case 'ArrowLeft':
+            case 'a':
+              return [x, y + 1];
+          }
+          return emptySlot;
+        })();
+        movableSlots.includes(slotToMove.join('')) &&
+          handleTileMoveRequest(slotToMove);
+      };
+      window.addEventListener('keyup', keyupCallback);
+      return () => {
+        window.removeEventListener('keyup', keyupCallback);
+      };
+    }
+  }, [emptySlot, movableSlots, handleTileMoveRequest, isLevelLoaded]);
 
   useEffect(() => {
     if (!isLevelLoaded) {
@@ -164,7 +200,11 @@ const Board: React.FC<IBoardProps> = () => {
           const [x, y] = tile.slot;
           tile.isLocked = !movableSlots.includes(`${x}${y}`);
           return (
-            <Tile {...tile} key={tile.position} onClick={handleClickTile} />
+            <Tile
+              {...tile}
+              key={tile.position}
+              onClick={handleTileMoveRequest}
+            />
           );
         })}
       {overlayMessage && (
