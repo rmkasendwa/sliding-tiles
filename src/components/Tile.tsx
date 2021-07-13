@@ -13,6 +13,7 @@ const useStyles = makeStyles(() => ({
     position: 'absolute',
     borderRadius: '6px',
     transition: 'left .2s, top .2s',
+    willChange: 'top, left, z-index',
     '&:before': {
       display: 'none',
       counterIncrement: 'tile-number',
@@ -58,8 +59,8 @@ const Tile: React.FC<ITileProps> = ({
   const style: CSSProperties = {
     width: dimensions.width,
     height: dimensions.height,
-    top: slot[0] * dimensions.width,
-    left: slot[1] * dimensions.height,
+    top: slot[0] * dimensions.height,
+    left: slot[1] * dimensions.width,
     zIndex: slot[0],
   };
   switch (type) {

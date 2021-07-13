@@ -17,6 +17,7 @@ interface IBoardProps {}
 
 const BASE_IMAGE = frog;
 const BASE_LEVEL = 1;
+const BASE_GRID_DIMENSIONS: ISlot = [3, 2];
 
 const useStyles = makeStyles(() => ({
   board: {
@@ -35,6 +36,8 @@ const Board: React.FC<IBoardProps> = () => {
 
   const boardRef = useRef<HTMLDivElement>(null);
   const [level, setLevel] = useState(BASE_LEVEL);
+  const [tileGridDimensions, setTileGridDimensions] =
+    useState<ISlot>(BASE_GRID_DIMENSIONS);
   const [isLevelLoaded, setILevelLoaded] = useState(false);
   const [overlayMessage, setOverlayMessage] = useState('');
   const [width] = useState(BASE_DIMENSION);
@@ -58,6 +61,14 @@ const Board: React.FC<IBoardProps> = () => {
       }, 400);
       setTimeout(() => {
         setLevel((prevLevel) => prevLevel + 1);
+        setTileGridDimensions(([x, y]) => {
+          if (y >= x) {
+            x++;
+          } else {
+            y++;
+          }
+          return [x, y];
+        });
         setTileGrid([]);
         setILevelLoaded(false);
         setOverlayMessage('');
@@ -65,8 +76,8 @@ const Board: React.FC<IBoardProps> = () => {
     } else {
       setMovableSlots(
         getMovableSlots(slot, [
-          tileGrid[0].length - 1,
           tileGrid.length - 1,
+          tileGrid[0].length - 1,
         ]).map((slot): string => slot.join(''))
       );
     }
@@ -78,12 +89,10 @@ const Board: React.FC<IBoardProps> = () => {
     image.onload = () => {
       const height = BASE_DIMENSION / (image.width / image.height);
       setHeight(height);
-      let x = level + 2;
-      let y = level + 2;
       const { tileGrid, emptySlot, movableSlots } = generateTileGrid({
         width,
         height,
-        dimensions: [x, y],
+        dimensions: tileGridDimensions,
         image: BASE_IMAGE,
       });
       setTileGrid(tileGrid);
@@ -127,7 +136,7 @@ const Board: React.FC<IBoardProps> = () => {
       window.removeEventListener('resize', resizeCallback);
       window.removeEventListener('keyup', keyupCallback);
     };
-  }, [width, level]);
+  }, [width, tileGridDimensions]);
 
   useEffect(() => {
     if (!isLevelLoaded) {

@@ -51,7 +51,8 @@ export const randomizeTileGrid = (
   emptySlot: ISlot;
   movableSlots: ISlot[];
 } => {
-  const maxSlot: ISlot = [tileGrid[0].length - 1, tileGrid.length - 1];
+  const maxSlot: ISlot =
+    tileGrid[tileGrid.length - 1][tileGrid[0].length - 1].slot;
   let emptySlot: ISlot = [...maxSlot];
   let movableSlots: ISlot[] = getMovableSlots(emptySlot, maxSlot);
   for (let i = 0; i < randomizationMoves; i++) {
@@ -96,7 +97,7 @@ export const generateTileGrid = ({
         const y = rowIndex * height;
         return {
           slot: [rowIndex, columnIndex],
-          position: rowIndex * rowCount + columnIndex,
+          position: rowIndex * columnCount + columnIndex,
           dimensions: tileDimensions,
           background: {
             image: tileBackgroundImage,
