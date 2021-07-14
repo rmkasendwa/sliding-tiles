@@ -2,15 +2,18 @@ import Box from '@material-ui/core/Box';
 import { makeStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useContext } from 'react';
+import { AudioContext } from '../contexts';
 import frog from '../img/frog.svg';
 import { ISlot, ITileGrid } from '../interfaces';
 import {
   BASE_DIMENSION,
   generateTileGrid,
   getMovableSlots,
-  moveTileLogically as moveTile,
   isTileGridInOrder,
+  moveTileLogically as moveTile,
 } from '../utils/board';
+import SoundBox from './SoundBox';
 import Tile from './Tile';
 
 interface IBoardProps {}
@@ -34,7 +37,9 @@ const useStyles = makeStyles(() => ({
 const Board: React.FC<IBoardProps> = () => {
   const classes = useStyles();
 
+  const { moveTile: playMoveTileSound } = useContext(AudioContext);
   const boardRef = useRef<HTMLDivElement>(null);
+
   const [level, setLevel] = useState(BASE_LEVEL);
   const [tileGridDimensions, setTileGridDimensions] =
     useState<ISlot>(BASE_GRID_DIMENSIONS);
@@ -76,6 +81,7 @@ const Board: React.FC<IBoardProps> = () => {
     (slot: ISlot) => {
       moveTile(tileGrid, emptySlot, slot);
       setEmptySlot(slot);
+      playMoveTileSound();
       if (isTileGridInOrder(tileGrid)) {
         nextLevel();
       } else {
@@ -88,7 +94,7 @@ const Board: React.FC<IBoardProps> = () => {
       }
       setTileGrid([...tileGrid]);
     },
-    [emptySlot, nextLevel, tileGrid]
+    [emptySlot, nextLevel, tileGrid, playMoveTileSound]
   );
 
   const handleTilePositionHintRequest = useCallback(
@@ -278,6 +284,7 @@ const Board: React.FC<IBoardProps> = () => {
           <Typography variant="h1">{overlayMessage}</Typography>
         </Box>
       )}
+      <SoundBox />
     </div>
   );
 };

@@ -5,6 +5,7 @@ import {
   createMuiTheme,
   makeStyles,
 } from '@material-ui/core/styles';
+import { AudioProvider } from './contexts';
 
 interface IAppProps {}
 
@@ -65,7 +66,9 @@ const App: React.FC<IAppProps> = () => {
   return (
     <ThemeProvider theme={theme}>
       <div className={classes.app}>
-        <Board />
+        <AudioProvider>
+          <Board />
+        </AudioProvider>
       </div>
     </ThemeProvider>
   );
