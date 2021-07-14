@@ -3,7 +3,7 @@ import React, { CSSProperties, useEffect, useRef } from 'react';
 import { ISlot, ITile } from '../interfaces';
 
 interface ITileProps extends ITile {
-  onClick: (slot: ISlot) => void;
+  onMoveRequest: (slot: ISlot) => void;
   onPositionHintRequest: (position: number, slot: ISlot) => Function | void;
 }
 
@@ -54,11 +54,13 @@ const Tile: React.FC<ITileProps> = ({
   dimensions,
   type,
   slot,
-  onClick,
+  slotHint,
+  onMoveRequest,
   isLocked,
   position,
   onPositionHintRequest,
 }) => {
+  slotHint && (slot = slotHint);
   const classes = useStyles();
   const classList = [classes.tile];
   const style: CSSProperties = {
@@ -77,7 +79,7 @@ const Tile: React.FC<ITileProps> = ({
       classList.push(classes.slotHint);
       break;
   }
-  if (!type || type === 'MOVE_HINT') {
+  if (!type || type === 'MOVE_HINT' || slotHint) {
     Object.assign(style, {
       backgroundImage: background.image,
       backgroundSize: background.size,
@@ -99,11 +101,11 @@ const Tile: React.FC<ITileProps> = ({
   const tileRef = useRef<HTMLDivElement>(null);
 
   const handleClick = () => {
-    isLocked || onClick(slot);
+    isLocked || onMoveRequest(slot);
   };
 
   useEffect(() => {
-    if (navigator && navigator.maxTouchPoints === 0 && tileRef.current) {
+    if (navigator?.maxTouchPoints === 0 && tileRef.current) {
       const tileNode = tileRef.current;
       const mouseDownEventCallback = (event: MouseEvent) => {
         if (event.button === 2) {

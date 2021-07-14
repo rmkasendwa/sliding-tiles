@@ -166,6 +166,39 @@ const Board: React.FC<IBoardProps> = () => {
   }, []);
 
   useEffect(() => {
+    if (boardRef.current) {
+      const boardNode = boardRef.current;
+      const mouseDownEventCallback = (event: MouseEvent) => {
+        if (event.button === 0) {
+          let exitBoardHint: Function | undefined;
+          const hintTimeout = setTimeout(() => {
+            tileGrid.forEach((row, rowIndex) => {
+              row.forEach((tile, columnIndex) => {
+                tile.slotHint = [rowIndex, columnIndex];
+              });
+            });
+            setTileGrid([...tileGrid]);
+            exitBoardHint = () => {
+              tileGrid.flat().forEach((tile) => delete tile.slotHint);
+              setTileGrid([...tileGrid]);
+            };
+          }, 500);
+          const mouseUpEventCallback = () => {
+            clearTimeout(hintTimeout);
+            typeof exitBoardHint === 'function' && exitBoardHint();
+            window.removeEventListener('mouseup', mouseUpEventCallback);
+          };
+          window.addEventListener('mouseup', mouseUpEventCallback);
+        }
+      };
+      boardNode.addEventListener('mousedown', mouseDownEventCallback);
+      return () => {
+        boardNode.removeEventListener('mousedown', mouseDownEventCallback);
+      };
+    }
+  }, [tileGrid]);
+
+  useEffect(() => {
     if (isLevelLoaded) {
       const keyupCallback = (event: KeyboardEvent) => {
         const [x, y] = emptySlot;
@@ -225,7 +258,7 @@ const Board: React.FC<IBoardProps> = () => {
             <Tile
               {...tile}
               key={tile.position}
-              onClick={handleTileMoveRequest}
+              onMoveRequest={handleTileMoveRequest}
               onPositionHintRequest={handleTilePositionHintRequest}
             />
           );
