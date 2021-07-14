@@ -1,9 +1,10 @@
-import React, { CSSProperties } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import React, { CSSProperties, useEffect, useRef } from 'react';
 import { ISlot, ITile } from '../interfaces';
 
 interface ITileProps extends ITile {
   onClick: (slot: ISlot) => void;
+  onPositionHintRequest: (position: number, slot: ISlot) => Function | void;
 }
 
 const useStyles = makeStyles(() => ({
@@ -29,15 +30,17 @@ const useStyles = makeStyles(() => ({
       0px 0px 10px #0f0,
       0px 0px 10px #0f0 inset
     `,
-    zIndex: 999,
+    zIndex: 99,
   },
   slotHint: {
     border: '4px solid transparent',
+    boxSizing: 'border-box',
     background: `
       linear-gradient(#ccc, #ccc) padding-box,
       repeating-linear-gradient(-45deg, #333 0, #333 25%, transparent 0, transparent 50%) 0 / .6em .6em
     `,
     animation: '$ants 12s linear infinite',
+    zIndex: 100,
   },
   '@keyframes ants': {
     to: {
@@ -53,6 +56,8 @@ const Tile: React.FC<ITileProps> = ({
   slot,
   onClick,
   isLocked,
+  position,
+  onPositionHintRequest,
 }) => {
   const classes = useStyles();
   const classList = [classes.tile];
@@ -61,8 +66,10 @@ const Tile: React.FC<ITileProps> = ({
     height: dimensions.height,
     top: slot[0] * dimensions.height,
     left: slot[1] * dimensions.width,
-    zIndex: slot[0],
   };
+  if (!['SLOT_HINT', 'MOVE_HINT'].includes(type || '')) {
+    style.zIndex = slot[0];
+  }
   switch (type) {
     case 'PLACEHOLDER':
       break;
@@ -75,23 +82,54 @@ const Tile: React.FC<ITileProps> = ({
       backgroundImage: background.image,
       backgroundSize: background.size,
       backgroundPosition: background.position,
-      boxShadow: `
+    });
+    if (type === 'MOVE_HINT') {
+      classList.push(classes.moveHint);
+    } else {
+      style.boxShadow = `
         0 -3px 3px -3px #333 inset,
         0 0 3px -1px #333 inset,
         0 3px 5px -3px #fff inset,
         0 -1px 3px -4px #fff inset,
         0 20px 20px -10px rgba(0, 0, 0, 0.5)
-      `,
-    });
-    if (type === 'MOVE_HINT') classList.push(classes.moveHint);
+      `;
+    }
   }
+
+  const tileRef = useRef<HTMLDivElement>(null);
 
   const handleClick = () => {
     isLocked || onClick(slot);
   };
 
+  useEffect(() => {
+    if (navigator && navigator.maxTouchPoints === 0 && tileRef.current) {
+      const tileNode = tileRef.current;
+      const mouseEnterEventCallback = () => {
+        let exitPositionHint: Function | void | undefined;
+        const directionHintTimeout = setTimeout(() => {
+          exitPositionHint = onPositionHintRequest(position, slot);
+        }, 2000);
+        const mouseOutEventCallback = () => {
+          clearTimeout(directionHintTimeout);
+          tileRef?.current?.removeEventListener(
+            'mouseout',
+            mouseOutEventCallback
+          );
+          typeof exitPositionHint === 'function' && exitPositionHint();
+        };
+        tileRef?.current?.addEventListener('mouseout', mouseOutEventCallback);
+      };
+      tileNode.addEventListener('mouseenter', mouseEnterEventCallback);
+      return () => {
+        tileNode.removeEventListener('mouseenter', mouseEnterEventCallback);
+      };
+    }
+  }, [slot, position, onPositionHintRequest]);
+
   return (
     <div
+      ref={tileRef}
       onClick={handleClick}
       className={classList.join(' ')}
       style={style}

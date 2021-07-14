@@ -91,6 +91,28 @@ const Board: React.FC<IBoardProps> = () => {
     [emptySlot, nextLevel, tileGrid]
   );
 
+  const handleTilePositionHintRequest = useCallback(
+    (position: number, slot: ISlot): Function | void => {
+      const requestingTile = tileGrid.flat()[position];
+      const slotTile = tileGrid[slot[0]][slot[1]];
+      if (requestingTile !== slotTile) {
+        const { type: requestingTileType } = requestingTile;
+        const { type: slotTileType } = slotTile;
+        requestingTile.type = 'SLOT_HINT';
+        slotTile.type = 'MOVE_HINT';
+        setTileGrid([...tileGrid]);
+        return () => {
+          requestingTileType
+            ? (requestingTile.type = requestingTileType)
+            : delete requestingTile.type;
+          slotTileType ? (slotTile.type = slotTileType) : delete slotTile.type;
+          setTileGrid([...tileGrid]);
+        };
+      }
+    },
+    [tileGrid]
+  );
+
   useEffect(() => {
     const image = new Image();
     image.onload = () => {
@@ -204,6 +226,7 @@ const Board: React.FC<IBoardProps> = () => {
               {...tile}
               key={tile.position}
               onClick={handleTileMoveRequest}
+              onPositionHintRequest={handleTilePositionHintRequest}
             />
           );
         })}
