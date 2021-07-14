@@ -105,24 +105,31 @@ const Tile: React.FC<ITileProps> = ({
   useEffect(() => {
     if (navigator && navigator.maxTouchPoints === 0 && tileRef.current) {
       const tileNode = tileRef.current;
-      const mouseEnterEventCallback = () => {
-        let exitPositionHint: Function | void | undefined;
-        const directionHintTimeout = setTimeout(() => {
-          exitPositionHint = onPositionHintRequest(position, slot);
-        }, 2000);
-        const mouseOutEventCallback = () => {
-          clearTimeout(directionHintTimeout);
-          tileRef?.current?.removeEventListener(
-            'mouseout',
-            mouseOutEventCallback
+      const mouseDownEventCallback = (event: MouseEvent) => {
+        if (event.button === 2) {
+          event.preventDefault();
+          const exitPositionHint: Function | void = onPositionHintRequest(
+            position,
+            slot
           );
-          typeof exitPositionHint === 'function' && exitPositionHint();
-        };
-        tileRef?.current?.addEventListener('mouseout', mouseOutEventCallback);
+          const mouseUpEventCallback = () => {
+            tileRef?.current?.removeEventListener(
+              'mouseup',
+              mouseUpEventCallback
+            );
+            typeof exitPositionHint === 'function' && exitPositionHint();
+          };
+          tileRef?.current?.addEventListener('mouseup', mouseUpEventCallback);
+        }
       };
-      tileNode.addEventListener('mouseenter', mouseEnterEventCallback);
+      const contextmenuEventCallback = (event: MouseEvent) => {
+        event.preventDefault();
+      };
+      tileNode.addEventListener('contextmenu', contextmenuEventCallback);
+      tileNode.addEventListener('mousedown', mouseDownEventCallback);
       return () => {
-        tileNode.removeEventListener('mouseenter', mouseEnterEventCallback);
+        tileNode.removeEventListener('mousedown', mouseDownEventCallback);
+        tileNode.removeEventListener('contextmenu', contextmenuEventCallback);
       };
     }
   }, [slot, position, onPositionHintRequest]);
