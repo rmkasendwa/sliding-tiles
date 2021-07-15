@@ -1,6 +1,7 @@
 import { makeStyles } from '@material-ui/core/styles';
-import React, { CSSProperties, useEffect, useRef } from 'react';
-import { ISlot, ITile } from '../interfaces';
+import React, { CSSProperties, useContext, useEffect, useRef } from 'react';
+import { AudioContext } from '../contexts';
+import { IBoardAudio, ISlot, ITile } from '../interfaces';
 
 interface ITileProps extends ITile {
   onMoveRequest: (slot: ISlot) => void;
@@ -62,6 +63,9 @@ const Tile: React.FC<ITileProps> = ({
 }) => {
   slotHint && (slot = slotHint);
   const classes = useStyles();
+
+  const { wrongMoveRequestTileSound }: IBoardAudio = useContext(AudioContext);
+
   const classList = [classes.tile];
   const style: CSSProperties = {
     width: dimensions.width,
@@ -101,7 +105,13 @@ const Tile: React.FC<ITileProps> = ({
   const tileRef = useRef<HTMLDivElement>(null);
 
   const handleClick = () => {
-    isLocked || onMoveRequest(slot);
+    if (type !== 'PLACEHOLDER') {
+      if (isLocked) {
+        wrongMoveRequestTileSound();
+      } else {
+        onMoveRequest(slot);
+      }
+    }
   };
 
   useEffect(() => {

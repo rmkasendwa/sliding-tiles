@@ -1,4 +1,5 @@
 export type ISlot = [number, number];
+
 export interface ITile {
   slot: ISlot;
   slotHint?: ISlot;
@@ -12,4 +13,10 @@ export interface ITile {
     position: string;
   };
 }
+
 export type ITileGrid = ITile[][];
+
+export interface IBoardAudio {
+  moveTileSound: () => void;
+  wrongMoveRequestTileSound: () => void;
+}

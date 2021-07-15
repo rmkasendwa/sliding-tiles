@@ -1,8 +1,13 @@
 import Box from '@material-ui/core/Box';
 import { makeStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useContext } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { AudioContext } from '../contexts';
 import frog from '../img/frog.svg';
 import { ISlot, ITileGrid } from '../interfaces';
@@ -13,7 +18,6 @@ import {
   isTileGridInOrder,
   moveTileLogically as moveTile,
 } from '../utils/board';
-import SoundBox from './SoundBox';
 import Tile from './Tile';
 
 interface IBoardProps {}
@@ -37,7 +41,7 @@ const useStyles = makeStyles(() => ({
 const Board: React.FC<IBoardProps> = () => {
   const classes = useStyles();
 
-  const { moveTile: playMoveTileSound } = useContext(AudioContext);
+  const { moveTileSound, wrongMoveRequestTileSound } = useContext(AudioContext);
   const boardRef = useRef<HTMLDivElement>(null);
 
   const [level, setLevel] = useState(BASE_LEVEL);
@@ -81,7 +85,7 @@ const Board: React.FC<IBoardProps> = () => {
     (slot: ISlot) => {
       moveTile(tileGrid, emptySlot, slot);
       setEmptySlot(slot);
-      playMoveTileSound();
+      moveTileSound();
       if (isTileGridInOrder(tileGrid)) {
         nextLevel();
       } else {
@@ -94,7 +98,7 @@ const Board: React.FC<IBoardProps> = () => {
       }
       setTileGrid([...tileGrid]);
     },
-    [emptySlot, nextLevel, tileGrid, playMoveTileSound]
+    [emptySlot, nextLevel, tileGrid, moveTileSound]
   );
 
   const handleTilePositionHintRequest = useCallback(
@@ -225,15 +229,24 @@ const Board: React.FC<IBoardProps> = () => {
           }
           return emptySlot;
         })();
-        movableSlots.includes(slotToMove.join('')) &&
+        if (movableSlots.includes(slotToMove.join(''))) {
           handleTileMoveRequest(slotToMove);
+        } else {
+          wrongMoveRequestTileSound();
+        }
       };
       window.addEventListener('keyup', keyupCallback);
       return () => {
         window.removeEventListener('keyup', keyupCallback);
       };
     }
-  }, [emptySlot, movableSlots, handleTileMoveRequest, isLevelLoaded]);
+  }, [
+    emptySlot,
+    movableSlots,
+    handleTileMoveRequest,
+    isLevelLoaded,
+    wrongMoveRequestTileSound,
+  ]);
 
   useEffect(() => {
     if (!isLevelLoaded) {
@@ -284,7 +297,6 @@ const Board: React.FC<IBoardProps> = () => {
           <Typography variant="h1">{overlayMessage}</Typography>
         </Box>
       )}
-      <SoundBox />
     </div>
   );
 };
