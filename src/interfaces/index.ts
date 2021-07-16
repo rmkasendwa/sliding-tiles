@@ -19,4 +19,5 @@ export type ITileGrid = ITile[][];
 export interface IBoardAudio {
   moveTileSound: () => void;
   wrongMoveRequestTileSound: () => void;
+  boardOrderHintSound: () => void;
 }

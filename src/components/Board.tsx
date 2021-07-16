@@ -10,7 +10,7 @@ import React, {
 } from 'react';
 import { AudioContext } from '../contexts';
 import frog from '../img/frog.svg';
-import { ISlot, ITileGrid } from '../interfaces';
+import { IBoardAudio, ISlot, ITileGrid } from '../interfaces';
 import {
   BASE_DIMENSION,
   generateTileGrid,
@@ -41,7 +41,11 @@ const useStyles = makeStyles(() => ({
 const Board: React.FC<IBoardProps> = () => {
   const classes = useStyles();
 
-  const { moveTileSound, wrongMoveRequestTileSound } = useContext(AudioContext);
+  const {
+    moveTileSound,
+    wrongMoveRequestTileSound,
+    boardOrderHintSound,
+  }: IBoardAudio = useContext(AudioContext);
   const boardRef = useRef<HTMLDivElement>(null);
 
   const [level, setLevel] = useState(BASE_LEVEL);
@@ -187,6 +191,7 @@ const Board: React.FC<IBoardProps> = () => {
                 tile.slotHint = [rowIndex, columnIndex];
               });
             });
+            boardOrderHintSound();
             setTileGrid([...tileGrid]);
             exitBoardHint = () => {
               tileGrid.flat().forEach((tile) => delete tile.slotHint);
@@ -206,7 +211,7 @@ const Board: React.FC<IBoardProps> = () => {
         boardNode.removeEventListener('mousedown', mouseDownEventCallback);
       };
     }
-  }, [tileGrid]);
+  }, [tileGrid, boardOrderHintSound]);
 
   useEffect(() => {
     if (isLevelLoaded) {

@@ -6,6 +6,7 @@ import backgroundSound1 from '../sounds/flowing-canal.wav';
 import backgroundSound2 from '../sounds/backgroundSound.mp3';
 import frogSound1 from '../sounds/cutefrogmedium.wav';
 import frogSound2 from '../sounds/beautifullvlong.wav';
+import hintSound from '../sounds/hint.wav';
 
 export const AudioContext = createContext<any>({});
 
@@ -16,7 +17,8 @@ export const AudioProvider: React.FC = ({ children }) => {
   const track4Ref = useRef<HTMLAudioElement>(null);
 
   const tileMoveSoundRef = useRef<HTMLAudioElement>(null);
-  const wrongMoveRequesSoundRef = useRef<HTMLAudioElement>(null);
+  const wrongMoveRequestSoundRef = useRef<HTMLAudioElement>(null);
+  const hintSoundRef = useRef<HTMLAudioElement>(null);
 
   const moveTileSound = () => {
     if (tileMoveSoundRef.current) {
@@ -26,9 +28,16 @@ export const AudioProvider: React.FC = ({ children }) => {
   };
 
   const wrongMoveRequestTileSound = () => {
-    if (wrongMoveRequesSoundRef.current) {
-      wrongMoveRequesSoundRef.current.currentTime = 0;
-      wrongMoveRequesSoundRef.current.play();
+    if (wrongMoveRequestSoundRef.current) {
+      wrongMoveRequestSoundRef.current.currentTime = 0;
+      wrongMoveRequestSoundRef.current.play();
+    }
+  };
+
+  const boardOrderHintSound = () => {
+    if (hintSoundRef.current) {
+      hintSoundRef.current.currentTime = 0;
+      hintSoundRef.current.play();
     }
   };
 
@@ -70,7 +79,11 @@ export const AudioProvider: React.FC = ({ children }) => {
     }
   }, []);
 
-  const value: IBoardAudio = { moveTileSound, wrongMoveRequestTileSound };
+  const value: IBoardAudio = {
+    moveTileSound,
+    wrongMoveRequestTileSound,
+    boardOrderHintSound,
+  };
 
   return (
     <AudioContext.Provider value={value}>
@@ -82,10 +95,11 @@ export const AudioProvider: React.FC = ({ children }) => {
 
       <audio ref={tileMoveSoundRef} src={tileMoveSound} preload="auto"></audio>
       <audio
-        ref={wrongMoveRequesSoundRef}
+        ref={wrongMoveRequestSoundRef}
         src={wrongMoveRequestSound}
         preload="auto"
       ></audio>
+      <audio ref={hintSoundRef} src={hintSound} preload="auto"></audio>
     </AudioContext.Provider>
   );
 };
