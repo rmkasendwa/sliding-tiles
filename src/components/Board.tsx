@@ -45,6 +45,7 @@ const Board: React.FC<IBoardProps> = () => {
     moveTileSound,
     wrongMoveRequestTileSound,
     boardOrderHintSound,
+    levelCompletedSound,
   }: IBoardAudio = useContext(AudioContext);
   const boardRef = useRef<HTMLDivElement>(null);
 
@@ -62,14 +63,13 @@ const Board: React.FC<IBoardProps> = () => {
 
   const nextLevel = useCallback(() => {
     setMovableSlots([]);
-    setTimeout(() => {
+    setTimeout(async () => {
       setOverlayMessage(`You've completed level ${level}`);
       tileGrid.flat().forEach((tile) => {
         delete tile.type;
       });
       setTileGrid([...tileGrid]);
-    }, 400);
-    setTimeout(() => {
+      await levelCompletedSound();
       setLevel((prevLevel) => prevLevel + 1);
       setTileGridDimensions(([x, y]) => {
         if (y >= x) {
@@ -82,8 +82,8 @@ const Board: React.FC<IBoardProps> = () => {
       setTileGrid([]);
       setILevelLoaded(false);
       setOverlayMessage('');
-    }, 5000);
-  }, [level, tileGrid]);
+    }, 400);
+  }, [level, levelCompletedSound, tileGrid]);
 
   const handleTileMoveRequest = useCallback(
     (slot: ISlot) => {

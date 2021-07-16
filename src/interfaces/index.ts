@@ -20,4 +20,5 @@ export interface IBoardAudio {
   moveTileSound: () => void;
   wrongMoveRequestTileSound: () => void;
   boardOrderHintSound: () => void;
+  levelCompletedSound: () => Promise<any>;
 }

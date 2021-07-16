@@ -7,6 +7,7 @@ import backgroundSound2 from '../sounds/backgroundSound.mp3';
 import frogSound1 from '../sounds/cutefrogmedium.wav';
 import frogSound2 from '../sounds/beautifullvlong.wav';
 import hintSound from '../sounds/hint.wav';
+import levelCompletedSoundSrc from '../sounds/win.wav';
 
 export const AudioContext = createContext<any>({});
 
@@ -19,9 +20,11 @@ export const AudioProvider: React.FC = ({ children }) => {
   const tileMoveSoundRef = useRef<HTMLAudioElement>(null);
   const wrongMoveRequestSoundRef = useRef<HTMLAudioElement>(null);
   const hintSoundRef = useRef<HTMLAudioElement>(null);
+  const levelCompletedSoundRef = useRef<HTMLAudioElement>(null);
 
   const moveTileSound = () => {
     if (tileMoveSoundRef.current) {
+      tileMoveSoundRef.current.volume = 0.9;
       tileMoveSoundRef.current.currentTime = 0;
       tileMoveSoundRef.current.play();
     }
@@ -29,6 +32,7 @@ export const AudioProvider: React.FC = ({ children }) => {
 
   const wrongMoveRequestTileSound = () => {
     if (wrongMoveRequestSoundRef.current) {
+      wrongMoveRequestSoundRef.current.volume = 0.7;
       wrongMoveRequestSoundRef.current.currentTime = 0;
       wrongMoveRequestSoundRef.current.play();
     }
@@ -36,9 +40,23 @@ export const AudioProvider: React.FC = ({ children }) => {
 
   const boardOrderHintSound = () => {
     if (hintSoundRef.current) {
+      hintSoundRef.current.volume = 0.7;
       hintSoundRef.current.currentTime = 0;
       hintSoundRef.current.play();
     }
+  };
+
+  const levelCompletedSound = () => {
+    return new Promise((resolve) => {
+      if (levelCompletedSoundRef.current) {
+        levelCompletedSoundRef.current.volume = 0.1;
+        levelCompletedSoundRef.current.currentTime = 0;
+        levelCompletedSoundRef.current.onpause = resolve;
+        levelCompletedSoundRef.current.play();
+      } else {
+        resolve(null);
+      }
+    });
   };
 
   useEffect(() => {
@@ -83,6 +101,7 @@ export const AudioProvider: React.FC = ({ children }) => {
     moveTileSound,
     wrongMoveRequestTileSound,
     boardOrderHintSound,
+    levelCompletedSound,
   };
 
   return (
@@ -100,6 +119,11 @@ export const AudioProvider: React.FC = ({ children }) => {
         preload="auto"
       ></audio>
       <audio ref={hintSoundRef} src={hintSound} preload="auto"></audio>
+      <audio
+        ref={levelCompletedSoundRef}
+        src={levelCompletedSoundSrc}
+        preload="auto"
+      ></audio>
     </AudioContext.Provider>
   );
 };
