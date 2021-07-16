@@ -125,13 +125,10 @@ const Tile: React.FC<ITileProps> = ({
             slot
           );
           const mouseUpEventCallback = () => {
-            tileRef?.current?.removeEventListener(
-              'mouseup',
-              mouseUpEventCallback
-            );
+            window.removeEventListener('mouseup', mouseUpEventCallback);
             typeof exitPositionHint === 'function' && exitPositionHint();
           };
-          tileRef?.current?.addEventListener('mouseup', mouseUpEventCallback);
+          window.addEventListener('mouseup', mouseUpEventCallback);
         }
       };
       const contextmenuEventCallback = (event: MouseEvent) => {
