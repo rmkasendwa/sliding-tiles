@@ -1,4 +1,4 @@
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/styles';
 import React, { CSSProperties, useContext, useEffect, useRef } from 'react';
 import { AudioContext } from '../contexts';
 import { IBoardAudio, ISlot, ITile } from '../interfaces';
