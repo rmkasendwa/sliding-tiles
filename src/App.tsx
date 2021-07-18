@@ -1,45 +1,44 @@
 import React from 'react';
 import Board from './components/Board';
-import {
-  ThemeProvider,
-  createMuiTheme,
-  makeStyles,
-} from '@material-ui/core/styles';
+import { ThemeProvider, createTheme } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/styles';
 import { AudioProvider } from './contexts';
 
 interface IAppProps {}
 
-const theme = createMuiTheme({
-  overrides: {
+const theme = createTheme({
+  components: {
     MuiCssBaseline: {
-      '@global': {
-        html: {
-          position: 'relative',
-          minHeight: '100%',
-        },
-        body: {
-          margin: 0,
-          height: '100%',
-          fontFamily: 'RobotoRegular, sans-serif',
-          cursor: 'default',
-          backgroundColor: 'whitesmoke',
-          color: '#282f3e',
-          '-webkit-touch-callout': 'none',
-          '-webkit-user-select': 'none',
-          '-khtml-user-select': 'none',
-          '-moz-user-select': 'none',
-          '-ms-user-select': 'none',
-          'user-select': 'none',
-          '-webkit-font-smoothing': 'antialiased',
-          '-moz-osx-font-smoothing': 'grayscale',
-        },
-        code: {
-          fontFamily:
-            "source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace",
-        },
-        pre: {
-          margin: 0,
-          padding: 0,
+      styleOverrides: {
+        '@global': {
+          html: {
+            position: 'relative',
+            minHeight: '100%',
+          },
+          body: {
+            margin: 0,
+            height: '100%',
+            fontFamily: 'RobotoRegular, sans-serif',
+            cursor: 'default',
+            backgroundColor: 'whitesmoke',
+            color: '#282f3e',
+            '-webkit-touch-callout': 'none',
+            '-webkit-user-select': 'none',
+            '-khtml-user-select': 'none',
+            '-moz-user-select': 'none',
+            '-ms-user-select': 'none',
+            'user-select': 'none',
+            '-webkit-font-smoothing': 'antialiased',
+            '-moz-osx-font-smoothing': 'grayscale',
+          },
+          code: {
+            fontFamily:
+              "source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace",
+          },
+          pre: {
+            margin: 0,
+            padding: 0,
+          },
         },
       },
     },
