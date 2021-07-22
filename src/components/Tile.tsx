@@ -173,7 +173,6 @@ const Tile: React.FC<ITileProps> = ({
             window.addEventListener('touchmove', touchMoveEventCallback);
           };
           const touchMoveEventCallback = (event: TouchEvent) => {
-            event.preventDefault();
             const { clientX: moveX, clientY: moveY } = event.changedTouches[0];
             switch (motionDirection) {
               case MotionDirection.LEFT:
