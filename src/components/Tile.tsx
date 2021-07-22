@@ -1,9 +1,11 @@
 import { makeStyles } from '@material-ui/styles';
 import React, { CSSProperties, useContext, useEffect, useRef } from 'react';
 import { AudioContext } from '../contexts';
-import { IBoardAudio, ISlot, ITile } from '../interfaces';
+import { IBoardAudio, ISlot, ITile, MotionDirection } from '../interfaces';
 
 interface ITileProps extends ITile {
+  scaleFactor: number;
+  motionDirection?: MotionDirection;
   onMoveRequest: (slot: ISlot) => void;
   onPositionHintRequest: (position: number, slot: ISlot) => Function | void;
 }
@@ -59,6 +61,8 @@ const Tile: React.FC<ITileProps> = ({
   onMoveRequest,
   isLocked,
   position,
+  motionDirection,
+  scaleFactor,
   onPositionHintRequest,
 }) => {
   slotHint && (slot = slotHint);
@@ -142,6 +146,108 @@ const Tile: React.FC<ITileProps> = ({
       };
     }
   }, [slot, position, onPositionHintRequest]);
+
+  useEffect(() => {
+    if (!isLocked && tileRef.current) {
+      const tileNode = tileRef.current;
+      const touchStartEventCallback = (event: TouchEvent) => {
+        if (event.changedTouches.length === 1) {
+          event.preventDefault();
+          const { clientX: startX, clientY: startY } = event.changedTouches[0];
+          const display = tileNode.style.display;
+          let tileNodeGhost: HTMLDivElement;
+          let currentX = startX;
+          let currentY = startY;
+          let moveTile = false;
+          const touchMoveBootstrapEventCallback = () => {
+            tileNodeGhost = tileNode.cloneNode(false) as HTMLDivElement;
+            tileNode.style.display = 'none';
+            tileNodeGhost.style.transition = 'none';
+            tileNodeGhost.style.zIndex = '999';
+            tileNodeGhost.style.transform = 'translate(0, 0)';
+            tileNode.after(tileNodeGhost);
+            window.removeEventListener(
+              'touchmove',
+              touchMoveBootstrapEventCallback
+            );
+            window.addEventListener('touchmove', touchMoveEventCallback);
+          };
+          const touchMoveEventCallback = (event: TouchEvent) => {
+            event.preventDefault();
+            const { clientX: moveX, clientY: moveY } = event.changedTouches[0];
+            switch (motionDirection) {
+              case MotionDirection.LEFT:
+              case MotionDirection.RIGHT:
+                const x = (moveX - startX) / scaleFactor;
+                switch (motionDirection) {
+                  case MotionDirection.LEFT:
+                    moveTile = moveX - currentX < 0;
+                    x < 0 &&
+                      x > -dimensions.width &&
+                      (tileNodeGhost.style.transform = `translateX(${x}px)`);
+                    break;
+                  case MotionDirection.RIGHT:
+                    moveTile = moveX - currentX > 0;
+                    x > 0 &&
+                      x < dimensions.width &&
+                      (tileNodeGhost.style.transform = `translateX(${x}px)`);
+                    break;
+                }
+                break;
+              case MotionDirection.TOP:
+              case MotionDirection.BOTTOM:
+                const y = (moveY - startY) / scaleFactor;
+                switch (motionDirection) {
+                  case MotionDirection.TOP:
+                    moveTile = moveY - currentY < 0;
+                    y < 0 &&
+                      y > -dimensions.height &&
+                      (tileNodeGhost.style.transform = `translateY(${y}px)`);
+                    break;
+                  case MotionDirection.BOTTOM:
+                    moveTile = moveY - currentY > 0;
+                    y > 0 &&
+                      y < dimensions.height &&
+                      (tileNodeGhost.style.transform = `translateY(${y}px)`);
+                    break;
+                }
+                break;
+            }
+            currentX = moveX;
+            currentY = moveY;
+          };
+          const touchEndEventCallback = (event: TouchEvent) => {
+            event.preventDefault();
+            window.removeEventListener(
+              'touchmove',
+              touchMoveBootstrapEventCallback
+            );
+            window.removeEventListener('touchmove', touchMoveEventCallback);
+            window.removeEventListener('touchend', touchEndEventCallback);
+            if (tileNodeGhost) {
+              tileNode.style.display = display;
+              tileNodeGhost.remove();
+              moveTile && onMoveRequest(slot);
+            }
+          };
+          window.addEventListener('touchmove', touchMoveBootstrapEventCallback);
+          window.addEventListener('touchend', touchEndEventCallback);
+        }
+      };
+      tileNode.addEventListener('touchstart', touchStartEventCallback);
+      return () => {
+        tileNode.removeEventListener('touchstart', touchStartEventCallback);
+      };
+    }
+  }, [
+    dimensions.height,
+    dimensions.width,
+    isLocked,
+    motionDirection,
+    onMoveRequest,
+    scaleFactor,
+    slot,
+  ]);
 
   return (
     <div
