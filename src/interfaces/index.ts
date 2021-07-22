@@ -14,6 +14,13 @@ export interface ITile {
   };
 }
 
+export enum MotionDirection {
+  TOP,
+  RIGHT,
+  BOTTOM,
+  LEFT,
+}
+
 export type ITileGrid = ITile[][];
 
 export interface IBoardAudio {

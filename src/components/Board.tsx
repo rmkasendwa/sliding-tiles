@@ -10,7 +10,13 @@ import React, {
 } from 'react';
 import { AudioContext } from '../contexts';
 import frog from '../img/frog.svg';
-import { IBoardAudio, ISlot, ITileGrid } from '../interfaces';
+import {
+  IBoardAudio,
+  ISlot,
+  ITile,
+  ITileGrid,
+  MotionDirection,
+} from '../interfaces';
 import {
   BASE_DIMENSION,
   generateTileGrid,
@@ -275,18 +281,34 @@ const Board: React.FC<IBoardProps> = () => {
       style={{ transform: `scale(${scaleFactor})`, width, height }}
     >
       {tileGrid &&
-        tileGrid.flat().map((tile) => {
-          const [x, y] = tile.slot;
-          tile.isLocked = !movableSlots.includes(`${x}${y}`);
-          return (
-            <Tile
-              {...tile}
-              key={tile.position}
-              onMoveRequest={handleTileMoveRequest}
-              onPositionHintRequest={handleTilePositionHintRequest}
-            />
-          );
-        })}
+        tileGrid
+          .flat()
+          .map((tile: ITile & { motionDirection?: MotionDirection }) => {
+            const [x, y] = tile.slot;
+            tile.isLocked = !movableSlots.includes(`${x}${y}`);
+            if (!tile.isLocked) {
+              if (emptySlot[0] === tile.slot[0]) {
+                tile.motionDirection =
+                  emptySlot[1] - tile.slot[1] === 1
+                    ? MotionDirection.RIGHT
+                    : MotionDirection.LEFT;
+              } else {
+                tile.motionDirection =
+                  emptySlot[0] - tile.slot[0] === 1
+                    ? MotionDirection.BOTTOM
+                    : MotionDirection.TOP;
+              }
+            }
+            return (
+              <Tile
+                {...tile}
+                key={tile.position}
+                scaleFactor={scaleFactor}
+                onMoveRequest={handleTileMoveRequest}
+                onPositionHintRequest={handleTilePositionHintRequest}
+              />
+            );
+          })}
       {overlayMessage && (
         <Box
           display="flex"
