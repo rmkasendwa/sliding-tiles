@@ -148,7 +148,7 @@ const Tile: React.FC<ITileProps> = ({
   }, [slot, position, onPositionHintRequest]);
 
   useEffect(() => {
-    if (!isLocked && tileRef.current) {
+    if (!isLocked && navigator.maxTouchPoints > 0 && tileRef.current) {
       const tileNode = tileRef.current;
       const touchStartEventCallback = (event: TouchEvent) => {
         if (event.changedTouches.length === 1) {
