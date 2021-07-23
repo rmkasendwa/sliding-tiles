@@ -1,5 +1,4 @@
 import Box from '@material-ui/core/Box';
-import { makeStyles } from '@material-ui/styles';
 import Typography from '@material-ui/core/Typography';
 import React, {
   useCallback,
@@ -32,28 +31,14 @@ const BASE_IMAGE = frog;
 const BASE_LEVEL = 1;
 const BASE_GRID_DIMENSIONS: ISlot = [3, 2];
 
-const useStyles = makeStyles(() => ({
-  board: {
-    backgroundColor: '#ccc',
-    position: 'absolute',
-    overflow: 'hidden',
-    counterReset: 'tile-number',
-    width: BASE_DIMENSION,
-    height: BASE_DIMENSION,
-    borderRadius: 6,
-  },
-}));
-
 const Board: React.FC<IBoardProps> = () => {
-  const classes = useStyles();
-
   const {
     moveTileSound,
     wrongMoveRequestTileSound,
     boardOrderHintSound,
     levelCompletedSound,
   }: IBoardAudio = useContext(AudioContext);
-  const boardRef = useRef<HTMLDivElement>(null);
+  const boardWrapperRef = useRef<HTMLDivElement>(null);
 
   const [level, setLevel] = useState(BASE_LEVEL);
   const [tileGridDimensions, setTileGridDimensions] =
@@ -158,17 +143,17 @@ const Board: React.FC<IBoardProps> = () => {
 
   useEffect(() => {
     const resizeCallback = () => {
-      if (boardRef.current) {
-        const { offsetHeight: boardHeight, offsetWidth: boardWidth } =
-          boardRef.current;
-        const { parentElement } = boardRef.current;
+      if (boardWrapperRef.current) {
+        const { height: boardHeight, width: boardWidth } = { width, height };
+        const { parentElement } = boardWrapperRef.current;
+        console.log(boardWidth, boardHeight);
         if (parentElement) {
           const {
             offsetHeight: boardParentHeight,
             offsetWidth: boardParentWidth,
           } = parentElement;
-          const heightScaleFactor = boardParentHeight / (boardHeight + 120);
-          const widthScaleFactor = boardParentWidth / (boardWidth + 120);
+          const heightScaleFactor = boardParentHeight / boardHeight;
+          const widthScaleFactor = boardParentWidth / boardWidth;
           if (heightScaleFactor < 1 || widthScaleFactor < 1) {
             setScaleFactor(
               heightScaleFactor < widthScaleFactor
@@ -186,11 +171,11 @@ const Board: React.FC<IBoardProps> = () => {
     return () => {
       window.removeEventListener('resize', resizeCallback);
     };
-  }, []);
+  }, [height, width]);
 
   useEffect(() => {
-    if (boardRef.current) {
-      const boardNode = boardRef.current;
+    if (boardWrapperRef.current) {
+      const boardNode = boardWrapperRef.current;
       const mouseDownEventCallback = (event: MouseEvent) => {
         if (event.button === 0) {
           let exitBoardHint: Function | undefined;
@@ -279,54 +264,74 @@ const Board: React.FC<IBoardProps> = () => {
 
   return (
     <div
-      className={classes.board}
-      ref={boardRef}
-      style={{ transform: `scale(${scaleFactor})`, width, height }}
+      ref={boardWrapperRef}
+      style={{
+        transform: `scale(${scaleFactor})`,
+        transformOrigin: 'top left',
+        width: `${100 / scaleFactor}%`,
+        height: `${100 / scaleFactor}%`,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
     >
-      {tileGrid &&
-        tileGrid
-          .flat()
-          .map((tile: ITile & { motionDirection?: MotionDirection }) => {
-            const [x, y] = tile.slot;
-            tile.isLocked = !movableSlots.includes(`${x}${y}`);
-            if (!tile.isLocked) {
-              if (emptySlot[0] === tile.slot[0]) {
-                tile.motionDirection =
-                  emptySlot[1] - tile.slot[1] === 1
-                    ? MotionDirection.RIGHT
-                    : MotionDirection.LEFT;
-              } else {
-                tile.motionDirection =
-                  emptySlot[0] - tile.slot[0] === 1
-                    ? MotionDirection.BOTTOM
-                    : MotionDirection.TOP;
+      <Box
+        sx={{
+          backgroundColor: '#ccc',
+          overflow: 'hidden',
+          counterReset: 'tile-number',
+          borderRadius: 3,
+          position: 'relative',
+          transformOrigin: 'top left',
+          width,
+          height,
+        }}
+      >
+        {tileGrid &&
+          tileGrid
+            .flat()
+            .map((tile: ITile & { motionDirection?: MotionDirection }) => {
+              const [x, y] = tile.slot;
+              tile.isLocked = !movableSlots.includes(`${x}${y}`);
+              if (!tile.isLocked) {
+                if (emptySlot[0] === tile.slot[0]) {
+                  tile.motionDirection =
+                    emptySlot[1] - tile.slot[1] === 1
+                      ? MotionDirection.RIGHT
+                      : MotionDirection.LEFT;
+                } else {
+                  tile.motionDirection =
+                    emptySlot[0] - tile.slot[0] === 1
+                      ? MotionDirection.BOTTOM
+                      : MotionDirection.TOP;
+                }
               }
-            }
-            return (
-              <Tile
-                {...tile}
-                key={tile.position}
-                scaleFactor={scaleFactor}
-                onMoveRequest={handleTileMoveRequest}
-                onPositionHintRequest={handleTilePositionHintRequest}
-              />
-            );
-          })}
-      {overlayMessage && (
-        <Box
-          display="flex"
-          position="absolute"
-          width="100%"
-          height="100%"
-          zIndex={9999}
-          alignItems="center"
-          justifyContent="center"
-          bgcolor="rgba(0,0,0,.7)"
-          color="#fff"
-        >
-          <Typography variant="h1">{overlayMessage}</Typography>
-        </Box>
-      )}
+              return (
+                <Tile
+                  {...tile}
+                  key={tile.position}
+                  scaleFactor={scaleFactor}
+                  onMoveRequest={handleTileMoveRequest}
+                  onPositionHintRequest={handleTilePositionHintRequest}
+                />
+              );
+            })}
+        {overlayMessage && (
+          <Box
+            display="flex"
+            position="absolute"
+            width="100%"
+            height="100%"
+            zIndex={9999}
+            alignItems="center"
+            justifyContent="center"
+            bgcolor="rgba(0,0,0,.7)"
+            color="#fff"
+          >
+            <Typography variant="h1">{overlayMessage}</Typography>
+          </Box>
+        )}
+      </Box>
     </div>
   );
 };

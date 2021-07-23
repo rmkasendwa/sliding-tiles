@@ -1,7 +1,7 @@
+import Box from '@material-ui/core/Box';
+import { createTheme, ThemeProvider } from '@material-ui/core/styles';
 import React from 'react';
 import Board from './components/Board';
-import { ThemeProvider, createTheme } from '@material-ui/core/styles';
-import { makeStyles } from '@material-ui/styles';
 import { AudioProvider } from './contexts';
 
 interface IAppProps {}
@@ -45,30 +45,32 @@ const theme = createTheme({
   },
 });
 
-const useStyles = makeStyles(() => ({
-  app: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#262626',
-  },
-}));
-
 const App: React.FC<IAppProps> = () => {
-  const classes = useStyles();
-
   return (
     <ThemeProvider theme={theme}>
-      <div className={classes.app}>
-        <AudioProvider>
-          <Board />
-        </AudioProvider>
-      </div>
+      <Box
+        sx={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          bgcolor: '#262626',
+          boxSizing: 'border-box',
+          p: 3,
+        }}
+      >
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+          }}
+        >
+          <AudioProvider>
+            <Board />
+          </AudioProvider>
+        </Box>
+      </Box>
     </ThemeProvider>
   );
 };
