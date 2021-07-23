@@ -137,6 +137,7 @@ const Board: React.FC<IBoardProps> = () => {
     const image = new Image();
     image.onload = () => {
       const height = BASE_DIMENSION / (image.width / image.height);
+      image.remove();
       setHeight(height);
       const { tileGrid, emptySlot, movableSlots } = generateTileGrid({
         width,
@@ -150,6 +151,8 @@ const Board: React.FC<IBoardProps> = () => {
         movableSlots.map((movableSlot): string => movableSlot.join(''))
       );
     };
+    image.style.visibility = 'hidden';
+    document.body.append(image);
     image.src = BASE_IMAGE;
   }, [width, tileGridDimensions]);
 
