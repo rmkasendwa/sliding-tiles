@@ -1,8 +1,11 @@
 import Box from '@material-ui/core/Box';
+import IconButton from '@material-ui/core/IconButton';
+import FullscreenIcon from '@material-ui/icons/Fullscreen';
 import { createTheme, ThemeProvider } from '@material-ui/core/styles';
 import React from 'react';
 import Board from './components/Board';
 import { AudioProvider } from './contexts';
+import { useRef } from 'react';
 
 interface IAppProps {}
 
@@ -46,6 +49,21 @@ const theme = createTheme({
 });
 
 const App: React.FC<IAppProps> = () => {
+  const boardWrapperRef = useRef();
+  const handleClickFullScreenButton = () => {
+    if (boardWrapperRef.current) {
+      const boardWrapperNode: any = boardWrapperRef.current!;
+      if (boardWrapperNode.requestFullscreen) {
+        boardWrapperNode.requestFullscreen();
+      } else if (boardWrapperNode.webkitRequestFullscreen) {
+        /* Safari */
+        boardWrapperNode.webkitRequestFullscreen();
+      } else if (boardWrapperNode.msRequestFullscreen) {
+        /* IE11 */
+        boardWrapperNode.msRequestFullscreen();
+      }
+    }
+  };
   return (
     <ThemeProvider theme={theme}>
       <Box
@@ -61,6 +79,7 @@ const App: React.FC<IAppProps> = () => {
         }}
       >
         <Box
+          ref={boardWrapperRef}
           sx={{
             width: '100%',
             height: '100%',
@@ -70,6 +89,13 @@ const App: React.FC<IAppProps> = () => {
             <Board />
           </AudioProvider>
         </Box>
+        <IconButton
+          onClick={handleClickFullScreenButton}
+          sx={{ position: 'absolute', bottom: 5, right: 5, color: '#fff' }}
+          size="large"
+        >
+          <FullscreenIcon sx={{ fontSize: '1.2em' }} />
+        </IconButton>
       </Box>
     </ThemeProvider>
   );

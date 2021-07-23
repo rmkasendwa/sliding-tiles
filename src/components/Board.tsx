@@ -146,7 +146,6 @@ const Board: React.FC<IBoardProps> = () => {
       if (boardWrapperRef.current) {
         const { height: boardHeight, width: boardWidth } = { width, height };
         const { parentElement } = boardWrapperRef.current;
-        console.log(boardWidth, boardHeight);
         if (parentElement) {
           const {
             offsetHeight: boardParentHeight,
