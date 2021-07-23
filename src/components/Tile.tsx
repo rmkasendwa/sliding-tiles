@@ -151,7 +151,10 @@ const Tile: React.FC<ITileProps> = ({
     if (!isLocked && navigator.maxTouchPoints > 0 && tileRef.current) {
       const tileNode = tileRef.current;
       const touchStartEventCallback = (event: TouchEvent) => {
-        if (event.changedTouches.length === 1) {
+        if (
+          event.targetTouches.length === 1 &&
+          event.changedTouches.length === 1
+        ) {
           event.preventDefault();
           const { clientX: startX, clientY: startY } = event.changedTouches[0];
           const display = tileNode.style.display;
@@ -248,6 +251,27 @@ const Tile: React.FC<ITileProps> = ({
     slot,
   ]);
 
+  useEffect(() => {
+    if (isLocked && navigator.maxTouchPoints > 0 && tileRef.current) {
+      const tileNode = tileRef.current;
+      const touchStartEventCallback = (event: TouchEvent) => {
+        event.preventDefault();
+        const exitPositionHint: Function | void = onPositionHintRequest(
+          position,
+          slot
+        );
+        const touchEndEventCallback = () => {
+          window.removeEventListener('touchend', touchEndEventCallback);
+          typeof exitPositionHint === 'function' && exitPositionHint();
+        };
+        window.addEventListener('touchend', touchEndEventCallback);
+      };
+      tileNode.addEventListener('touchstart', touchStartEventCallback);
+      return () => {
+        tileNode.removeEventListener('touchstart', touchStartEventCallback);
+      };
+    }
+  }, [isLocked, onPositionHintRequest, position, slot]);
   return (
     <div
       ref={tileRef}
