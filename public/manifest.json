@@ -20,6 +20,7 @@
   ],
   "name": "Sliding Tiles",
   "short_name": "Sliding Tiles",
-  "start_url": ".",
-  "theme_color": "#000000"
+  "theme_color": "#000000",
+  "scope": "/",
+  "start_url": "/"
 }
