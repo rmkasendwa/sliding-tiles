@@ -39,11 +39,13 @@ const Board: React.FC<IBoardProps> = () => {
     levelCompletedSound,
   }: IBoardAudio = useContext(AudioContext);
   const boardWrapperRef = useRef<HTMLDivElement>(null);
+  const initialLoadRef = useRef(true);
 
   const [level, setLevel] = useState(BASE_LEVEL);
   const [tileGridDimensions, setTileGridDimensions] =
     useState<ISlot>(BASE_GRID_DIMENSIONS);
-  const [isLevelLoaded, setILevelLoaded] = useState(false);
+  const [isLevelLoaded, setIsLevelLoaded] = useState(false);
+  const [isComputingBoardTiles, setIsComputingBoardTiles] = useState(false);
   const [overlayMessage, setOverlayMessage] = useState('');
   const [width] = useState(BASE_DIMENSION);
   const [height, setHeight] = useState(BASE_DIMENSION);
@@ -51,6 +53,35 @@ const Board: React.FC<IBoardProps> = () => {
   const [emptySlot, setEmptySlot] = useState<ISlot>([0, 0]);
   const [movableSlots, setMovableSlots] = useState<string[]>([]);
   const [scaleFactor, setScaleFactor] = useState(1);
+  const [isLoadedFromCache, setIsLoadedFromCache] = useState(false);
+
+  useEffect(() => {
+    if (isLevelLoaded) {
+      localStorage.setItem(
+        'boardConfig',
+        JSON.stringify({
+          level,
+          tileGridDimensions,
+          width,
+          height,
+          tileGrid,
+          emptySlot,
+          movableSlots,
+          scaleFactor,
+        })
+      );
+    }
+  }, [
+    emptySlot,
+    height,
+    isLevelLoaded,
+    level,
+    movableSlots,
+    scaleFactor,
+    tileGrid,
+    tileGridDimensions,
+    width,
+  ]);
 
   const nextLevel = useCallback(() => {
     setMovableSlots([]);
@@ -71,7 +102,8 @@ const Board: React.FC<IBoardProps> = () => {
         return [x, y];
       });
       setTileGrid([]);
-      setILevelLoaded(false);
+      setIsLevelLoaded(false);
+      setIsComputingBoardTiles(false);
       setOverlayMessage('');
     }, 400);
   }, [level, levelCompletedSound, tileGrid]);
@@ -119,27 +151,68 @@ const Board: React.FC<IBoardProps> = () => {
   );
 
   useEffect(() => {
-    const image = new Image();
-    image.onload = () => {
-      const height = BASE_DIMENSION / (image.width / image.height);
-      image.remove();
-      setHeight(height);
-      const { tileGrid, emptySlot, movableSlots } = generateTileGrid({
-        width,
-        height,
-        dimensions: tileGridDimensions,
-        image: BASE_IMAGE,
-      });
-      setTileGrid(tileGrid);
-      setEmptySlot(emptySlot);
-      setMovableSlots(
-        movableSlots.map((movableSlot): string => movableSlot.join(''))
-      );
-    };
-    image.style.visibility = 'hidden';
-    document.body.append(image);
-    image.src = BASE_IMAGE;
-  }, [width, tileGridDimensions]);
+    if (!isComputingBoardTiles) {
+      const serializedBoardConfig = localStorage.getItem('boardConfig');
+      if (serializedBoardConfig && initialLoadRef.current === true) {
+        if (!isLoadedFromCache) {
+          setIsLoadedFromCache(true);
+          const {
+            level,
+            tileGridDimensions,
+            width,
+            height,
+            tileGrid,
+            emptySlot,
+            movableSlots,
+            scaleFactor,
+          } = JSON.parse(serializedBoardConfig);
+          if (
+            [
+              level,
+              tileGridDimensions,
+              width,
+              height,
+              tileGrid,
+              emptySlot,
+              movableSlots,
+              scaleFactor,
+            ].every((key) => key != null)
+          ) {
+            setLevel(level);
+            setTileGridDimensions(tileGridDimensions);
+            setHeight(height);
+            setTileGrid(tileGrid);
+            setEmptySlot(emptySlot);
+            setMovableSlots(movableSlots);
+            setScaleFactor(scaleFactor);
+          }
+        }
+      } else {
+        const image = new Image();
+        image.onload = () => {
+          const height = BASE_DIMENSION / (image.width / image.height);
+          image.remove();
+          setHeight(height);
+          const { tileGrid, emptySlot, movableSlots } = generateTileGrid({
+            width,
+            height,
+            dimensions: tileGridDimensions,
+            image: BASE_IMAGE,
+          });
+          setTileGrid(tileGrid);
+          setEmptySlot(emptySlot);
+          setMovableSlots(
+            movableSlots.map((movableSlot): string => movableSlot.join(''))
+          );
+        };
+        image.style.visibility = 'hidden';
+        document.body.append(image);
+        image.src = BASE_IMAGE;
+      }
+      initialLoadRef.current = false;
+      setIsComputingBoardTiles(true);
+    }
+  }, [width, tileGridDimensions, isLoadedFromCache, isComputingBoardTiles]);
 
   useEffect(() => {
     const resizeCallback = () => {
@@ -252,7 +325,7 @@ const Board: React.FC<IBoardProps> = () => {
         setOverlayMessage(`Level ${level}`);
         const timeout = setTimeout(() => {
           setOverlayMessage('');
-          setILevelLoaded(true);
+          setIsLevelLoaded(true);
         }, 3000);
         return () => clearTimeout(timeout);
       } else {
