@@ -1,0 +1,56 @@
+{
+  "name": "sliding-tiles-backend",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "build": "npm run tsc",
+    "prebuild": "rm -rf dist",
+    "postbuild": "cp package.json dist/package.json",
+    "tsc": "tsc --project tsconfig.compile.json",
+    "tsc:w": "tsc --project tsconfig.json -w",
+    "start": "tsnd --inspect --ignore-watch node_modules --respawn --transpile-only -r tsconfig-paths/register src/index.ts",
+    "start:prod": "cross-env NODE_ENV=production node dist/index.js"
+  },
+  "dependencies": {
+    "@tsed/ajv": "^6.86.2",
+    "@tsed/common": "^6.86.2",
+    "@tsed/core": "^6.86.2",
+    "@tsed/di": "^6.86.2",
+    "@tsed/exceptions": "^6.86.2",
+    "@tsed/json-mapper": "^6.86.2",
+    "@tsed/passport": "^6.86.2",
+    "@tsed/platform-express": "^6.86.2",
+    "@tsed/schema": "^6.86.2",
+    "ajv": "^8.8.1",
+    "body-parser": "^1.19.0",
+    "compression": "^1.7.4",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "cross-env": "^7.0.3",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "method-override": "^3.0.0",
+    "passport": "^0.5.0"
+  },
+  "devDependencies": {
+    "@tsed/cli-plugin-passport": "3.15.0",
+    "@types/compression": "^1.7.2",
+    "@types/cookie-parser": "^1.4.2",
+    "@types/cors": "^2.8.12",
+    "@types/express": "^4.17.13",
+    "@types/method-override": "^0.0.32",
+    "@types/multer": "^1.4.7",
+    "@types/node": "^16.11.9",
+    "@types/passport": "^1.0.7",
+    "ts-node": "^10.4.0",
+    "ts-node-dev": "^1.1.8",
+    "tsconfig-paths": "^3.12.0",
+    "tslib": "^2.3.1",
+    "typescript": "^4.5.2"
+  },
+  "tsed": {
+    "packageManager": "yarn",
+    "convention": "default",
+    "architecture": "default"
+  }
+}

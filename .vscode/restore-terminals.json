@@ -1,0 +1,45 @@
+{
+  "artificialDelayMilliseconds": 300,
+  "keepExistingTerminalsOpen": false,
+  "runOnStartup": true,
+  "terminals": [
+    {
+      "splitTerminals": [
+        {
+          "color": "terminal.ansiBlue",
+          "commands": [],
+          "name": "root:main"
+        }
+      ]
+    },
+    {
+      "splitTerminals": [
+        {
+          "commands": [],
+          "name": "root:chores"
+        }
+      ]
+    },
+    {
+      "splitTerminals": [
+        {
+          "color": "terminal.ansiMagenta",
+          "commands": [
+            "cd ./main-ui"
+          ],
+          "name": "main-ui"
+        }
+      ]
+    },
+    {
+      "splitTerminals": [
+        {
+          "commands": [
+            "cd ./backend"
+          ],
+          "name": "backend"
+        }
+      ]
+    }
+  ]
+}
