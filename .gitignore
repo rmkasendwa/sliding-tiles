@@ -17,3 +17,4 @@ cypress
 .idea
 .orig
 .sass-cache
+.env

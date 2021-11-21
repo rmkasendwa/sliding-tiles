@@ -18,8 +18,5 @@ RUN chown -R nginx:nginx /app/main-ui/public/
 RUN chmod -R 755 /app/main-ui/public/
 RUN chmod +x /entryscript.sh
 
-EXPOSE 3000
-EXPOSE 3001
-
 ENTRYPOINT ["sh","/entryscript.sh"]
 CMD ["nginx","-g","daemon off;"]
