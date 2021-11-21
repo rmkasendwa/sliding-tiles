@@ -1,0 +1,15 @@
+node_modules
+Dockerfile
+.dockerignore
+.git
+.gitignore
+.debug.log
+package.json
+build.sh
+deploy.sh
+cfn-templates
+.idea
+.vscode
+backend
+frontend
+.Dockerfile.swp
