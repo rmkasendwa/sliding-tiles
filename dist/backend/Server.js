@@ -39,10 +39,10 @@ Server = (0, tslib_1.__decorate)([
     (0, di_1.Configuration)({
         ...config_1.config,
         acceptMimes: ['application/json'],
-        httpPort: process.env.PORT || 8083,
+        httpPort: process.env.API_BACKEND_PORT || 8083,
         httpsPort: false,
         mount: {
-            '/rest': [`${config_1.rootDir}/controllers/**/*.ts`],
+            '/': [`${config_1.rootDir}/controllers/**/*.ts`],
         },
         views: {
             root: `${config_1.rootDir}/views`,

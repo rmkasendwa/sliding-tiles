@@ -3,7 +3,10 @@ services:
   meekasa-ui:
     image: rmkasendwa/sliding-tiles
     container_name: sliding-tiles
+    ports:
+      - '8888:8888'
     environment:
       - RESOLVER_IP=127.0.0.11
       - BACKEND_URL=http://127.0.0.1:8083
+      - PORT=8888
     restart: always

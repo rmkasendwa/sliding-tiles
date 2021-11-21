@@ -1,7 +1,8 @@
 import { join } from 'path';
 
 import { loggerConfig } from './logger';
-const { version } = require('../../package.json');
+
+const { version } = require(`${process.cwd()}/package.json`);
 export const rootDir = join(__dirname, '..');
 
 export const config: Partial<TsED.Configuration> = {
