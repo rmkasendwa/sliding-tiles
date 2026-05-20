@@ -344,10 +344,16 @@ h2 {
   cursor: not-allowed;
 }
 
+.tile:hover,
+.tile:focus-visible {
+  z-index: 8;
+}
+
 .tile.hint {
   box-shadow:
     0 0 0 4px rgba(37, 111, 90, 0.78),
     0 18px 30px rgba(0, 0, 0, 0.28);
+  z-index: 9;
 }
 
 .game-card {
