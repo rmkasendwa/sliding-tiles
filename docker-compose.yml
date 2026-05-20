@@ -1,12 +1,20 @@
-version: '2.0'
 services:
-  meekasa-ui:
-    image: rmkasendwa/sliding-tiles
-    container_name: sliding-tiles
-    ports:
-      - '8888:8888'
+  postgres:
+    image: postgres:16-alpine
+    container_name: sliding-tiles-postgres
     environment:
-      - RESOLVER_IP=127.0.0.11
-      - BACKEND_URL=http://127.0.0.1:8083
-      - PORT=8888
-    restart: always
+      POSTGRES_DB: sliding_tiles
+      POSTGRES_USER: sliding_tiles
+      POSTGRES_PASSWORD: sliding_tiles
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U sliding_tiles -d sliding_tiles']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres-data:

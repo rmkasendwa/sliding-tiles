@@ -1,25 +1,38 @@
-# Getting Started
+# Sliding Tiles
 
-## Available Scripts
+A modernized sliding tile puzzle built with Next.js App Router, React, Prisma,
+and PostgreSQL.
 
-In the root directory, you can run:
+## What is included
 
-### `npm install`
+- SSR pages and filesystem routing through Next.js.
+- Anonymous play with browser-local progress.
+- Email/password signup and login with HTTP-only signed sessions.
+- Signed-in game-state persistence in PostgreSQL.
+- Leaderboard entries for completed signed-in levels.
+- Pure board transitions that keep every generated puzzle solvable.
 
-Installs dependencies.
+## Local setup
 
-### `npm start`
+1. Use Node.js `22.12.0` or newer.
+2. Copy `.env.example` to `.env` and adjust values if needed.
+3. Start PostgreSQL:
 
-Starts both the main-ui and backoffice-ui in watch mode.
+```bash
+docker compose up -d postgres
+```
 
-### `npm run build`
+4. Install dependencies and migrate:
 
-Builds all applications to the dist folder.
+```bash
+npm install
+npm run db:migrate
+```
 
-### `./setup.sh`
+5. Run the app:
 
-Links meekasa-ui/common project with the rest of the projects.
+```bash
+npm run dev
+```
 
-## Learn More
-
-You can get more details from main-ui/readme.md and backoffice-ui/readme.md
+Open `http://localhost:3000`.

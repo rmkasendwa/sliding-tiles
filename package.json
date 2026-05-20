@@ -1,52 +1,40 @@
 {
   "name": "sliding-tiles",
-  "version": "1.0.0",
-  "keywords": [],
+  "version": "2.0.0",
+  "private": true,
   "author": "Ronald M. Kasendwa",
   "scripts": {
-    "build:main-ui": "cd main-ui && npm run build",
-    "build:backend": "cd backend && npm run build",
-    "build:bundle": "rm -rf dist && mkdir dist && mv main-ui/build dist/main-ui &&  mv backend/dist dist/backend",
-    "build": "concurrently --names \"Main UI,Backend\" -c \"blue.bold,magenta.bold,green.bold,yellow.bold\" \"npm run build:main-ui\" \"npm run build:backend\" && npm run build:bundle",
-    "format": "prettier --write \"./**/*.{js,jsx,ts,tsx,html,htm,json,css,scss,md}\"",
-    "install:main-ui": "cd main-ui && npm install",
-    "install:backend": "cd backend && npm install",
-    "postinstall": "concurrently --names \"Main UI,Backend\" -c \"blue.bold,magenta.bold,green.bold,yellow.bold\" \"npm run install:main-ui\" \"npm run install:backend\"",
-    "start:main-ui": "cd main-ui && npm start",
-    "start:backend": "cd backend && npm run start",
-    "start": "concurrently --names \"Main UI,Backend\" -c \"blue.bold,magenta.bold,green.bold,yellow.bold\" \"npm run start:main-ui\" \"npm run start:backend\""
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio"
   },
-  "lint-staged": {
-    "./**/*.{js,jsx,ts,tsx,html,htm,json,css,scss,md}": [
-      "eslint --fix",
-      "prettier --write"
-    ]
-  },
-  "importSort": {
-    ".js, .jsx, .ts, .tsx": {
-      "style": "module",
-      "parser": "typescript"
-    }
+  "dependencies": {
+    "@prisma/client": "^7.0.0",
+    "@prisma/adapter-pg": "^7.0.0",
+    "bcryptjs": "^3.0.0",
+    "dotenv": "^16.4.7",
+    "jose": "^6.0.0",
+    "next": "^16.0.0",
+    "pg": "^8.13.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "server-only": "^0.0.1",
+    "zod": "^4.0.0"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^4.24.0",
-    "@typescript-eslint/parser": "^4.24.0",
-    "concurrently": "^6.1.0",
-    "eslint": "^7.26.0",
-    "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-eslint-comments": "^3.2.0",
-    "eslint-plugin-import": "^2.23.3",
-    "eslint-plugin-jsx-a11y": "^6.4.1",
-    "eslint-plugin-prettier": "^3.4.0",
-    "eslint-plugin-react": "^7.23.2",
-    "eslint-plugin-react-hooks": "^4.2.0",
-    "eslint-plugin-sort-keys-fix": "^1.1.1",
-    "husky": "^6.0.0",
-    "import-sort-style-module": "^6.0.0",
-    "lint-staged": "^11.0.0",
-    "prettier": "^2.3.0",
-    "prettier-plugin-import-sort": "0.0.7",
-    "prettier-plugin-sort-json": "0.0.2",
-    "typescript": "^4.3.2"
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.11.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^16.0.0",
+    "prisma": "^7.0.0",
+    "typescript": "^5.8.0"
   }
 }

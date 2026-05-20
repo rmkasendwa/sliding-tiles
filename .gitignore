@@ -1,11 +1,13 @@
 dist
 !/dist
+.next
+app/generated/prisma
 nbproject
 target
 temp
 package
-package-lock.json
 node_modules
+tsconfig.tsbuildinfo
 builds
 coverage
 sandbox
