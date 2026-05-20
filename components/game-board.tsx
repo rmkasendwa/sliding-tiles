@@ -1,5 +1,6 @@
 'use client';
 
+import type { CSSProperties } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { recordCompletedLevel, saveGameState } from '@/app/actions/game';
@@ -172,6 +173,20 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
           </p>
           <h2>Level {board.level}</h2>
         </div>
+        <figure className="solution-preview">
+          <div
+            aria-label="Completed puzzle reference image"
+            className="solution-preview-image"
+            role="img"
+            style={
+              {
+                '--preview-columns': columns,
+                '--preview-rows': rows,
+              } as CSSProperties
+            }
+          />
+          <figcaption>Reference image</figcaption>
+        </figure>
         <div className="stat-grid">
           <div className="stat">
             <span>Grid</span>

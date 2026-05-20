@@ -350,6 +350,43 @@ h2 {
   gap: 16px;
 }
 
+.solution-preview {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.solution-preview-image {
+  aspect-ratio: 1 / 1;
+  border: 1px solid rgba(30, 37, 34, 0.16);
+  border-radius: 7px;
+  background-image:
+    linear-gradient(
+      to right,
+      rgba(255, 255, 255, 0.42) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.42) 1px,
+      transparent 1px
+    ),
+    url('/api/assets/frog');
+  background-position: 0 0, 0 0, center;
+  background-repeat: repeat, repeat, no-repeat;
+  background-size:
+    calc(100% / var(--preview-columns)) 100%,
+    100% calc(100% / var(--preview-rows)),
+    cover;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.solution-preview figcaption {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
 .stat-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
