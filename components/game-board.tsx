@@ -114,13 +114,15 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
       <section className="game-stage" aria-label="Sliding tile board">
         <div className="board">
           {board.tileGrid.flat().map((tile) => {
+            if (tile.type === 'PLACEHOLDER') {
+              return null;
+            }
+
             const [homeRow, homeColumn] = tile.homeSlot;
             const [row, column] = tile.slot;
-            const isPlaceholder = tile.type === 'PLACEHOLDER';
             const isMovable = movableSlotKeys.has(slotKey(tile.slot));
             const tileClasses = [
               'tile',
-              isPlaceholder ? 'placeholder' : '',
               isMovable ? '' : 'locked',
               hintedSlot === slotKey(tile.homeSlot) ? 'hint' : '',
             ]
@@ -129,13 +131,8 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
 
             return (
               <button
-                aria-label={
-                  isPlaceholder
-                    ? 'Empty slot'
-                    : `Tile ${tile.position + 1}`
-                }
+                aria-label={`Tile ${tile.position + 1}`}
                 className={tileClasses}
-                disabled={isPlaceholder}
                 key={tile.position}
                 onBlur={() => setHintedSlot(null)}
                 onClick={() => {
@@ -146,7 +143,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
                   }
                 }}
                 onMouseEnter={() => {
-                  if (!isMovable && !isPlaceholder) {
+                  if (!isMovable) {
                     setHintedSlot(slotKey(tile.homeSlot));
                   }
                 }}
