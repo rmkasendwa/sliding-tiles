@@ -1,9 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
 
 import { logout } from '@/app/actions/auth';
+import { getCriticalCss } from '@/lib/critical-css';
 import { getSession } from '@/lib/session';
 
 import './globals.css';
@@ -26,17 +25,13 @@ export const metadata: Metadata = {
   },
 };
 
-const criticalCss = readFileSync(
-  path.join(process.cwd(), 'app', 'globals.css'),
-  'utf8'
-);
-
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   const session = await getSession();
+  const criticalCss = await getCriticalCss();
 
   return (
     <html lang="en">

@@ -1,11 +1,12 @@
 'use client';
 
-import type { CSSProperties } from 'react';
+import type { CSSProperties, MutableRefObject } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { recordCompletedLevel, saveGameState } from '@/app/actions/game';
 import {
   BoardState,
+  Tile,
   Slot,
   createBoardState,
   isTileGridInOrder,
@@ -14,14 +15,117 @@ import {
   slotKey,
 } from '@/lib/board';
 
+import styles from './game-board.module.css';
+
 type GameBoardProps = {
   initialBoard: BoardState;
   isSignedIn: boolean;
 };
 
+type TileStyleProperties = CSSProperties & {
+  '--preview-columns'?: number;
+  '--preview-rows'?: number;
+};
+
+type BoardTileProps = {
+  columns: number;
+  hintedSlot: string | null;
+  isMovable: boolean;
+  isShowingSolvedHint: boolean;
+  onHint: (slot: string | null) => void;
+  onMove: (slot: Slot) => void;
+  rows: number;
+  suppressNextClickRef: MutableRefObject<boolean>;
+  tile: Tile;
+  tileHeight: number;
+  tileWidth: number;
+};
+
 const LOCAL_STORAGE_KEY = 'sliding-tiles:anonymous-board';
 const BOARD_SIZE = 999;
 const BOARD_HINT_DELAY_MS = 500;
+
+function BoardTile({
+  columns,
+  hintedSlot,
+  isMovable,
+  isShowingSolvedHint,
+  onHint,
+  onMove,
+  rows,
+  suppressNextClickRef,
+  tile,
+  tileHeight,
+  tileWidth,
+}: BoardTileProps) {
+  const [homeRow, homeColumn] = tile.homeSlot;
+  const [row, column] = isShowingSolvedHint ? tile.homeSlot : tile.slot;
+  const tileClasses = [
+    'gb-tile',
+    styles.tile,
+    isMovable ? '' : `gb-locked ${styles.locked}`,
+    hintedSlot === slotKey(tile.homeSlot) ? `gb-hint ${styles.hint}` : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  return (
+    <button
+      aria-label={`Tile ${tile.position + 1}`}
+      className={tileClasses}
+      key={tile.position}
+      onBlur={() => onHint(null)}
+      onClick={() => {
+        if (suppressNextClickRef.current) {
+          suppressNextClickRef.current = false;
+          return;
+        }
+
+        if (isMovable) {
+          onMove(tile.slot);
+        } else {
+          onHint(slotKey(tile.homeSlot));
+        }
+      }}
+      onMouseEnter={() => {
+        if (!isMovable) {
+          onHint(slotKey(tile.homeSlot));
+        }
+      }}
+      onMouseLeave={() => onHint(null)}
+      style={{
+        width: `${(tileWidth / BOARD_SIZE) * 100}%`,
+        height: `${(tileHeight / BOARD_SIZE) * 100}%`,
+        top: `${((row * tileHeight) / BOARD_SIZE) * 100}%`,
+        left: `${((column * tileWidth) / BOARD_SIZE) * 100}%`,
+        backgroundSize: `${columns * 100}% ${rows * 100}%`,
+        backgroundPosition: `${
+          columns > 1 ? (homeColumn / (columns - 1)) * 100 : 0
+        }% ${rows > 1 ? (homeRow / (rows - 1)) * 100 : 0}%`,
+      }}
+      type="button"
+    />
+  );
+}
+
+function SolutionPreview({ columns, rows }: { columns: number; rows: number }) {
+  return (
+    <figure className={`gb-solution-preview ${styles.solutionPreview}`}>
+      <div
+        aria-label="Completed puzzle reference image"
+        className={`gb-solution-preview-image ${styles.solutionPreviewImage}`}
+        role="img"
+        style={
+          {
+            '--preview-columns': columns,
+            '--preview-rows': rows,
+          } as TileStyleProperties
+        }
+      />
+      <figcaption>Reference image</figcaption>
+    </figure>
+  );
+}
 
 export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   const [board, setBoard] = useState<BoardState>(initialBoard);
@@ -158,11 +262,16 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   );
 
   return (
-    <div className="game-layout">
-      <section className="game-stage" aria-label="Sliding tile board">
+    <div className={`gb-layout ${styles.layout}`}>
+      <section
+        className={`gb-stage ${styles.stage}`}
+        aria-label="Sliding tile board"
+      >
         <div
           className={
-            isShowingSolvedHint ? 'board showing-solved-hint' : 'board'
+            isShowingSolvedHint
+              ? `gb-board gb-showing-solved-hint ${styles.board} ${styles.showingSolvedHint}`
+              : `gb-board ${styles.board}`
           }
           onMouseDown={startBoardHint}
           onMouseLeave={clearBoardHint}
@@ -173,100 +282,55 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
               return null;
             }
 
-            const [homeRow, homeColumn] = tile.homeSlot;
-            const [row, column] = isShowingSolvedHint
-              ? tile.homeSlot
-              : tile.slot;
             const isMovable = movableSlotKeys.has(slotKey(tile.slot));
-            const tileClasses = [
-              'tile',
-              isMovable ? '' : 'locked',
-              hintedSlot === slotKey(tile.homeSlot) ? 'hint' : '',
-            ]
-              .filter(Boolean)
-              .join(' ');
 
             return (
-              <button
-                aria-label={`Tile ${tile.position + 1}`}
-                className={tileClasses}
+              <BoardTile
+                columns={columns}
+                hintedSlot={hintedSlot}
+                isMovable={isMovable}
+                isShowingSolvedHint={isShowingSolvedHint}
                 key={tile.position}
-                onBlur={() => setHintedSlot(null)}
-                onClick={() => {
-                  if (suppressNextClickRef.current) {
-                    suppressNextClickRef.current = false;
-                    return;
-                  }
-
-                  if (isMovable) {
-                    moveTile(tile.slot);
-                  } else {
-                    setHintedSlot(slotKey(tile.homeSlot));
-                  }
-                }}
-                onMouseEnter={() => {
-                  if (!isMovable) {
-                    setHintedSlot(slotKey(tile.homeSlot));
-                  }
-                }}
-                onMouseLeave={() => setHintedSlot(null)}
-                style={{
-                  width: `${(tileWidth / BOARD_SIZE) * 100}%`,
-                  height: `${(tileHeight / BOARD_SIZE) * 100}%`,
-                  top: `${((row * tileHeight) / BOARD_SIZE) * 100}%`,
-                  left: `${((column * tileWidth) / BOARD_SIZE) * 100}%`,
-                  backgroundSize: `${columns * 100}% ${rows * 100}%`,
-                  backgroundPosition: `${
-                    columns > 1 ? (homeColumn / (columns - 1)) * 100 : 0
-                  }% ${rows > 1 ? (homeRow / (rows - 1)) * 100 : 0}%`,
-                }}
-                type="button"
+                onHint={setHintedSlot}
+                onMove={moveTile}
+                rows={rows}
+                suppressNextClickRef={suppressNextClickRef}
+                tile={tile}
+                tileHeight={tileHeight}
+                tileWidth={tileWidth}
               />
             );
           })}
         </div>
       </section>
 
-      <aside className="panel game-card">
+      <aside className={`panel gb-card ${styles.card}`}>
         <div>
           <p className="eyebrow">
             {isSignedIn ? 'Saved game' : 'Anonymous game'}
           </p>
           <h2>Level {board.level}</h2>
         </div>
-        <figure className="solution-preview">
-          <div
-            aria-label="Completed puzzle reference image"
-            className="solution-preview-image"
-            role="img"
-            style={
-              {
-                '--preview-columns': columns,
-                '--preview-rows': rows,
-              } as CSSProperties
-            }
-          />
-          <figcaption>Reference image</figcaption>
-        </figure>
-        <div className="stat-grid">
-          <div className="stat">
+        <SolutionPreview columns={columns} rows={rows} />
+        <div className={`gb-stat-grid ${styles.statGrid}`}>
+          <div className={`gb-stat ${styles.stat}`}>
             <span>Grid</span>
             <strong>
               {columns}x{rows}
             </strong>
           </div>
-          <div className="stat">
+          <div className={`gb-stat ${styles.stat}`}>
             <span>Moves</span>
             <strong>{board.moves}</strong>
           </div>
         </div>
-        <p className="notice">
+        <p className={`gb-notice ${styles.notice}`}>
           Use arrow keys or WASD. Click a movable tile to slide it. Click a
           locked tile to flash where it belongs. Hold the left mouse button on
           the board to briefly reveal the solved layout.
         </p>
         {!isSignedIn && (
-          <p className="notice">
+          <p className={`gb-notice ${styles.notice}`}>
             Anonymous progress stays in this browser. Sign in to sync your board
             and post leaderboard times.
           </p>
