@@ -14,34 +14,15 @@ import {
 } from '@/lib/board';
 
 type GameBoardProps = {
-  initialBoard: BoardState | null;
+  initialBoard: BoardState;
   isSignedIn: boolean;
 };
 
 const LOCAL_STORAGE_KEY = 'sliding-tiles:anonymous-board';
 const BOARD_SIZE = 999;
 
-function loadLocalBoard() {
-  try {
-    const item = window.localStorage.getItem(LOCAL_STORAGE_KEY);
-    return item ? (JSON.parse(item) as BoardState) : null;
-  } catch {
-    return null;
-  }
-}
-
 export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
-  const [board, setBoard] = useState<BoardState>(() => {
-    if (initialBoard) {
-      return initialBoard;
-    }
-
-    if (!isSignedIn && typeof window !== 'undefined') {
-      return loadLocalBoard() ?? createBoardState();
-    }
-
-    return createBoardState();
-  });
+  const [board, setBoard] = useState<BoardState>(initialBoard);
   const [message, setMessage] = useState('');
   const [hintedSlot, setHintedSlot] = useState<string | null>(null);
 

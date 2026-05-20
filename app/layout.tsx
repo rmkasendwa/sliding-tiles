@@ -30,17 +30,17 @@ export default async function RootLayout({
               </span>
             </Link>
             <div className="nav-links">
-              <a className="nav-link" href="/play">
+              <Link className="nav-link" href="/play">
                 Play
-              </a>
-              <a className="nav-link" href="/leaderboard">
+              </Link>
+              <Link className="nav-link" href="/leaderboard">
                 Leaderboard
-              </a>
+              </Link>
               {session ? (
                 <>
-                  <a className="nav-link" href="/profile">
+                  <Link className="nav-link" href="/profile">
                     Profile
-                  </a>
+                  </Link>
                   <form action={logout}>
                     <button className="button danger" type="submit">
                       Log out
@@ -49,12 +49,12 @@ export default async function RootLayout({
                 </>
               ) : (
                 <>
-                  <a className="nav-link" href="/login">
+                  <Link className="nav-link" href="/login">
                     Log in
-                  </a>
-                  <a className="button" href="/signup">
+                  </Link>
+                  <Link className="button" href="/signup">
                     Sign up
-                  </a>
+                  </Link>
                 </>
               )}
             </div>

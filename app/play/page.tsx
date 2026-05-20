@@ -1,5 +1,5 @@
 import { GameBoard } from '@/components/game-board';
-import { BoardState } from '@/lib/board';
+import { BoardState, createBoardState } from '@/lib/board';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/session';
 
@@ -11,6 +11,8 @@ export default async function PlayPage() {
         select: { board: true },
       })
     : null;
+  const initialBoard =
+    (savedState?.board as BoardState | undefined) ?? createBoardState();
 
   return (
     <section className="shell page grid-page">
@@ -20,10 +22,7 @@ export default async function PlayPage() {
           <h1>Play</h1>
         </div>
       </div>
-      <GameBoard
-        initialBoard={(savedState?.board as BoardState | undefined) ?? null}
-        isSignedIn={Boolean(session)}
-      />
+      <GameBoard initialBoard={initialBoard} isSignedIn={Boolean(session)} />
     </section>
   );
 }
