@@ -1,7 +1,7 @@
 'use client';
 
 import type { CSSProperties } from 'react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { recordCompletedLevel, saveGameState } from '@/app/actions/game';
 import {
@@ -21,11 +21,16 @@ type GameBoardProps = {
 
 const LOCAL_STORAGE_KEY = 'sliding-tiles:anonymous-board';
 const BOARD_SIZE = 999;
+const BOARD_HINT_DELAY_MS = 500;
 
 export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   const [board, setBoard] = useState<BoardState>(initialBoard);
   const [message, setMessage] = useState('');
   const [hintedSlot, setHintedSlot] = useState<string | null>(null);
+  const [isShowingSolvedHint, setIsShowingSolvedHint] = useState(false);
+  const boardHintTimeoutRef = useRef<number | null>(null);
+  const boardHintMouseUpRef = useRef<(() => void) | null>(null);
+  const suppressNextClickRef = useRef(false);
 
   useEffect(() => {
     if (isSignedIn) {
@@ -110,17 +115,68 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   const tileWidth = BOARD_SIZE / columns;
   const tileHeight = BOARD_SIZE / rows;
 
+  const clearBoardHint = useCallback(() => {
+    if (boardHintTimeoutRef.current !== null) {
+      window.clearTimeout(boardHintTimeoutRef.current);
+      boardHintTimeoutRef.current = null;
+    }
+    setIsShowingSolvedHint(false);
+    if (boardHintMouseUpRef.current) {
+      window.removeEventListener('mouseup', boardHintMouseUpRef.current);
+      boardHintMouseUpRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    return clearBoardHint;
+  }, [clearBoardHint]);
+
+  const startBoardHint = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      if (event.button !== 0) {
+        return;
+      }
+
+      if (boardHintTimeoutRef.current !== null) {
+        window.clearTimeout(boardHintTimeoutRef.current);
+      }
+
+      boardHintTimeoutRef.current = window.setTimeout(() => {
+        suppressNextClickRef.current = true;
+        setIsShowingSolvedHint(true);
+        boardHintTimeoutRef.current = null;
+      }, BOARD_HINT_DELAY_MS);
+
+      if (boardHintMouseUpRef.current) {
+        window.removeEventListener('mouseup', boardHintMouseUpRef.current);
+      }
+
+      boardHintMouseUpRef.current = clearBoardHint;
+      window.addEventListener('mouseup', clearBoardHint, { once: true });
+    },
+    [clearBoardHint]
+  );
+
   return (
     <div className="game-layout">
       <section className="game-stage" aria-label="Sliding tile board">
-        <div className="board">
+        <div
+          className={
+            isShowingSolvedHint ? 'board showing-solved-hint' : 'board'
+          }
+          onMouseDown={startBoardHint}
+          onMouseLeave={clearBoardHint}
+          onMouseUp={clearBoardHint}
+        >
           {board.tileGrid.flat().map((tile) => {
             if (tile.type === 'PLACEHOLDER') {
               return null;
             }
 
             const [homeRow, homeColumn] = tile.homeSlot;
-            const [row, column] = tile.slot;
+            const [row, column] = isShowingSolvedHint
+              ? tile.homeSlot
+              : tile.slot;
             const isMovable = movableSlotKeys.has(slotKey(tile.slot));
             const tileClasses = [
               'tile',
@@ -137,6 +193,11 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
                 key={tile.position}
                 onBlur={() => setHintedSlot(null)}
                 onClick={() => {
+                  if (suppressNextClickRef.current) {
+                    suppressNextClickRef.current = false;
+                    return;
+                  }
+
                   if (isMovable) {
                     moveTile(tile.slot);
                   } else {
@@ -201,7 +262,8 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
         </div>
         <p className="notice">
           Use arrow keys or WASD. Click a movable tile to slide it. Click a
-          locked tile to flash where it belongs.
+          locked tile to flash where it belongs. Hold the left mouse button on
+          the board to briefly reveal the solved layout.
         </p>
         {!isSignedIn && (
           <p className="notice">

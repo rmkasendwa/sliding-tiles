@@ -334,6 +334,12 @@ h2 {
   cursor: pointer;
 }
 
+.board.showing-solved-hint .tile {
+  cursor: default;
+  filter: saturate(1.08) brightness(1.04);
+  z-index: 2;
+}
+
 .tile.locked {
   cursor: not-allowed;
 }
