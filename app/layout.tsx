@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 
 import { logout } from '@/app/actions/auth';
 import { getSession } from '@/lib/session';
@@ -11,6 +13,11 @@ export const metadata: Metadata = {
   description: 'A sliding tile puzzle with accounts and leaderboards.',
 };
 
+const criticalCss = readFileSync(
+  path.join(process.cwd(), 'app', 'globals.css'),
+  'utf8'
+);
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -20,6 +27,12 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
+      <head>
+        <style
+          data-critical-css="true"
+          dangerouslySetInnerHTML={{ __html: criticalCss }}
+        />
+      </head>
       <body>
         <header className="site-header">
           <nav className="shell nav" aria-label="Primary navigation">
