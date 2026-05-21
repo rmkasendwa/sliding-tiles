@@ -12,7 +12,7 @@ const footerLinks = [
 export function MainFooter() {
   return (
     <footer className="border-t border-line bg-background/70">
-      <div className="mx-auto flex w-[min(1180px,calc(100%_-_32px))] flex-wrap items-center justify-between gap-4 py-6 text-sm text-muted">
+      <div className="mx-auto flex w-[min(1600px,calc(100%_-_40px))] flex-wrap items-center justify-between gap-4 py-6 text-sm text-muted">
         <div className="grid gap-1">
           <Link
             className="font-bold text-foreground transition-colors hover:text-accent-strong"

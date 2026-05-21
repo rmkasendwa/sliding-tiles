@@ -44,7 +44,8 @@ const BOARD_HINT_DELAY_MS = 500;
 const BOARD_HINT_TILE_REVEAL_DELAY_MS = 220;
 const LEVEL_COMPLETE_CELEBRATION_DELAY_MS = 500;
 const LEVEL_COMPLETE_ADVANCE_DELAY_MS = 10000;
-const TILE_TRANSITION = 'left 180ms ease, top 180ms ease, box-shadow 180ms ease';
+const TILE_TRANSITION =
+  'left 180ms ease, top 180ms ease, box-shadow 180ms ease';
 const HINT_PLACEHOLDER_TRANSITION =
   'left 180ms ease, top 180ms ease, opacity 360ms ease, box-shadow 180ms ease, filter 180ms ease';
 const BOARD_SURFACE_BACKGROUND =
@@ -80,7 +81,9 @@ function BoardTile({
   const tileClasses = [
     'absolute cursor-pointer rounded-md border border-black/20 bg-no-repeat shadow-[inset_0_-3px_4px_rgba(0,0,0,0.26),inset_0_3px_4px_rgba(255,255,255,0.34),0_16px_22px_rgba(0,0,0,0.24)] hover:z-[8] focus-visible:z-[8]',
     isMovable ? '' : 'cursor-not-allowed',
-    isShowingSolvedHint ? 'z-[2] cursor-default brightness-[1.04] saturate-[1.08]' : '',
+    isShowingSolvedHint
+      ? 'z-[2] cursor-default brightness-[1.04] saturate-[1.08]'
+      : '',
     isHintPlaceholder ? 'pointer-events-none' : '',
     hintedSlot === slotKey(tile.homeSlot)
       ? 'z-[9] shadow-[0_18px_30px_rgba(0,0,0,0.28)]'
@@ -369,14 +372,16 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
     setBoard(createBoardState(board.level, board.dimensions));
   }, [board.dimensions, board.level, clearBoardHint]);
 
+  const gameModeLabel = isSignedIn ? 'Saved run' : 'Anonymous run';
+
   return (
-    <div className="grid grid-cols-[1fr_300px] items-start gap-[22px] max-[820px]:grid-cols-1">
+    <div className="grid min-h-[calc(100svh-186px)] grid-cols-[minmax(0,calc(100svh-186px))_320px_minmax(0,1fr)] items-start gap-5 max-[1180px]:grid-cols-[minmax(0,1fr)_320px] max-[900px]:grid-cols-1">
       <section
-        className="grid min-h-[calc(100vh-168px)] place-items-center overflow-hidden rounded-lg bg-[#20241f] p-[18px] max-[820px]:min-h-0"
+        className="grid min-h-[calc(100svh-186px)] items-start justify-items-start overflow-visible max-[900px]:min-h-[calc(100svh-230px)]"
         aria-label="Sliding tile board"
       >
         <div
-          className="relative aspect-square w-[min(100%,76vh)] overflow-hidden rounded-lg shadow-[0_24px_80px_rgba(0,0,0,0.34)]"
+          className="relative aspect-square w-full min-w-0 overflow-hidden rounded-lg shadow-[0_24px_80px_rgba(0,0,0,0.26)] max-[900px]:w-[min(100%,calc(100svh-252px))]"
           onMouseDown={startBoardHint}
           onMouseLeave={clearBoardHint}
           onMouseUp={clearBoardHint}
@@ -398,9 +403,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
                 isShowingSolvedHint={isShowingSolvedHint}
                 key={tile.position}
                 onHint={
-                  tile.type === 'PLACEHOLDER'
-                    ? () => undefined
-                    : setHintedSlot
+                  tile.type === 'PLACEHOLDER' ? () => undefined : setHintedSlot
                 }
                 onInvalidMove={() => playSound('invalid')}
                 onMove={moveTile}
@@ -442,14 +445,23 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
         </div>
       </section>
 
-      <aside className="grid gap-4 rounded-lg border border-line bg-panel p-[18px] shadow-panel">
-        <div>
-          <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
-            {isSignedIn ? 'Saved game' : 'Anonymous game'}
+      <aside className="grid content-start gap-4 self-start rounded-lg border border-line bg-panel p-5 shadow-panel">
+        <div className="grid gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
+              {gameModeLabel}
+            </p>
+            <span className="rounded-full border border-accent/20 bg-accent/10 px-3 py-1 text-xs font-bold text-accent-strong">
+              Level {board.level}
+            </span>
+          </div>
+          <h1 className="text-[clamp(2rem,4vw,3rem)] leading-none">
+            Complete the pond
+          </h1>
+          <p className="text-sm leading-6 text-muted">
+            Slide the pieces back together. Hold the board to peek at the full
+            picture.
           </p>
-          <h2 className="text-[clamp(1.7rem,3vw,2.4rem)]">
-            Level {board.level}
-          </h2>
         </div>
         <SolutionPreview columns={columns} rows={rows} />
         <div className="grid grid-cols-2 gap-2.5">
@@ -464,10 +476,9 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
             <strong className="mt-1 block text-[1.4rem]">{board.moves}</strong>
           </div>
         </div>
-        <p className="leading-normal text-muted">
-          Use arrow keys or WASD. Click a movable tile to slide it. Click a
-          locked tile to flash where it belongs. Hold the left mouse button on
-          the board to briefly reveal the solved layout.
+        <p className="rounded-lg border border-line bg-white/40 p-3 text-sm leading-6 text-muted">
+          Use arrow keys or WASD. Click movable tiles to slide them, or click a
+          locked tile to flash where it belongs.
         </p>
         {!isSignedIn && (
           <p className="leading-normal text-muted">

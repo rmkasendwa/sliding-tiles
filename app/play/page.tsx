@@ -15,17 +15,7 @@ export default async function PlayPage() {
     (savedState?.board as BoardState | undefined) ?? createBoardState();
 
   return (
-    <section className="mx-auto grid w-[min(1180px,calc(100%_-_32px))] gap-6 py-11 pb-14">
-      <div className="flex flex-wrap items-end justify-between gap-[18px]">
-        <div>
-          <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
-            Puzzle board
-          </p>
-          <h1 className="text-[clamp(2.4rem,7vw,5.7rem)] leading-[0.94]">
-            Play
-          </h1>
-        </div>
-      </div>
+    <section className="mx-auto grid min-h-[calc(100svh-154px)] w-[min(1600px,calc(100%_-_40px))] py-4">
       <GameBoard initialBoard={initialBoard} isSignedIn={Boolean(session)} />
     </section>
   );

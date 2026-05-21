@@ -40,7 +40,7 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
   return (
     <header className="sticky top-0 z-20 border-b border-line bg-background/85 backdrop-blur">
       <nav
-        className="mx-auto flex min-h-18 w-[min(1180px,calc(100%_-_32px))] items-center justify-between gap-6 max-[820px]:flex-col max-[820px]:items-start max-[820px]:py-3.5"
+        className="mx-auto flex min-h-18 w-[min(1600px,calc(100%_-_40px))] items-center justify-between gap-6 max-[820px]:flex-col max-[820px]:items-start max-[820px]:py-3.5"
         aria-label="Primary navigation"
       >
         <Link className="grid gap-0.5" href={routes.home}>
