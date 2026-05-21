@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 
+import { MainFooter } from '@/components/main-footer';
 import { MainHeader } from '@/components/main-header';
 import { SoundProvider } from '@/components/sound-provider';
 
@@ -30,10 +31,13 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
+      <body className="min-h-screen">
         <SoundProvider>
-          <MainHeader />
-          <main>{children}</main>
+          <div className="flex min-h-screen flex-col">
+            <MainHeader />
+            <main className="flex-1">{children}</main>
+            <MainFooter />
+          </div>
         </SoundProvider>
       </body>
     </html>
