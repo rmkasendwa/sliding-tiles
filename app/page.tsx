@@ -1,5 +1,7 @@
 import Link from 'next/link';
 
+import { routes } from '@/lib/routes';
+
 export default function HomePage() {
   return (
     <section className="mx-auto grid min-h-[calc(100vh-154px)] w-[min(1180px,calc(100%_-_32px))] grid-cols-[minmax(0,0.9fr)_minmax(360px,1.1fr)] items-center gap-9 py-11 pb-14 max-[820px]:min-h-0 max-[820px]:grid-cols-1">
@@ -17,13 +19,13 @@ export default function HomePage() {
         <div className="flex flex-wrap gap-3">
           <Link
             className="inline-flex min-h-10 items-center justify-center rounded-[7px] border border-accent bg-accent px-3.5 font-bold text-white"
-            href="/play"
+            href={routes.play}
           >
             Start playing
           </Link>
           <Link
             className="inline-flex min-h-10 items-center justify-center rounded-[7px] border border-accent/30 px-3.5 font-bold text-accent-strong"
-            href="/leaderboard"
+            href={routes.leaderboard}
           >
             View leaderboard
           </Link>

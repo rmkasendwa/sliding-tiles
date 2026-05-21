@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 
 import { hashPassword, verifyPassword } from '@/lib/password';
 import { prisma } from '@/lib/prisma';
+import { routes } from '@/lib/routes';
 import { createSession, destroySession } from '@/lib/session';
 import {
   AuthFormState,
@@ -63,7 +64,7 @@ export async function signup(
     };
   }
 
-  redirect('/play');
+  redirect(routes.play);
 }
 
 export async function login(
@@ -104,10 +105,10 @@ export async function login(
     email: user.email,
   });
 
-  redirect('/play');
+  redirect(routes.play);
 }
 
 export async function logout() {
   await destroySession();
-  redirect('/');
+  redirect(routes.home);
 }

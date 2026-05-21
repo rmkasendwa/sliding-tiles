@@ -1,12 +1,13 @@
 import { redirect } from 'next/navigation';
 
 import { prisma } from '@/lib/prisma';
+import { routes } from '@/lib/routes';
 import { getSession } from '@/lib/session';
 
 export default async function ProfilePage() {
   const session = await getSession();
   if (!session) {
-    redirect('/login');
+    redirect(routes.login);
   }
 
   const [gameState, scores] = await Promise.all([
