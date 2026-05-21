@@ -42,6 +42,8 @@ const LOCAL_STORAGE_KEY = 'sliding-tiles:anonymous-board';
 const BOARD_SIZE = 999;
 const BOARD_HINT_DELAY_MS = 500;
 const BOARD_HINT_TILE_REVEAL_DELAY_MS = 220;
+const LEVEL_COMPLETE_CELEBRATION_DELAY_MS = 500;
+const LEVEL_COMPLETE_ADVANCE_DELAY_MS = 10000;
 const TILE_TRANSITION = 'left 180ms ease, top 180ms ease, box-shadow 180ms ease';
 const HINT_PLACEHOLDER_TRANSITION =
   'left 180ms ease, top 180ms ease, opacity 360ms ease, box-shadow 180ms ease, filter 180ms ease';
@@ -50,6 +52,12 @@ const BOARD_SURFACE_BACKGROUND =
 const SOLUTION_GRID_BACKGROUND =
   "linear-gradient(to right, rgba(255, 255, 255, 0.42) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.42) 1px, transparent 1px), url('/api/assets/frog')";
 const TILE_BACKGROUND = "url('/api/assets/frog')";
+const CELEBRATION_PARTICLES = Array.from({ length: 30 }, (_, index) => ({
+  delay: `${index * 70}ms`,
+  left: `${6 + ((index * 23) % 88)}%`,
+  size: `${9 + (index % 5) * 4}px`,
+  top: `${8 + ((index * 19) % 74)}%`,
+}));
 
 function BoardTile({
   columns,
@@ -156,11 +164,14 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   const [board, setBoard] = useState<BoardState>(initialBoard);
   const [message, setMessage] = useState('');
   const [hintedSlot, setHintedSlot] = useState<string | null>(null);
+  const [isCelebrating, setIsCelebrating] = useState(false);
   const [isShowingSolvedHint, setIsShowingSolvedHint] = useState(false);
   const [isShowingHintPlaceholder, setIsShowingHintPlaceholder] =
     useState(false);
   const boardHintTimeoutRef = useRef<number | null>(null);
   const placeholderRevealTimeoutRef = useRef<number | null>(null);
+  const celebrationTimeoutRef = useRef<number | null>(null);
+  const levelAdvanceTimeoutRef = useRef<number | null>(null);
   const boardHintMouseUpRef = useRef<(() => void) | null>(null);
   const suppressNextClickRef = useRef(false);
 
@@ -183,25 +194,48 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
     (completedBoard: BoardState) => {
       playSound('complete');
       setMessage(`Level ${completedBoard.level} complete`);
+      setHintedSlot(null);
       if (isSignedIn) {
         void recordCompletedLevel(completedBoard);
       }
 
-      window.setTimeout(() => {
-        setBoard(
-          createBoardState(
-            completedBoard.level + 1,
-            nextGridDimensions(completedBoard.dimensions)
-          )
-        );
-        setMessage('');
-      }, 900);
+      if (celebrationTimeoutRef.current !== null) {
+        window.clearTimeout(celebrationTimeoutRef.current);
+      }
+      if (levelAdvanceTimeoutRef.current !== null) {
+        window.clearTimeout(levelAdvanceTimeoutRef.current);
+      }
+
+      celebrationTimeoutRef.current = window.setTimeout(() => {
+        setIsCelebrating(true);
+        setIsShowingSolvedHint(true);
+        setIsShowingHintPlaceholder(true);
+        celebrationTimeoutRef.current = null;
+
+        levelAdvanceTimeoutRef.current = window.setTimeout(() => {
+          setBoard(
+            createBoardState(
+              completedBoard.level + 1,
+              nextGridDimensions(completedBoard.dimensions)
+            )
+          );
+          setMessage('');
+          setIsCelebrating(false);
+          setIsShowingSolvedHint(false);
+          setIsShowingHintPlaceholder(false);
+          levelAdvanceTimeoutRef.current = null;
+        }, LEVEL_COMPLETE_ADVANCE_DELAY_MS);
+      }, LEVEL_COMPLETE_CELEBRATION_DELAY_MS);
     },
     [isSignedIn, playSound]
   );
 
   const moveTile = useCallback(
     (slot: Slot) => {
+      if (isCelebrating) {
+        return;
+      }
+
       const nextBoard = moveBoardTile(board, slot);
       setBoard(nextBoard);
 
@@ -213,12 +247,16 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
         completeLevel(nextBoard);
       }
     },
-    [board, completeLevel, playSound]
+    [board, completeLevel, isCelebrating, playSound]
   );
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const [row, column] = board.emptySlot;
+      if (isCelebrating) {
+        return;
+      }
+
       const slotToMove: Slot | null = (() => {
         switch (event.key) {
           case 'ArrowUp':
@@ -246,7 +284,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [board, movableSlotKeys, moveTile]);
+  }, [board, isCelebrating, movableSlotKeys, moveTile]);
 
   const [columns, rows] = board.dimensions;
   const tileWidth = BOARD_SIZE / columns;
@@ -270,12 +308,24 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   }, []);
 
   useEffect(() => {
-    return clearBoardHint;
+    return () => {
+      clearBoardHint();
+      if (celebrationTimeoutRef.current !== null) {
+        window.clearTimeout(celebrationTimeoutRef.current);
+      }
+      if (levelAdvanceTimeoutRef.current !== null) {
+        window.clearTimeout(levelAdvanceTimeoutRef.current);
+      }
+    };
   }, [clearBoardHint]);
 
   const startBoardHint = useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {
       if (event.button !== 0) {
+        return;
+      }
+
+      if (isCelebrating) {
         return;
       }
 
@@ -301,8 +351,23 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
       boardHintMouseUpRef.current = clearBoardHint;
       window.addEventListener('mouseup', clearBoardHint, { once: true });
     },
-    [clearBoardHint, playSound]
+    [clearBoardHint, isCelebrating, playSound]
   );
+
+  const restartLevel = useCallback(() => {
+    clearBoardHint();
+    if (levelAdvanceTimeoutRef.current !== null) {
+      window.clearTimeout(levelAdvanceTimeoutRef.current);
+      levelAdvanceTimeoutRef.current = null;
+    }
+    if (celebrationTimeoutRef.current !== null) {
+      window.clearTimeout(celebrationTimeoutRef.current);
+      celebrationTimeoutRef.current = null;
+    }
+    setIsCelebrating(false);
+    setMessage('');
+    setBoard(createBoardState(board.level, board.dimensions));
+  }, [board.dimensions, board.level, clearBoardHint]);
 
   return (
     <div className="grid grid-cols-[1fr_300px] items-start gap-[22px] max-[820px]:grid-cols-1">
@@ -347,6 +412,33 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
               />
             );
           })}
+          {isCelebrating && (
+            <div className="pointer-events-none absolute inset-0 z-30 animate-[celebration-fade-in_700ms_ease-out_both] overflow-hidden">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,250,241,0.18),rgba(37,111,90,0.18)_42%,rgba(32,36,31,0.3))]" />
+              <div className="absolute inset-4 rounded-lg border border-white/60 shadow-[inset_0_0_52px_rgba(255,255,255,0.38),0_0_44px_rgba(243,212,107,0.3)]" />
+              {CELEBRATION_PARTICLES.map((particle, index) => (
+                <span
+                  className="absolute block animate-[celebration-float_1600ms_ease-out_both] rounded-full bg-[#f3d46b] shadow-[0_0_26px_rgba(243,212,107,0.9),0_0_8px_rgba(255,255,255,0.9)]"
+                  key={index}
+                  style={{
+                    animationDelay: particle.delay,
+                    height: particle.size,
+                    left: particle.left,
+                    top: particle.top,
+                    width: particle.size,
+                  }}
+                />
+              ))}
+              <div className="absolute inset-x-6 bottom-6 rounded-lg border border-white/35 bg-panel/90 px-5 py-4 text-center shadow-panel backdrop-blur">
+                <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
+                  Level complete
+                </p>
+                <p className="mt-1 text-sm text-muted">
+                  Enjoy the solved image. Next level is loading.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -385,9 +477,8 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
         )}
         <button
           className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[7px] border border-accent/30 px-3.5 font-bold text-accent-strong"
-          onClick={() =>
-            setBoard(createBoardState(board.level, board.dimensions))
-          }
+          disabled={isCelebrating}
+          onClick={restartLevel}
           type="button"
         >
           Restart level
