@@ -15,6 +15,8 @@ import {
   slotKey,
 } from '@/lib/board';
 
+import { useSound } from './sound-provider';
+
 type GameBoardProps = {
   initialBoard: BoardState;
   isSignedIn: boolean;
@@ -27,6 +29,7 @@ type BoardTileProps = {
   isMovable: boolean;
   isShowingSolvedHint: boolean;
   onHint: (slot: string | null) => void;
+  onInvalidMove: () => void;
   onMove: (slot: Slot) => void;
   rows: number;
   suppressNextClickRef: MutableRefObject<boolean>;
@@ -55,6 +58,7 @@ function BoardTile({
   isMovable,
   isShowingSolvedHint,
   onHint,
+  onInvalidMove,
   onMove,
   rows,
   suppressNextClickRef,
@@ -96,6 +100,7 @@ function BoardTile({
         if (isMovable) {
           onMove(tile.slot);
         } else {
+          onInvalidMove();
           onHint(slotKey(tile.homeSlot));
         }
       }}
@@ -147,6 +152,7 @@ function SolutionPreview({ columns, rows }: { columns: number; rows: number }) {
 }
 
 export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
+  const { playSound } = useSound();
   const [board, setBoard] = useState<BoardState>(initialBoard);
   const [message, setMessage] = useState('');
   const [hintedSlot, setHintedSlot] = useState<string | null>(null);
@@ -175,6 +181,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
 
   const completeLevel = useCallback(
     (completedBoard: BoardState) => {
+      playSound('complete');
       setMessage(`Level ${completedBoard.level} complete`);
       if (isSignedIn) {
         void recordCompletedLevel(completedBoard);
@@ -190,7 +197,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
         setMessage('');
       }, 900);
     },
-    [isSignedIn]
+    [isSignedIn, playSound]
   );
 
   const moveTile = useCallback(
@@ -198,11 +205,15 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
       const nextBoard = moveBoardTile(board, slot);
       setBoard(nextBoard);
 
+      if (nextBoard !== board) {
+        playSound('move');
+      }
+
       if (nextBoard !== board && isTileGridInOrder(nextBoard.tileGrid)) {
         completeLevel(nextBoard);
       }
     },
-    [board, completeLevel]
+    [board, completeLevel, playSound]
   );
 
   useEffect(() => {
@@ -275,6 +286,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
       boardHintTimeoutRef.current = window.setTimeout(() => {
         suppressNextClickRef.current = true;
         setIsShowingSolvedHint(true);
+        playSound('hint');
         placeholderRevealTimeoutRef.current = window.setTimeout(() => {
           setIsShowingHintPlaceholder(true);
           placeholderRevealTimeoutRef.current = null;
@@ -289,7 +301,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
       boardHintMouseUpRef.current = clearBoardHint;
       window.addEventListener('mouseup', clearBoardHint, { once: true });
     },
-    [clearBoardHint]
+    [clearBoardHint, playSound]
   );
 
   return (
@@ -325,6 +337,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
                     ? () => undefined
                     : setHintedSlot
                 }
+                onInvalidMove={() => playSound('invalid')}
                 onMove={moveTile}
                 rows={rows}
                 suppressNextClickRef={suppressNextClickRef}

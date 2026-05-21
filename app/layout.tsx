@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import { MainHeader } from '@/components/main-header';
+import { SoundProvider } from '@/components/sound-provider';
 
 import './globals.css';
 
@@ -30,8 +31,10 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body>
-        <MainHeader />
-        <main>{children}</main>
+        <SoundProvider>
+          <MainHeader />
+          <main>{children}</main>
+        </SoundProvider>
       </body>
     </html>
   );

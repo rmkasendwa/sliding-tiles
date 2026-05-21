@@ -5,6 +5,8 @@ import { usePathname } from 'next/navigation';
 
 import { routes, type AppRoute } from '@/lib/routes';
 
+import { useSound } from './sound-provider';
+
 type MainHeaderNavProps = {
   logout: () => Promise<void>;
   session: { name: string } | null;
@@ -33,6 +35,7 @@ function isRouteActive(pathname: string, href: AppRoute) {
 
 export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
   const pathname = usePathname();
+  const { isMuted, toggleMuted } = useSound();
 
   return (
     <header className="sticky top-0 z-20 border-b border-line bg-background/85 backdrop-blur">
@@ -118,6 +121,14 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
               </Link>
             </>
           )}
+          <button
+            aria-pressed={!isMuted}
+            className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[7px] border border-line px-3.5 text-muted transition-colors hover:bg-accent/10 hover:text-accent-strong"
+            onClick={toggleMuted}
+            type="button"
+          >
+            {isMuted ? 'Sound off' : 'Sound on'}
+          </button>
         </div>
       </nav>
     </header>
