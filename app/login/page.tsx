@@ -11,9 +11,9 @@ export default async function LoginPage() {
   }
 
   return (
-    <section className="shell page auth-layout">
+    <section className="mx-auto my-9 w-[min(460px,100%)] px-4 py-11 pb-14">
       <AuthForm mode="login" />
-      <p className="notice" style={{ marginTop: 16, textAlign: 'center' }}>
+      <p className="mt-4 text-center leading-normal text-muted">
         No account yet? <Link href="/signup">Create one</Link>.
       </p>
     </section>

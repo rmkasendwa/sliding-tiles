@@ -17,48 +17,83 @@ export function AuthForm({ mode }: AuthFormProps) {
   );
 
   return (
-    <form action={formAction} className="panel auth-form">
+    <form
+      action={formAction}
+      className="grid gap-4 rounded-lg border border-line bg-panel p-6 shadow-panel"
+    >
       <div>
-        <p className="eyebrow">
+        <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
           {mode === 'signup' ? 'Create account' : 'Welcome back'}
         </p>
-        <h1>{mode === 'signup' ? 'Sign up' : 'Log in'}</h1>
+        <h1 className="text-[clamp(2.4rem,7vw,5.7rem)] leading-[0.94]">
+          {mode === 'signup' ? 'Sign up' : 'Log in'}
+        </h1>
       </div>
 
       {mode === 'signup' && (
-        <div className="field">
-          <label htmlFor="name">Name</label>
-          <input id="name" name="name" autoComplete="name" />
+        <div className="grid gap-2">
+          <label className="font-bold" htmlFor="name">
+            Name
+          </label>
+          <input
+            className="min-h-11 rounded-[7px] border border-line bg-white px-3 text-foreground"
+            id="name"
+            name="name"
+            autoComplete="name"
+          />
           {state.errors?.name && (
-            <p className="form-error">{state.errors.name.join(' ')}</p>
+            <p className="text-[0.9rem] text-danger">
+              {state.errors.name.join(' ')}
+            </p>
           )}
         </div>
       )}
 
-      <div className="field">
-        <label htmlFor="email">Email</label>
-        <input id="email" name="email" type="email" autoComplete="email" />
+      <div className="grid gap-2">
+        <label className="font-bold" htmlFor="email">
+          Email
+        </label>
+        <input
+          className="min-h-11 rounded-[7px] border border-line bg-white px-3 text-foreground"
+          id="email"
+          name="email"
+          type="email"
+          autoComplete="email"
+        />
         {state.errors?.email && (
-          <p className="form-error">{state.errors.email.join(' ')}</p>
+          <p className="text-[0.9rem] text-danger">
+            {state.errors.email.join(' ')}
+          </p>
         )}
       </div>
 
-      <div className="field">
-        <label htmlFor="password">Password</label>
+      <div className="grid gap-2">
+        <label className="font-bold" htmlFor="password">
+          Password
+        </label>
         <input
+          className="min-h-11 rounded-[7px] border border-line bg-white px-3 text-foreground"
           id="password"
           name="password"
           type="password"
           autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
         />
         {state.errors?.password && (
-          <p className="form-error">{state.errors.password.join(' ')}</p>
+          <p className="text-[0.9rem] text-danger">
+            {state.errors.password.join(' ')}
+          </p>
         )}
       </div>
 
-      {state.message && <p className="form-error">{state.message}</p>}
+      {state.message && (
+        <p className="text-[0.9rem] text-danger">{state.message}</p>
+      )}
 
-      <button className="button" disabled={pending} type="submit">
+      <button
+        className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[7px] border border-accent bg-accent px-3.5 font-bold text-white disabled:cursor-wait disabled:opacity-70"
+        disabled={pending}
+        type="submit"
+      >
         {pending
           ? 'Working...'
           : mode === 'signup'

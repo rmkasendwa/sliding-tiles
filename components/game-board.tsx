@@ -1,6 +1,6 @@
 'use client';
 
-import type { CSSProperties, MutableRefObject } from 'react';
+import type { MutableRefObject } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { recordCompletedLevel, saveGameState } from '@/app/actions/game';
@@ -15,16 +15,9 @@ import {
   slotKey,
 } from '@/lib/board';
 
-import styles from './game-board.module.css';
-
 type GameBoardProps = {
   initialBoard: BoardState;
   isSignedIn: boolean;
-};
-
-type TileStyleProperties = CSSProperties & {
-  '--preview-columns'?: number;
-  '--preview-rows'?: number;
 };
 
 type BoardTileProps = {
@@ -44,6 +37,11 @@ type BoardTileProps = {
 const LOCAL_STORAGE_KEY = 'sliding-tiles:anonymous-board';
 const BOARD_SIZE = 999;
 const BOARD_HINT_DELAY_MS = 500;
+const BOARD_SURFACE_BACKGROUND =
+  'repeating-linear-gradient(-45deg, rgba(30, 37, 34, 0.12) 0 10px, rgba(30, 37, 34, 0.12) 10px 18px, rgba(255, 255, 255, 0.22) 18px 28px, rgba(255, 255, 255, 0.22) 28px 36px), #ece4d3';
+const SOLUTION_GRID_BACKGROUND =
+  "linear-gradient(to right, rgba(255, 255, 255, 0.42) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.42) 1px, transparent 1px), url('/api/assets/frog')";
+const TILE_BACKGROUND = "url('/api/assets/frog')";
 
 function BoardTile({
   columns,
@@ -61,10 +59,12 @@ function BoardTile({
   const [homeRow, homeColumn] = tile.homeSlot;
   const [row, column] = isShowingSolvedHint ? tile.homeSlot : tile.slot;
   const tileClasses = [
-    'gb-tile',
-    styles.tile,
-    isMovable ? '' : `gb-locked ${styles.locked}`,
-    hintedSlot === slotKey(tile.homeSlot) ? `gb-hint ${styles.hint}` : '',
+    'absolute cursor-pointer rounded-md border border-black/20 bg-no-repeat shadow-[inset_0_-3px_4px_rgba(0,0,0,0.26),inset_0_3px_4px_rgba(255,255,255,0.34),0_16px_22px_rgba(0,0,0,0.24)] transition-[left,top,box-shadow] duration-200 ease-out hover:z-[8] focus-visible:z-[8]',
+    isMovable ? '' : 'cursor-not-allowed',
+    isShowingSolvedHint ? 'z-[2] cursor-default brightness-[1.04] saturate-[1.08]' : '',
+    hintedSlot === slotKey(tile.homeSlot)
+      ? 'z-[9] shadow-[0_18px_30px_rgba(0,0,0,0.28)]'
+      : '',
   ]
     .filter(Boolean)
     .join(' ');
@@ -98,6 +98,7 @@ function BoardTile({
         height: `${(tileHeight / BOARD_SIZE) * 100}%`,
         top: `${((row * tileHeight) / BOARD_SIZE) * 100}%`,
         left: `${((column * tileWidth) / BOARD_SIZE) * 100}%`,
+        backgroundImage: TILE_BACKGROUND,
         backgroundSize: `${columns * 100}% ${rows * 100}%`,
         backgroundPosition: `${
           columns > 1 ? (homeColumn / (columns - 1)) * 100 : 0
@@ -110,19 +111,21 @@ function BoardTile({
 
 function SolutionPreview({ columns, rows }: { columns: number; rows: number }) {
   return (
-    <figure className={`gb-solution-preview ${styles.solutionPreview}`}>
+    <figure className="m-0 grid gap-2">
       <div
         aria-label="Completed puzzle reference image"
-        className={`gb-solution-preview-image ${styles.solutionPreviewImage}`}
+        className="aspect-square overflow-hidden rounded-[7px] border border-foreground/15 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]"
         role="img"
-        style={
-          {
-            '--preview-columns': columns,
-            '--preview-rows': rows,
-          } as TileStyleProperties
-        }
+        style={{
+          backgroundImage: SOLUTION_GRID_BACKGROUND,
+          backgroundPosition: '0 0, 0 0, center',
+          backgroundRepeat: 'repeat, repeat, no-repeat',
+          backgroundSize: `calc(100% / ${columns}) 100%, 100% calc(100% / ${rows}), cover`,
+        }}
       />
-      <figcaption>Reference image</figcaption>
+      <figcaption className="text-[0.82rem] text-muted">
+        Reference image
+      </figcaption>
     </figure>
   );
 }
@@ -262,20 +265,17 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   );
 
   return (
-    <div className={`gb-layout ${styles.layout}`}>
+    <div className="grid grid-cols-[1fr_300px] items-start gap-[22px] max-[820px]:grid-cols-1">
       <section
-        className={`gb-stage ${styles.stage}`}
+        className="grid min-h-[calc(100vh-168px)] place-items-center overflow-hidden rounded-lg bg-[#20241f] p-[18px] max-[820px]:min-h-0"
         aria-label="Sliding tile board"
       >
         <div
-          className={
-            isShowingSolvedHint
-              ? `gb-board gb-showing-solved-hint ${styles.board} ${styles.showingSolvedHint}`
-              : `gb-board ${styles.board}`
-          }
+          className="relative aspect-square w-[min(100%,76vh)] overflow-hidden rounded-lg shadow-[0_24px_80px_rgba(0,0,0,0.34)]"
           onMouseDown={startBoardHint}
           onMouseLeave={clearBoardHint}
           onMouseUp={clearBoardHint}
+          style={{ background: BOARD_SURFACE_BACKGROUND }}
         >
           {board.tileGrid.flat().map((tile) => {
             if (tile.type === 'PLACEHOLDER') {
@@ -304,39 +304,41 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
         </div>
       </section>
 
-      <aside className={`panel gb-card ${styles.card}`}>
+      <aside className="grid gap-4 rounded-lg border border-line bg-panel p-[18px] shadow-panel">
         <div>
-          <p className="eyebrow">
+          <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
             {isSignedIn ? 'Saved game' : 'Anonymous game'}
           </p>
-          <h2>Level {board.level}</h2>
+          <h2 className="text-[clamp(1.7rem,3vw,2.4rem)]">
+            Level {board.level}
+          </h2>
         </div>
         <SolutionPreview columns={columns} rows={rows} />
-        <div className={`gb-stat-grid ${styles.statGrid}`}>
-          <div className={`gb-stat ${styles.stat}`}>
-            <span>Grid</span>
-            <strong>
+        <div className="grid grid-cols-2 gap-2.5">
+          <div className="rounded-[7px] border border-line bg-white/50 p-3">
+            <span className="block text-[0.78rem] text-muted">Grid</span>
+            <strong className="mt-1 block text-[1.4rem]">
               {columns}x{rows}
             </strong>
           </div>
-          <div className={`gb-stat ${styles.stat}`}>
-            <span>Moves</span>
-            <strong>{board.moves}</strong>
+          <div className="rounded-[7px] border border-line bg-white/50 p-3">
+            <span className="block text-[0.78rem] text-muted">Moves</span>
+            <strong className="mt-1 block text-[1.4rem]">{board.moves}</strong>
           </div>
         </div>
-        <p className={`gb-notice ${styles.notice}`}>
+        <p className="leading-normal text-muted">
           Use arrow keys or WASD. Click a movable tile to slide it. Click a
           locked tile to flash where it belongs. Hold the left mouse button on
           the board to briefly reveal the solved layout.
         </p>
         {!isSignedIn && (
-          <p className={`gb-notice ${styles.notice}`}>
+          <p className="leading-normal text-muted">
             Anonymous progress stays in this browser. Sign in to sync your board
             and post leaderboard times.
           </p>
         )}
         <button
-          className="button secondary"
+          className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[7px] border border-accent/30 px-3.5 font-bold text-accent-strong"
           onClick={() =>
             setBoard(createBoardState(board.level, board.dimensions))
           }
@@ -344,7 +346,11 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
         >
           Restart level
         </button>
-        {message && <p className="eyebrow">{message}</p>}
+        {message && (
+          <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
+            {message}
+          </p>
+        )}
       </aside>
     </div>
   );
