@@ -23,6 +23,7 @@ type GameBoardProps = {
 type BoardTileProps = {
   columns: number;
   hintedSlot: string | null;
+  isHintPlaceholderVisible: boolean;
   isMovable: boolean;
   isShowingSolvedHint: boolean;
   onHint: (slot: string | null) => void;
@@ -37,6 +38,10 @@ type BoardTileProps = {
 const LOCAL_STORAGE_KEY = 'sliding-tiles:anonymous-board';
 const BOARD_SIZE = 999;
 const BOARD_HINT_DELAY_MS = 500;
+const BOARD_HINT_TILE_REVEAL_DELAY_MS = 220;
+const TILE_TRANSITION = 'left 180ms ease, top 180ms ease, box-shadow 180ms ease';
+const HINT_PLACEHOLDER_TRANSITION =
+  'left 180ms ease, top 180ms ease, opacity 360ms ease, box-shadow 180ms ease, filter 180ms ease';
 const BOARD_SURFACE_BACKGROUND =
   'repeating-linear-gradient(-45deg, rgba(30, 37, 34, 0.12) 0 10px, rgba(30, 37, 34, 0.12) 10px 18px, rgba(255, 255, 255, 0.22) 18px 28px, rgba(255, 255, 255, 0.22) 28px 36px), #ece4d3';
 const SOLUTION_GRID_BACKGROUND =
@@ -46,6 +51,7 @@ const TILE_BACKGROUND = "url('/api/assets/frog')";
 function BoardTile({
   columns,
   hintedSlot,
+  isHintPlaceholderVisible,
   isMovable,
   isShowingSolvedHint,
   onHint,
@@ -58,10 +64,12 @@ function BoardTile({
 }: BoardTileProps) {
   const [homeRow, homeColumn] = tile.homeSlot;
   const [row, column] = isShowingSolvedHint ? tile.homeSlot : tile.slot;
+  const isHintPlaceholder = tile.type === 'PLACEHOLDER';
   const tileClasses = [
-    'absolute cursor-pointer rounded-md border border-black/20 bg-no-repeat shadow-[inset_0_-3px_4px_rgba(0,0,0,0.26),inset_0_3px_4px_rgba(255,255,255,0.34),0_16px_22px_rgba(0,0,0,0.24)] transition-[left,top,box-shadow] duration-200 ease-out hover:z-[8] focus-visible:z-[8]',
+    'absolute cursor-pointer rounded-md border border-black/20 bg-no-repeat shadow-[inset_0_-3px_4px_rgba(0,0,0,0.26),inset_0_3px_4px_rgba(255,255,255,0.34),0_16px_22px_rgba(0,0,0,0.24)] hover:z-[8] focus-visible:z-[8]',
     isMovable ? '' : 'cursor-not-allowed',
     isShowingSolvedHint ? 'z-[2] cursor-default brightness-[1.04] saturate-[1.08]' : '',
+    isHintPlaceholder ? 'pointer-events-none' : '',
     hintedSlot === slotKey(tile.homeSlot)
       ? 'z-[9] shadow-[0_18px_30px_rgba(0,0,0,0.28)]'
       : '',
@@ -76,6 +84,10 @@ function BoardTile({
       key={tile.position}
       onBlur={() => onHint(null)}
       onClick={() => {
+        if (isHintPlaceholder) {
+          return;
+        }
+
         if (suppressNextClickRef.current) {
           suppressNextClickRef.current = false;
           return;
@@ -88,7 +100,7 @@ function BoardTile({
         }
       }}
       onMouseEnter={() => {
-        if (!isMovable) {
+        if (!isMovable && !isHintPlaceholder) {
           onHint(slotKey(tile.homeSlot));
         }
       }}
@@ -103,6 +115,10 @@ function BoardTile({
         backgroundPosition: `${
           columns > 1 ? (homeColumn / (columns - 1)) * 100 : 0
         }% ${rows > 1 ? (homeRow / (rows - 1)) * 100 : 0}%`,
+        opacity: isHintPlaceholder && !isHintPlaceholderVisible ? 0 : 1,
+        transition: isHintPlaceholder
+          ? HINT_PLACEHOLDER_TRANSITION
+          : TILE_TRANSITION,
       }}
       type="button"
     />
@@ -135,7 +151,10 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   const [message, setMessage] = useState('');
   const [hintedSlot, setHintedSlot] = useState<string | null>(null);
   const [isShowingSolvedHint, setIsShowingSolvedHint] = useState(false);
+  const [isShowingHintPlaceholder, setIsShowingHintPlaceholder] =
+    useState(false);
   const boardHintTimeoutRef = useRef<number | null>(null);
+  const placeholderRevealTimeoutRef = useRef<number | null>(null);
   const boardHintMouseUpRef = useRef<(() => void) | null>(null);
   const suppressNextClickRef = useRef(false);
 
@@ -227,7 +246,12 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
       window.clearTimeout(boardHintTimeoutRef.current);
       boardHintTimeoutRef.current = null;
     }
+    if (placeholderRevealTimeoutRef.current !== null) {
+      window.clearTimeout(placeholderRevealTimeoutRef.current);
+      placeholderRevealTimeoutRef.current = null;
+    }
     setIsShowingSolvedHint(false);
+    setIsShowingHintPlaceholder(false);
     if (boardHintMouseUpRef.current) {
       window.removeEventListener('mouseup', boardHintMouseUpRef.current);
       boardHintMouseUpRef.current = null;
@@ -251,6 +275,10 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
       boardHintTimeoutRef.current = window.setTimeout(() => {
         suppressNextClickRef.current = true;
         setIsShowingSolvedHint(true);
+        placeholderRevealTimeoutRef.current = window.setTimeout(() => {
+          setIsShowingHintPlaceholder(true);
+          placeholderRevealTimeoutRef.current = null;
+        }, BOARD_HINT_TILE_REVEAL_DELAY_MS);
         boardHintTimeoutRef.current = null;
       }, BOARD_HINT_DELAY_MS);
 
@@ -278,7 +306,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
           style={{ background: BOARD_SURFACE_BACKGROUND }}
         >
           {board.tileGrid.flat().map((tile) => {
-            if (tile.type === 'PLACEHOLDER') {
+            if (tile.type === 'PLACEHOLDER' && !isShowingSolvedHint) {
               return null;
             }
 
@@ -288,10 +316,15 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
               <BoardTile
                 columns={columns}
                 hintedSlot={hintedSlot}
+                isHintPlaceholderVisible={isShowingHintPlaceholder}
                 isMovable={isMovable}
                 isShowingSolvedHint={isShowingSolvedHint}
                 key={tile.position}
-                onHint={setHintedSlot}
+                onHint={
+                  tile.type === 'PLACEHOLDER'
+                    ? () => undefined
+                    : setHintedSlot
+                }
                 onMove={moveTile}
                 rows={rows}
                 suppressNextClickRef={suppressNextClickRef}
