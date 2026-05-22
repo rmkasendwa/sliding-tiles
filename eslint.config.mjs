@@ -5,14 +5,7 @@ const config = [
   ...nextVitals,
   ...nextTypescript,
   {
-    ignores: [
-      '.next/**',
-      'app/generated/**',
-      'backend/**',
-      'dist/**',
-      'main-ui/**',
-      'node_modules/**',
-    ],
+    ignores: ['.next/**', 'app/generated/**', 'node_modules/**'],
   },
 ];
 

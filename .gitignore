@@ -1,5 +1,3 @@
-dist
-!/dist
 .next
 app/generated/prisma
 nbproject
@@ -12,7 +10,6 @@ builds
 coverage
 sandbox
 __sandbox
-temp
 tests
 cypress
 .history
