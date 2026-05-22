@@ -71,8 +71,8 @@ function HomePuzzlePreview() {
 
 export default function HomePage() {
   return (
-    <div className="mx-auto grid w-[min(1600px,calc(100%-40px))] gap-0">
-      <section className="grid min-h-[calc(100svh-154px)] grid-cols-[minmax(0,0.92fr)_minmax(360px,1.08fr)] items-center gap-12 max-[900px]:min-h-0 max-[900px]:grid-cols-1">
+    <div className="grid gap-0 overflow-x-clip">
+      <section className="mx-auto grid min-h-svh w-[min(1600px,calc(100%-40px))] grid-cols-[minmax(0,0.92fr)_minmax(360px,1.08fr)] items-center gap-12 py-10 max-[900px]:grid-cols-1">
         <div className="grid gap-5">
           <FrogLogo className="w-14" />
           <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
@@ -104,7 +104,7 @@ export default function HomePage() {
         <HomePuzzlePreview />
       </section>
 
-      <section className="mx-[calc(50%_-_50vw)] bg-[#17231f] py-16 text-white">
+      <section className="bg-[#17231f] py-16 text-white">
         <div className="mx-auto grid w-[min(1600px,calc(100%-40px))] gap-8">
           <div className="grid grid-cols-[minmax(0,0.9fr)_minmax(320px,1.1fr)] items-end gap-8 max-[900px]:grid-cols-1">
             <div className="grid gap-3">
@@ -135,7 +135,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="mx-[calc(50%_-_50vw)] bg-[#dfeccf] py-16">
+      <section className="bg-[#dfeccf] py-16">
         <div className="mx-auto grid w-[min(1600px,calc(100%-40px))] grid-cols-[minmax(0,0.9fr)_minmax(320px,1.1fr)] items-center gap-8 max-[900px]:grid-cols-1">
           <div className="grid gap-3">
             <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
@@ -162,7 +162,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-8 py-16 max-[900px]:grid-cols-1">
+      <section className="mx-auto grid w-[min(1600px,calc(100%-40px))] grid-cols-[minmax(0,1fr)_auto] items-center gap-8 py-16 max-[900px]:grid-cols-1">
         <div className="grid gap-4">
           <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
             Ready when you are

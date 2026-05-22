@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 import { routes, type AppRoute } from '@/lib/routes';
 
@@ -35,10 +36,39 @@ function isRouteActive(pathname: string, href: AppRoute) {
 
 export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
   const pathname = usePathname();
+  const isHomePage = pathname === routes.home;
+  const [hasScrolledHome, setHasScrolledHome] = useState(false);
   const { isMuted, toggleMuted } = useSound();
+  const shouldRevealHeader = !isHomePage || hasScrolledHome;
+
+  useEffect(() => {
+    if (!isHomePage) {
+      return;
+    }
+
+    const updateScrolledState = () => {
+      setHasScrolledHome(window.scrollY > 48);
+    };
+
+    const frameId = window.requestAnimationFrame(updateScrolledState);
+    window.addEventListener('scroll', updateScrolledState, { passive: true });
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      window.removeEventListener('scroll', updateScrolledState);
+    };
+  }, [isHomePage]);
 
   return (
-    <header className="sticky top-0 z-20 border-b border-line bg-background/85 backdrop-blur">
+    <header
+      className={[
+        'top-0 z-20 border-b border-line bg-background/85 backdrop-blur transition-[opacity,transform,visibility] duration-300',
+        isHomePage ? 'fixed inset-x-0' : 'sticky',
+        shouldRevealHeader
+          ? 'visible translate-y-0 opacity-100'
+          : 'invisible pointer-events-none -translate-y-full opacity-0',
+      ].join(' ')}
+    >
       <nav
         className="mx-auto flex min-h-18 w-[min(1600px,calc(100%-40px))] items-center justify-between gap-6 max-[820px]:flex-col max-[820px]:items-start max-[820px]:py-3.5"
         aria-label="Primary navigation"
