@@ -375,13 +375,13 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   const gameModeLabel = isSignedIn ? 'Saved run' : 'Anonymous run';
 
   return (
-    <div className="grid min-h-[calc(100svh-186px)] grid-cols-[minmax(0,calc(100svh-186px))_320px_minmax(0,1fr)] items-start gap-5 max-[1180px]:grid-cols-[minmax(0,1fr)_320px] max-[900px]:grid-cols-1">
+    <div className="grid min-h-[calc(100svh-186px)] w-full grid-cols-[minmax(0,1fr)_320px] items-start gap-5 max-[900px]:grid-cols-1">
       <section
-        className="grid min-h-[calc(100svh-186px)] items-start justify-items-start overflow-visible max-[900px]:min-h-[calc(100svh-230px)]"
+        className="grid h-[calc(100svh-186px)] min-h-0 place-items-center overflow-hidden rounded-lg bg-[#17231f] p-3 shadow-[0_24px_80px_rgba(0,0,0,0.24)] max-[900px]:h-[calc(100svh-230px)] max-[900px]:p-2.5"
         aria-label="Sliding tile board"
       >
         <div
-          className="relative aspect-square w-full min-w-0 overflow-hidden rounded-lg shadow-[0_24px_80px_rgba(0,0,0,0.26)] max-[900px]:w-[min(100%,calc(100svh-252px))]"
+          className="relative aspect-square w-[min(100%,calc(100svh-210px))] overflow-hidden rounded-lg max-[900px]:w-[min(100%,calc(100svh-250px))]"
           onMouseDown={startBoardHint}
           onMouseLeave={clearBoardHint}
           onMouseUp={clearBoardHint}
