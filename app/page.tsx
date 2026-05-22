@@ -108,15 +108,15 @@ export default function HomePage() {
         <div className="mx-auto grid w-[min(1600px,calc(100%-40px))] gap-8">
           <div className="grid max-w-[860px] gap-4">
             <p className="text-[0.78rem] font-extrabold uppercase text-[#aee686]">
-              Built around the board
+              Your next board
             </p>
             <h2 className="text-[clamp(2.4rem,5vw,5rem)] leading-[0.94]">
               Slide into the pond
             </h2>
             <p className="max-w-[66ch] text-lg leading-8 text-white/72">
-              The homepage now follows the game itself: darker pond sections,
-              stronger contrast, and a real preview of the image you solve
-              during play.
+              Every puzzle starts as a scrambled pond scene. Move one tile at a
+              time, peek when you need a hint, and bring the full picture back
+              into place.
             </p>
           </div>
           <div className="grid grid-cols-3 gap-4 max-[900px]:grid-cols-1">
@@ -143,8 +143,9 @@ export default function HomePage() {
               Built for one more try
             </h2>
             <p className="max-w-[58ch] leading-7 text-muted">
-              The board keeps the original sliding-tile feel, now wrapped with
-              saved state, themed sound, and a short solved-image celebration.
+              Keep your run moving with clear feedback, saved progress when you
+              sign in, and a satisfying pause on the finished image before the
+              next challenge begins.
             </p>
           </div>
           <ol className="grid gap-3 [counter-reset:step]">
