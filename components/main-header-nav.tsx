@@ -16,12 +16,11 @@ const baseLinkClass =
   'inline-flex min-h-10 items-center justify-center rounded-[7px] border px-3.5 transition-colors';
 const inactiveLinkClass =
   'border-transparent text-foreground hover:bg-accent/10';
-const activeLinkClass =
-  'border-transparent bg-accent/6 text-accent-strong';
+const activeLinkClass = 'border-transparent bg-accent/6 text-accent-strong';
 
 function getNavLinkClass(isActive: boolean) {
   return [baseLinkClass, isActive ? activeLinkClass : inactiveLinkClass].join(
-    ' '
+    ' ',
   );
 }
 
@@ -40,7 +39,7 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
   return (
     <header className="sticky top-0 z-20 border-b border-line bg-background/85 backdrop-blur">
       <nav
-        className="mx-auto flex min-h-18 w-[min(1600px,calc(100%_-_40px))] items-center justify-between gap-6 max-[820px]:flex-col max-[820px]:items-start max-[820px]:py-3.5"
+        className="mx-auto flex min-h-18 w-[min(1600px,calc(100%-40px))] items-center justify-between gap-6 max-[820px]:flex-col max-[820px]:items-start max-[820px]:py-3.5"
         aria-label="Primary navigation"
       >
         <Link className="grid gap-0.5" href={routes.home}>
@@ -64,7 +63,7 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
               isRouteActive(pathname, routes.leaderboard) ? 'page' : undefined
             }
             className={getNavLinkClass(
-              isRouteActive(pathname, routes.leaderboard)
+              isRouteActive(pathname, routes.leaderboard),
             )}
             href={routes.leaderboard}
           >
@@ -77,7 +76,7 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
                   isRouteActive(pathname, routes.profile) ? 'page' : undefined
                 }
                 className={getNavLinkClass(
-                  isRouteActive(pathname, routes.profile)
+                  isRouteActive(pathname, routes.profile),
                 )}
                 href={routes.profile}
               >
@@ -99,7 +98,7 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
                   isRouteActive(pathname, routes.login) ? 'page' : undefined
                 }
                 className={getNavLinkClass(
-                  isRouteActive(pathname, routes.login)
+                  isRouteActive(pathname, routes.login),
                 )}
                 href={routes.login}
               >
