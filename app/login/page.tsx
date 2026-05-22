@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
-import { AuthForm } from '@/components/auth-form';
+import { AuthForm } from '@/components/AuthForm';
 import { routes } from '@/lib/routes';
 import { getSession } from '@/lib/session';
 

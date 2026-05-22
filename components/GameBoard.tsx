@@ -15,7 +15,7 @@ import {
   slotKey,
 } from '@/lib/board';
 
-import { useSound } from './sound-provider';
+import { useSound } from './SoundProvider';
 
 type GameBoardProps = {
   initialBoard: BoardState;

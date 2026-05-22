@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
-import { MainFooter } from '@/components/main-footer';
-import { MainHeader } from '@/components/main-header';
-import { SoundProvider } from '@/components/sound-provider';
+import { MainFooter } from '@/components/MainFooter';
+import { MainHeader } from '@/components/MainHeader';
+import { SoundProvider } from '@/components/SoundProvider';
 
 import './globals.css';
 

@@ -1,7 +1,7 @@
 import { logout } from '@/app/actions/auth';
 import { getSession } from '@/lib/session';
 
-import { MainHeaderNav } from './main-header-nav';
+import { MainHeaderNav } from './MainHeaderNav';
 
 export async function MainHeader() {
   const session = await getSession();

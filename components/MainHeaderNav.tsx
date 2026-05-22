@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 
 import { routes, type AppRoute } from '@/lib/routes';
 
-import { useSound } from './sound-provider';
+import { useSound } from './SoundProvider';
 
 type MainHeaderNavProps = {
   logout: () => Promise<void>;

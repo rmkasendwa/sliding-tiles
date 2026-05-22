@@ -1,4 +1,4 @@
-import { GameBoard } from '@/components/game-board';
+import { GameBoard } from '@/components/GameBoard';
 import { BoardState, createBoardState } from '@/lib/board';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/session';
