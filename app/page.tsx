@@ -1,11 +1,13 @@
 import Link from 'next/link';
 
+import { FrogLogo } from '@/components/FrogLogo';
 import { routes } from '@/lib/routes';
 
 export default function HomePage() {
   return (
     <section className="mx-auto grid min-h-[calc(100vh-154px)] w-[min(1180px,calc(100%_-_32px))] grid-cols-[minmax(0,0.9fr)_minmax(360px,1.1fr)] items-center gap-9 py-11 pb-14 max-[820px]:min-h-0 max-[820px]:grid-cols-1">
       <div className="grid gap-5">
+        <FrogLogo className="w-14" />
         <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
           Modernized puzzle engine
         </p>

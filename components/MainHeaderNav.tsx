@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 
 import { routes, type AppRoute } from '@/lib/routes';
 
+import { FrogLogo } from './FrogLogo';
 import { useSound } from './SoundProvider';
 
 type MainHeaderNavProps = {
@@ -42,10 +43,13 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
         className="mx-auto flex min-h-18 w-[min(1600px,calc(100%-40px))] items-center justify-between gap-6 max-[820px]:flex-col max-[820px]:items-start max-[820px]:py-3.5"
         aria-label="Primary navigation"
       >
-        <Link className="grid gap-0.5" href={routes.home}>
-          <strong className="text-[1.05rem]">Sliding Tiles</strong>
-          <span className="text-[0.82rem] text-muted">
-            {session ? `Playing as ${session.name}` : 'Play your way'}
+        <Link className="flex items-center gap-3" href={routes.home}>
+          <FrogLogo className="w-10 shrink-0" />
+          <span className="grid gap-0.5">
+            <strong className="text-[1.05rem]">Sliding Tiles</strong>
+            <span className="text-[0.82rem] text-muted">
+              {session ? `Playing as ${session.name}` : 'Play your way'}
+            </span>
           </span>
         </Link>
         <div className="flex flex-wrap items-center justify-end gap-2 max-[820px]:justify-start">
