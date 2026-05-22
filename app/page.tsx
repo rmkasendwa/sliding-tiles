@@ -106,15 +106,13 @@ export default function HomePage() {
 
       <section className="bg-[#17231f] py-16 text-white">
         <div className="mx-auto grid w-[min(1600px,calc(100%-40px))] gap-8">
-          <div className="grid grid-cols-[minmax(0,0.9fr)_minmax(320px,1.1fr)] items-end gap-8 max-[900px]:grid-cols-1">
-            <div className="grid gap-3">
-              <p className="text-[0.78rem] font-extrabold uppercase text-[#aee686]">
-                Built around the board
-              </p>
-              <h2 className="max-w-[12ch] text-[clamp(2.4rem,5vw,5rem)] leading-[0.94]">
-                Slide into the pond
-              </h2>
-            </div>
+          <div className="grid max-w-[860px] gap-4">
+            <p className="text-[0.78rem] font-extrabold uppercase text-[#aee686]">
+              Built around the board
+            </p>
+            <h2 className="text-[clamp(2.4rem,5vw,5rem)] leading-[0.94]">
+              Slide into the pond
+            </h2>
             <p className="max-w-[66ch] text-lg leading-8 text-white/72">
               The homepage now follows the game itself: darker pond sections,
               stronger contrast, and a real preview of the image you solve
