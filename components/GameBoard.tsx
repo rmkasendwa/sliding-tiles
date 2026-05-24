@@ -38,6 +38,19 @@ type BoardTileProps = {
   tileWidth: number;
 };
 
+type GameInfoPanelProps = {
+  board: BoardState;
+  columns: number;
+  gameModeLabel: string;
+  isModal?: boolean;
+  isCelebrating: boolean;
+  isSignedIn: boolean;
+  message: string;
+  onClose?: () => void;
+  onRestart: () => void;
+  rows: number;
+};
+
 const LOCAL_STORAGE_KEY = 'sliding-tiles:anonymous-board';
 const BOARD_SIZE = 999;
 const BOARD_HINT_DELAY_MS = 500;
@@ -141,24 +154,137 @@ function BoardTile({
   );
 }
 
-function SolutionPreview({ columns, rows }: { columns: number; rows: number }) {
+function SolutionImage({ columns, rows }: { columns: number; rows: number }) {
+  return (
+    <div
+      aria-label="Completed puzzle reference image"
+      className="aspect-square overflow-hidden rounded-[7px] border border-foreground/15 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]"
+      role="img"
+      style={{
+        backgroundImage: SOLUTION_GRID_BACKGROUND,
+        backgroundPosition: '0 0, 0 0, center',
+        backgroundRepeat: 'repeat, repeat, no-repeat',
+        backgroundSize: `calc(100% / ${columns}) 100%, 100% calc(100% / ${rows}), cover`,
+      }}
+    />
+  );
+}
+
+function SolutionPreview({
+  columns,
+  isCompact = false,
+  rows,
+}: {
+  columns: number;
+  isCompact?: boolean;
+  rows: number;
+}) {
   return (
     <figure className="m-0 grid gap-2">
-      <div
-        aria-label="Completed puzzle reference image"
-        className="aspect-square overflow-hidden rounded-[7px] border border-foreground/15 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]"
-        role="img"
-        style={{
-          backgroundImage: SOLUTION_GRID_BACKGROUND,
-          backgroundPosition: '0 0, 0 0, center',
-          backgroundRepeat: 'repeat, repeat, no-repeat',
-          backgroundSize: `calc(100% / ${columns}) 100%, 100% calc(100% / ${rows}), cover`,
-        }}
-      />
+      <div className={isCompact ? 'mx-auto w-full max-w-72' : ''}>
+        <SolutionImage columns={columns} rows={rows} />
+      </div>
       <figcaption className="text-[0.82rem] text-muted">
         Reference image
       </figcaption>
     </figure>
+  );
+}
+
+function GameInfoPanel({
+  board,
+  columns,
+  gameModeLabel,
+  isModal = false,
+  isCelebrating,
+  isSignedIn,
+  message,
+  onClose,
+  onRestart,
+  rows,
+}: GameInfoPanelProps) {
+  return (
+    <div
+      className={[
+        'grid content-start gap-4 self-start border border-line bg-panel shadow-panel',
+        isModal
+          ? 'min-h-full rounded-xl p-4'
+          : 'rounded-lg p-5',
+      ].join(' ')}
+    >
+      <div className="grid gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
+            {gameModeLabel}
+          </p>
+          <div className="flex items-center gap-2">
+            <span className="rounded-full border border-accent/20 bg-accent/10 px-3 py-1 text-xs font-bold text-accent-strong">
+              Level {board.level}
+            </span>
+            {onClose && (
+              <button
+                aria-label="Close run details"
+                className="grid h-9 w-9 cursor-pointer place-items-center rounded-[7px] border border-line text-xl leading-none text-muted"
+                onClick={onClose}
+                type="button"
+              >
+                &times;
+              </button>
+            )}
+          </div>
+        </div>
+        <h1
+          className={[
+            'leading-none',
+            isModal
+              ? 'text-[clamp(2rem,9vw,2.55rem)]'
+              : 'text-[clamp(2rem,4vw,3rem)]',
+          ].join(' ')}
+        >
+          Complete the pond
+        </h1>
+        <p className="text-sm leading-6 text-muted">
+          Slide the pieces back together. Hold the board to peek at the full
+          picture.
+        </p>
+      </div>
+      <SolutionPreview columns={columns} isCompact={isModal} rows={rows} />
+      <div className="grid grid-cols-2 gap-2.5">
+        <div className="rounded-[7px] border border-line bg-white/50 p-3">
+          <span className="block text-[0.78rem] text-muted">Grid</span>
+          <strong className="mt-1 block text-[1.4rem]">
+            {columns}x{rows}
+          </strong>
+        </div>
+        <div className="rounded-[7px] border border-line bg-white/50 p-3">
+          <span className="block text-[0.78rem] text-muted">Moves</span>
+          <strong className="mt-1 block text-[1.4rem]">{board.moves}</strong>
+        </div>
+      </div>
+      <p className="rounded-lg border border-line bg-white/40 p-3 text-sm leading-6 text-muted">
+        Use arrow keys or WASD. Click movable tiles to slide them, or click a
+        locked tile to flash where it belongs.
+      </p>
+      {!isSignedIn && (
+        <p className="leading-normal text-muted">
+          Anonymous progress stays in this browser. Sign in to sync your board
+          and post leaderboard times.
+        </p>
+      )}
+      <button
+        className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[7px] border border-accent/30 px-3.5 font-bold text-accent-strong"
+        disabled={isCelebrating}
+        onClick={onRestart}
+        type="button"
+      >
+        Restart level
+      </button>
+      {message && (
+        <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
+          {message}
+        </p>
+      )}
+    </div>
   );
 }
 
@@ -171,6 +297,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   const [isShowingSolvedHint, setIsShowingSolvedHint] = useState(false);
   const [isShowingHintPlaceholder, setIsShowingHintPlaceholder] =
     useState(false);
+  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const boardHintTimeoutRef = useRef<number | null>(null);
   const placeholderRevealTimeoutRef = useRef<number | null>(null);
   const celebrationTimeoutRef = useRef<number | null>(null);
@@ -322,6 +449,26 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
     };
   }, [clearBoardHint]);
 
+  useEffect(() => {
+    if (!isInfoModalOpen) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsInfoModalOpen(false);
+      }
+    };
+
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isInfoModalOpen]);
+
   const startBoardHint = useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {
       if (event.button !== 0) {
@@ -373,13 +520,38 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   }, [board.dimensions, board.level, clearBoardHint]);
 
   const gameModeLabel = isSignedIn ? 'Saved run' : 'Anonymous run';
+  const openInfoModal = useCallback(() => {
+    setIsInfoModalOpen(true);
+  }, []);
 
   return (
     <div className="grid min-h-[calc(100svh-186px)] w-full grid-cols-[minmax(0,1fr)_320px] items-start gap-5 max-[900px]:grid-cols-1">
       <section
-        className="grid h-[calc(100svh-186px)] min-h-0 place-items-center overflow-hidden rounded-lg bg-[#17231f] p-3 shadow-[0_24px_80px_rgba(0,0,0,0.24)] max-[900px]:h-[calc(100svh-230px)] max-[900px]:p-2.5"
+        className="relative grid h-[calc(100svh-186px)] min-h-0 place-items-center overflow-hidden rounded-lg bg-[#17231f] p-3 shadow-[0_24px_80px_rgba(0,0,0,0.24)] max-[900px]:h-[calc(100svh-230px)] max-[900px]:p-2.5"
         aria-label="Sliding tile board"
       >
+        <button
+          aria-label="Open run details"
+          className="absolute right-4 top-4 z-20 hidden w-24 cursor-pointer rounded-lg border border-white/20 bg-panel/92 p-1.5 text-left shadow-panel backdrop-blur transition-transform hover:-translate-y-0.5 max-[900px]:grid"
+          onClick={openInfoModal}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              openInfoModal();
+            }
+          }}
+          onPointerDown={(event) => {
+            event.stopPropagation();
+            openInfoModal();
+          }}
+          type="button"
+        >
+          <SolutionImage columns={columns} rows={rows} />
+          <span className="mt-1 flex items-center justify-between gap-2 px-0.5 text-[0.7rem] font-bold text-accent-strong">
+            <span>Guide</span>
+            <span>L{board.level}</span>
+          </span>
+        </button>
         <div
           className="relative aspect-square w-[min(100%,calc(100svh-210px))] overflow-hidden rounded-lg max-[900px]:w-[min(100%,calc(100svh-250px))]"
           onMouseDown={startBoardHint}
@@ -445,61 +617,42 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
         </div>
       </section>
 
-      <aside className="grid content-start gap-4 self-start rounded-lg border border-line bg-panel p-5 shadow-panel">
-        <div className="grid gap-2">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
-              {gameModeLabel}
-            </p>
-            <span className="rounded-full border border-accent/20 bg-accent/10 px-3 py-1 text-xs font-bold text-accent-strong">
-              Level {board.level}
-            </span>
-          </div>
-          <h1 className="text-[clamp(2rem,4vw,3rem)] leading-none">
-            Complete the pond
-          </h1>
-          <p className="text-sm leading-6 text-muted">
-            Slide the pieces back together. Hold the board to peek at the full
-            picture.
-          </p>
-        </div>
-        <SolutionPreview columns={columns} rows={rows} />
-        <div className="grid grid-cols-2 gap-2.5">
-          <div className="rounded-[7px] border border-line bg-white/50 p-3">
-            <span className="block text-[0.78rem] text-muted">Grid</span>
-            <strong className="mt-1 block text-[1.4rem]">
-              {columns}x{rows}
-            </strong>
-          </div>
-          <div className="rounded-[7px] border border-line bg-white/50 p-3">
-            <span className="block text-[0.78rem] text-muted">Moves</span>
-            <strong className="mt-1 block text-[1.4rem]">{board.moves}</strong>
-          </div>
-        </div>
-        <p className="rounded-lg border border-line bg-white/40 p-3 text-sm leading-6 text-muted">
-          Use arrow keys or WASD. Click movable tiles to slide them, or click a
-          locked tile to flash where it belongs.
-        </p>
-        {!isSignedIn && (
-          <p className="leading-normal text-muted">
-            Anonymous progress stays in this browser. Sign in to sync your board
-            and post leaderboard times.
-          </p>
-        )}
-        <button
-          className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[7px] border border-accent/30 px-3.5 font-bold text-accent-strong"
-          disabled={isCelebrating}
-          onClick={restartLevel}
-          type="button"
-        >
-          Restart level
-        </button>
-        {message && (
-          <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
-            {message}
-          </p>
-        )}
+      <aside className="max-[900px]:hidden">
+        <GameInfoPanel
+          board={board}
+          columns={columns}
+          gameModeLabel={gameModeLabel}
+          isCelebrating={isCelebrating}
+          isSignedIn={isSignedIn}
+          message={message}
+          onRestart={restartLevel}
+          rows={rows}
+        />
       </aside>
+      {isInfoModalOpen && (
+        <div className="fixed inset-0 z-50 hidden items-center justify-center bg-foreground/45 p-3 backdrop-blur-sm max-[900px]:flex">
+          <button
+            aria-label="Close run details"
+            className="absolute inset-0 cursor-default"
+            onClick={() => setIsInfoModalOpen(false)}
+            type="button"
+          />
+          <div className="relative z-10 h-[calc(100svh-28px)] w-[min(620px,calc(100vw-28px))] overflow-y-auto rounded-xl">
+            <GameInfoPanel
+              board={board}
+              columns={columns}
+              gameModeLabel={gameModeLabel}
+              isModal
+              isCelebrating={isCelebrating}
+              isSignedIn={isSignedIn}
+              message={message}
+              onClose={() => setIsInfoModalOpen(false)}
+              onRestart={restartLevel}
+              rows={rows}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
