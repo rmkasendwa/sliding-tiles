@@ -1,12 +1,11 @@
 'use client';
 
-import type { MutableRefObject } from 'react';
+import type { MouseEvent } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { recordCompletedLevel, saveGameState } from '@/app/actions/game';
 import {
   BoardState,
-  Tile,
   Slot,
   createBoardState,
   isTileGridInOrder,
@@ -15,276 +14,25 @@ import {
   slotKey,
 } from '@/lib/board';
 
-import { useSound } from './SoundProvider';
+import { useSound } from '../SoundProvider';
+import { BoardTile } from './BoardTile';
+import {
+  BOARD_HINT_DELAY_MS,
+  BOARD_HINT_TILE_REVEAL_DELAY_MS,
+  BOARD_SIZE,
+  BOARD_SURFACE_BACKGROUND,
+  CELEBRATION_PARTICLES,
+  LEVEL_COMPLETE_ADVANCE_DELAY_MS,
+  LEVEL_COMPLETE_CELEBRATION_DELAY_MS,
+  LOCAL_STORAGE_KEY,
+} from './constants';
+import { GameInfoPanel } from './GameInfoPanel';
+import { SolutionImage } from './SolutionPreview';
 
-type GameBoardProps = {
+export type GameBoardProps = {
   initialBoard: BoardState;
   isSignedIn: boolean;
 };
-
-type BoardTileProps = {
-  columns: number;
-  hintedSlot: string | null;
-  isHintPlaceholderVisible: boolean;
-  isMovable: boolean;
-  isShowingSolvedHint: boolean;
-  onHint: (slot: string | null) => void;
-  onInvalidMove: () => void;
-  onMove: (slot: Slot) => void;
-  rows: number;
-  suppressNextClickRef: MutableRefObject<boolean>;
-  tile: Tile;
-  tileHeight: number;
-  tileWidth: number;
-};
-
-type GameInfoPanelProps = {
-  board: BoardState;
-  columns: number;
-  gameModeLabel: string;
-  isModal?: boolean;
-  isCelebrating: boolean;
-  isSignedIn: boolean;
-  message: string;
-  onClose?: () => void;
-  onRestart: () => void;
-  rows: number;
-};
-
-const LOCAL_STORAGE_KEY = 'sliding-tiles:anonymous-board';
-const BOARD_SIZE = 999;
-const BOARD_HINT_DELAY_MS = 500;
-const BOARD_HINT_TILE_REVEAL_DELAY_MS = 220;
-const LEVEL_COMPLETE_CELEBRATION_DELAY_MS = 500;
-const LEVEL_COMPLETE_ADVANCE_DELAY_MS = 10000;
-const TILE_TRANSITION =
-  'left 180ms ease, top 180ms ease, box-shadow 180ms ease';
-const HINT_PLACEHOLDER_TRANSITION =
-  'left 180ms ease, top 180ms ease, opacity 360ms ease, box-shadow 180ms ease, filter 180ms ease';
-const BOARD_SURFACE_BACKGROUND =
-  'repeating-linear-gradient(-45deg, rgba(30, 37, 34, 0.12) 0 10px, rgba(30, 37, 34, 0.12) 10px 18px, rgba(255, 255, 255, 0.22) 18px 28px, rgba(255, 255, 255, 0.22) 28px 36px), #ece4d3';
-const SOLUTION_GRID_BACKGROUND =
-  "linear-gradient(to right, rgba(255, 255, 255, 0.42) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.42) 1px, transparent 1px), url('/api/assets/frog')";
-const TILE_BACKGROUND = "url('/api/assets/frog')";
-const CELEBRATION_PARTICLES = Array.from({ length: 30 }, (_, index) => ({
-  delay: `${index * 70}ms`,
-  left: `${6 + ((index * 23) % 88)}%`,
-  size: `${9 + (index % 5) * 4}px`,
-  top: `${8 + ((index * 19) % 74)}%`,
-}));
-
-function BoardTile({
-  columns,
-  hintedSlot,
-  isHintPlaceholderVisible,
-  isMovable,
-  isShowingSolvedHint,
-  onHint,
-  onInvalidMove,
-  onMove,
-  rows,
-  suppressNextClickRef,
-  tile,
-  tileHeight,
-  tileWidth,
-}: BoardTileProps) {
-  const [homeRow, homeColumn] = tile.homeSlot;
-  const [row, column] = isShowingSolvedHint ? tile.homeSlot : tile.slot;
-  const isHintPlaceholder = tile.type === 'PLACEHOLDER';
-  const tileClasses = [
-    'absolute cursor-pointer rounded-md border border-black/20 bg-no-repeat shadow-[inset_0_-3px_4px_rgba(0,0,0,0.26),inset_0_3px_4px_rgba(255,255,255,0.34),0_16px_22px_rgba(0,0,0,0.24)] hover:z-[8] focus-visible:z-[8]',
-    isMovable ? '' : 'cursor-not-allowed',
-    isShowingSolvedHint
-      ? 'z-[2] cursor-default brightness-[1.04] saturate-[1.08]'
-      : '',
-    isHintPlaceholder ? 'pointer-events-none' : '',
-    hintedSlot === slotKey(tile.homeSlot)
-      ? 'z-[9] shadow-[0_18px_30px_rgba(0,0,0,0.28)]'
-      : '',
-  ]
-    .filter(Boolean)
-    .join(' ');
-
-  return (
-    <button
-      aria-label={`Tile ${tile.position + 1}`}
-      className={tileClasses}
-      key={tile.position}
-      onBlur={() => onHint(null)}
-      onClick={() => {
-        if (isHintPlaceholder) {
-          return;
-        }
-
-        if (suppressNextClickRef.current) {
-          suppressNextClickRef.current = false;
-          return;
-        }
-
-        if (isMovable) {
-          onMove(tile.slot);
-        } else {
-          onInvalidMove();
-          onHint(slotKey(tile.homeSlot));
-        }
-      }}
-      onMouseEnter={() => {
-        if (!isMovable && !isHintPlaceholder) {
-          onHint(slotKey(tile.homeSlot));
-        }
-      }}
-      onMouseLeave={() => onHint(null)}
-      style={{
-        width: `${(tileWidth / BOARD_SIZE) * 100}%`,
-        height: `${(tileHeight / BOARD_SIZE) * 100}%`,
-        top: `${((row * tileHeight) / BOARD_SIZE) * 100}%`,
-        left: `${((column * tileWidth) / BOARD_SIZE) * 100}%`,
-        backgroundImage: TILE_BACKGROUND,
-        backgroundSize: `${columns * 100}% ${rows * 100}%`,
-        backgroundPosition: `${
-          columns > 1 ? (homeColumn / (columns - 1)) * 100 : 0
-        }% ${rows > 1 ? (homeRow / (rows - 1)) * 100 : 0}%`,
-        opacity: isHintPlaceholder && !isHintPlaceholderVisible ? 0 : 1,
-        transition: isHintPlaceholder
-          ? HINT_PLACEHOLDER_TRANSITION
-          : TILE_TRANSITION,
-      }}
-      type="button"
-    />
-  );
-}
-
-function SolutionImage({ columns, rows }: { columns: number; rows: number }) {
-  return (
-    <div
-      aria-label="Completed puzzle reference image"
-      className="aspect-square overflow-hidden rounded-[7px] border border-foreground/15 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]"
-      role="img"
-      style={{
-        backgroundImage: SOLUTION_GRID_BACKGROUND,
-        backgroundPosition: '0 0, 0 0, center',
-        backgroundRepeat: 'repeat, repeat, no-repeat',
-        backgroundSize: `calc(100% / ${columns}) 100%, 100% calc(100% / ${rows}), cover`,
-      }}
-    />
-  );
-}
-
-function SolutionPreview({
-  columns,
-  isCompact = false,
-  rows,
-}: {
-  columns: number;
-  isCompact?: boolean;
-  rows: number;
-}) {
-  return (
-    <figure className="m-0 grid gap-2">
-      <div className={isCompact ? 'mx-auto w-full max-w-72' : ''}>
-        <SolutionImage columns={columns} rows={rows} />
-      </div>
-      <figcaption className="text-[0.82rem] text-muted">
-        Reference image
-      </figcaption>
-    </figure>
-  );
-}
-
-function GameInfoPanel({
-  board,
-  columns,
-  gameModeLabel,
-  isModal = false,
-  isCelebrating,
-  isSignedIn,
-  message,
-  onClose,
-  onRestart,
-  rows,
-}: GameInfoPanelProps) {
-  return (
-    <div
-      className={[
-        'grid content-start gap-4 self-start border border-line bg-panel shadow-panel',
-        isModal ? 'min-h-full rounded-xl p-4' : 'rounded-lg p-5',
-      ].join(' ')}
-    >
-      <div className="grid gap-2">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
-            {gameModeLabel}
-          </p>
-          <div className="flex items-center gap-2">
-            <span className="rounded-full border border-accent/20 bg-accent/10 px-3 py-1 text-xs font-bold text-accent-strong">
-              Level {board.level}
-            </span>
-            {onClose && (
-              <button
-                aria-label="Close run details"
-                className="grid h-9 w-9 cursor-pointer place-items-center rounded-[7px] border border-line text-xl leading-none text-muted"
-                onClick={onClose}
-                type="button"
-              >
-                &times;
-              </button>
-            )}
-          </div>
-        </div>
-        <h1
-          className={[
-            'leading-none',
-            isModal
-              ? 'text-[clamp(2rem,9vw,2.55rem)]'
-              : 'text-[clamp(1.8rem,4vw,2rem)]',
-          ].join(' ')}
-        >
-          Complete the pond
-        </h1>
-        <p className="text-sm leading-6 text-muted">
-          Slide the pieces back together. Hold the board to peek at the full
-          picture.
-        </p>
-      </div>
-      <SolutionPreview columns={columns} isCompact={isModal} rows={rows} />
-      <div className="grid grid-cols-2 gap-2.5">
-        <div className="rounded-[7px] border border-line bg-white/50 p-3">
-          <span className="block text-[0.78rem] text-muted">Grid</span>
-          <strong className="mt-1 block text-[1.4rem]">
-            {columns}x{rows}
-          </strong>
-        </div>
-        <div className="rounded-[7px] border border-line bg-white/50 p-3">
-          <span className="block text-[0.78rem] text-muted">Moves</span>
-          <strong className="mt-1 block text-[1.4rem]">{board.moves}</strong>
-        </div>
-      </div>
-      <p className="rounded-lg border border-line bg-white/40 p-3 text-sm leading-6 text-muted">
-        Use arrow keys or WASD. Click movable tiles to slide them, or click a
-        locked tile to flash where it belongs.
-      </p>
-      {!isSignedIn && (
-        <p className="leading-normal text-muted">
-          Anonymous progress stays in this browser. Sign in to sync your board
-          and post leaderboard times.
-        </p>
-      )}
-      <button
-        className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[7px] border border-accent/30 px-3.5 font-bold text-accent-strong"
-        disabled={isCelebrating}
-        onClick={onRestart}
-        type="button"
-      >
-        Restart level
-      </button>
-      {message && (
-        <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
-          {message}
-        </p>
-      )}
-    </div>
-  );
-}
 
 export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   const { playSound } = useSound();
@@ -468,7 +216,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   }, [isInfoModalOpen]);
 
   const startBoardHint = useCallback(
-    (event: React.MouseEvent<HTMLDivElement>) => {
+    (event: MouseEvent<HTMLDivElement>) => {
       if (event.button !== 0) {
         return;
       }
