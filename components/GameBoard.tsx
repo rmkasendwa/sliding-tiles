@@ -207,9 +207,7 @@ function GameInfoPanel({
     <div
       className={[
         'grid content-start gap-4 self-start border border-line bg-panel shadow-panel',
-        isModal
-          ? 'min-h-full rounded-xl p-4'
-          : 'rounded-lg p-5',
+        isModal ? 'min-h-full rounded-xl p-4' : 'rounded-lg p-5',
       ].join(' ')}
     >
       <div className="grid gap-2">
@@ -238,7 +236,7 @@ function GameInfoPanel({
             'leading-none',
             isModal
               ? 'text-[clamp(2rem,9vw,2.55rem)]'
-              : 'text-[clamp(2rem,4vw,3rem)]',
+              : 'text-[clamp(1.8rem,4vw,2rem)]',
           ].join(' ')}
         >
           Complete the pond
@@ -346,8 +344,8 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
           setBoard(
             createBoardState(
               completedBoard.level + 1,
-              nextGridDimensions(completedBoard.dimensions)
-            )
+              nextGridDimensions(completedBoard.dimensions),
+            ),
           );
           setMessage('');
           setIsCelebrating(false);
@@ -357,7 +355,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
         }, LEVEL_COMPLETE_ADVANCE_DELAY_MS);
       }, LEVEL_COMPLETE_CELEBRATION_DELAY_MS);
     },
-    [isSignedIn, playSound]
+    [isSignedIn, playSound],
   );
 
   const moveTile = useCallback(
@@ -377,7 +375,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
         completeLevel(nextBoard);
       }
     },
-    [board, completeLevel, isCelebrating, playSound]
+    [board, completeLevel, isCelebrating, playSound],
   );
 
   useEffect(() => {
@@ -501,7 +499,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
       boardHintMouseUpRef.current = clearBoardHint;
       window.addEventListener('mouseup', clearBoardHint, { once: true });
     },
-    [clearBoardHint, isCelebrating, playSound]
+    [clearBoardHint, isCelebrating, playSound],
   );
 
   const restartLevel = useCallback(() => {

@@ -54,7 +54,7 @@ function HomePuzzlePreview() {
   return (
     <div
       aria-label="Scrambled frog puzzle preview"
-      className="rounded-lg border border-line bg-panel p-[18px] shadow-panel"
+      className="rounded-lg border border-line bg-panel p-4.5 shadow-panel"
       role="img"
     >
       <div className="grid aspect-square grid-cols-3 gap-2 overflow-hidden rounded-[7px]">
@@ -90,7 +90,7 @@ function HomePuzzlePreview() {
 export default function HomePage() {
   return (
     <div className="grid gap-0 overflow-x-clip">
-      <section className="page-rail mx-auto grid min-h-svh grid-cols-[minmax(0,0.92fr)_minmax(360px,1.08fr)] items-center gap-12 py-10 max-[900px]:grid-cols-1">
+      <section className="page-rail mx-auto grid min-h-svh grid-cols-[minmax(0,0.92fr)_minmax(360px,1.08fr)] items-center gap-20 py-10 max-[900px]:grid-cols-1">
         <div className="grid gap-6">
           <FrogLogo className="w-14" />
           <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
@@ -132,7 +132,7 @@ export default function HomePage() {
 
       <section className="bg-[#17231f] py-16 text-white">
         <div className="page-rail mx-auto grid gap-8">
-          <div className="grid max-w-[860px] gap-4">
+          <div className="grid max-w-215 gap-4">
             <p className="text-[0.78rem] font-extrabold uppercase text-[#aee686]">
               Your next board
             </p>
@@ -161,7 +161,7 @@ export default function HomePage() {
 
       <section className="bg-[#dfeccf] py-16">
         <div className="page-rail mx-auto grid gap-8">
-          <div className="grid max-w-[960px] gap-3">
+          <div className="grid max-w-240 gap-3">
             <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
               From shuffle to splash
             </p>
