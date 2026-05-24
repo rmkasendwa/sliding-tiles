@@ -90,7 +90,7 @@ function HomePuzzlePreview() {
 export default function HomePage() {
   return (
     <div className="grid gap-0 overflow-x-clip">
-      <section className="mx-auto grid min-h-svh w-[min(1600px,calc(100%-40px))] grid-cols-[minmax(0,0.92fr)_minmax(360px,1.08fr)] items-center gap-12 py-10 max-[900px]:grid-cols-1">
+      <section className="page-rail mx-auto grid min-h-svh grid-cols-[minmax(0,0.92fr)_minmax(360px,1.08fr)] items-center gap-12 py-10 max-[900px]:grid-cols-1">
         <div className="grid gap-6">
           <FrogLogo className="w-14" />
           <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
@@ -131,7 +131,7 @@ export default function HomePage() {
       </section>
 
       <section className="bg-[#17231f] py-16 text-white">
-        <div className="mx-auto grid w-[min(1600px,calc(100%-40px))] gap-8">
+        <div className="page-rail mx-auto grid gap-8">
           <div className="grid max-w-[860px] gap-4">
             <p className="text-[0.78rem] font-extrabold uppercase text-[#aee686]">
               Your next board
@@ -160,7 +160,7 @@ export default function HomePage() {
       </section>
 
       <section className="bg-[#dfeccf] py-16">
-        <div className="mx-auto grid w-[min(1600px,calc(100%-40px))] gap-8">
+        <div className="page-rail mx-auto grid gap-8">
           <div className="grid max-w-[960px] gap-3">
             <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
               From shuffle to splash
@@ -187,7 +187,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto grid w-[min(1600px,calc(100%-40px))] grid-cols-[minmax(560px,0.78fr)_minmax(0,1.22fr)] items-center gap-8 py-16 max-[1180px]:grid-cols-1">
+      <section className="page-rail mx-auto grid grid-cols-[minmax(560px,0.78fr)_minmax(0,1.22fr)] items-center gap-8 py-16 max-[1180px]:grid-cols-1">
         <div className="grid gap-4">
           <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
             Ready when you are

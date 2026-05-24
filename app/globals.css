@@ -40,6 +40,24 @@
   }
 }
 
+@layer components {
+  .page-rail {
+    width: min(1600px, calc(100% - 40px));
+  }
+
+  @media (min-width: 768px) {
+    .page-rail {
+      width: min(1600px, calc(100% - 64px));
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .page-rail {
+      width: min(1600px, calc(100% - 80px));
+    }
+  }
+}
+
 @keyframes celebration-fade-in {
   0% {
     opacity: 0;

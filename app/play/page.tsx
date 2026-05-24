@@ -15,7 +15,7 @@ export default async function PlayPage() {
     (savedState?.board as BoardState | undefined) ?? createBoardState();
 
   return (
-    <section className="mx-auto grid min-h-[calc(100svh-154px)] w-[min(1600px,calc(100%-40px))] py-4">
+    <section className="page-rail mx-auto grid min-h-[calc(100svh-154px)] py-4">
       <GameBoard initialBoard={initialBoard} isSignedIn={Boolean(session)} />
     </section>
   );

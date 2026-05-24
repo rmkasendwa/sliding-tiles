@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 import { routes, type AppRoute } from '@/lib/routes';
 
@@ -38,8 +39,19 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
   const pathname = usePathname();
   const isHomePage = pathname === routes.home;
   const [hasScrolledHome, setHasScrolledHome] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const { isMuted, toggleMuted } = useSound();
   const shouldRevealHeader = !isHomePage || hasScrolledHome;
+  const closeDrawer = () => setIsDrawerOpen(false);
+
+  useEffect(() => {
+    const frameId = window.requestAnimationFrame(() => {
+      setIsMounted(true);
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, []);
 
   useEffect(() => {
     if (!isHomePage) {
@@ -59,6 +71,115 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
     };
   }, [isHomePage]);
 
+  useEffect(() => {
+    const frameId = window.requestAnimationFrame(() => {
+      setIsDrawerOpen(false);
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!isDrawerOpen) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsDrawerOpen(false);
+      }
+    };
+
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isDrawerOpen]);
+
+  const navigationLinks = (
+    <>
+      <Link
+        aria-current={isRouteActive(pathname, routes.play) ? 'page' : undefined}
+        className={getNavLinkClass(isRouteActive(pathname, routes.play))}
+        href={routes.play}
+        onClick={closeDrawer}
+      >
+        Play
+      </Link>
+      <Link
+        aria-current={
+          isRouteActive(pathname, routes.leaderboard) ? 'page' : undefined
+        }
+        className={getNavLinkClass(isRouteActive(pathname, routes.leaderboard))}
+        href={routes.leaderboard}
+        onClick={closeDrawer}
+      >
+        Leaderboard
+      </Link>
+      {session ? (
+        <>
+          <Link
+            aria-current={
+              isRouteActive(pathname, routes.profile) ? 'page' : undefined
+            }
+            className={getNavLinkClass(isRouteActive(pathname, routes.profile))}
+            href={routes.profile}
+            onClick={closeDrawer}
+          >
+            Profile
+          </Link>
+          <form action={logout}>
+            <button
+              className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[7px] border border-danger/30 px-3.5 font-bold text-danger"
+              type="submit"
+            >
+              Log out
+            </button>
+          </form>
+        </>
+      ) : (
+        <>
+          <Link
+            aria-current={
+              isRouteActive(pathname, routes.login) ? 'page' : undefined
+            }
+            className={getNavLinkClass(isRouteActive(pathname, routes.login))}
+            href={routes.login}
+            onClick={closeDrawer}
+          >
+            Log in
+          </Link>
+          <Link
+            aria-current={
+              isRouteActive(pathname, routes.signup) ? 'page' : undefined
+            }
+            className={[
+              baseLinkClass,
+              isRouteActive(pathname, routes.signup)
+                ? 'border-accent-strong/40 bg-accent-strong px-3.5 font-bold text-white'
+                : 'border-accent bg-accent font-bold text-white',
+            ].join(' ')}
+            href={routes.signup}
+            onClick={closeDrawer}
+          >
+            Sign up
+          </Link>
+        </>
+      )}
+      <button
+        aria-pressed={!isMuted}
+        className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[7px] border border-line px-3.5 text-muted transition-colors hover:bg-accent/10 hover:text-accent-strong"
+        onClick={toggleMuted}
+        type="button"
+      >
+        {isMuted ? 'Sound off' : 'Sound on'}
+      </button>
+    </>
+  );
+
   return (
     <header
       className={[
@@ -70,7 +191,7 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
       ].join(' ')}
     >
       <nav
-        className="mx-auto flex min-h-18 w-[min(1600px,calc(100%-40px))] items-center justify-between gap-6 max-[820px]:flex-col max-[820px]:items-start max-[820px]:py-3.5"
+        className="page-rail mx-auto flex min-h-18 items-center justify-between gap-6"
         aria-label="Primary navigation"
       >
         <Link className="flex items-center gap-3" href={routes.home}>
@@ -82,88 +203,67 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
             </span>
           </span>
         </Link>
-        <div className="flex flex-wrap items-center justify-end gap-2 max-[820px]:justify-start">
-          <Link
-            aria-current={
-              isRouteActive(pathname, routes.play) ? 'page' : undefined
-            }
-            className={getNavLinkClass(isRouteActive(pathname, routes.play))}
-            href={routes.play}
-          >
-            Play
-          </Link>
-          <Link
-            aria-current={
-              isRouteActive(pathname, routes.leaderboard) ? 'page' : undefined
-            }
-            className={getNavLinkClass(
-              isRouteActive(pathname, routes.leaderboard),
-            )}
-            href={routes.leaderboard}
-          >
-            Leaderboard
-          </Link>
-          {session ? (
-            <>
-              <Link
-                aria-current={
-                  isRouteActive(pathname, routes.profile) ? 'page' : undefined
-                }
-                className={getNavLinkClass(
-                  isRouteActive(pathname, routes.profile),
-                )}
-                href={routes.profile}
-              >
-                Profile
-              </Link>
-              <form action={logout}>
-                <button
-                  className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[7px] border border-danger/30 px-3.5 font-bold text-danger"
-                  type="submit"
-                >
-                  Log out
-                </button>
-              </form>
-            </>
-          ) : (
-            <>
-              <Link
-                aria-current={
-                  isRouteActive(pathname, routes.login) ? 'page' : undefined
-                }
-                className={getNavLinkClass(
-                  isRouteActive(pathname, routes.login),
-                )}
-                href={routes.login}
-              >
-                Log in
-              </Link>
-              <Link
-                aria-current={
-                  isRouteActive(pathname, routes.signup) ? 'page' : undefined
-                }
-                className={[
-                  baseLinkClass,
-                  isRouteActive(pathname, routes.signup)
-                    ? 'border-accent-strong/40 bg-accent-strong px-3.5 font-bold text-white'
-                    : 'border-accent bg-accent font-bold text-white',
-                ].join(' ')}
-                href={routes.signup}
-              >
-                Sign up
-              </Link>
-            </>
-          )}
-          <button
-            aria-pressed={!isMuted}
-            className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[7px] border border-line px-3.5 text-muted transition-colors hover:bg-accent/10 hover:text-accent-strong"
-            onClick={toggleMuted}
-            type="button"
-          >
-            {isMuted ? 'Sound off' : 'Sound on'}
-          </button>
+        <div className="flex items-center justify-end gap-2 max-[760px]:hidden">
+          {navigationLinks}
         </div>
+        <button
+          aria-controls="mobile-navigation"
+          aria-expanded={isDrawerOpen}
+          aria-label="Open navigation menu"
+          className="hidden h-11 w-11 cursor-pointer place-items-center rounded-[7px] border border-line text-accent-strong max-[760px]:grid"
+          onClick={() => setIsDrawerOpen(true)}
+          type="button"
+        >
+          <span className="grid gap-1.5">
+            <span className="block h-0.5 w-5 rounded-full bg-current" />
+            <span className="block h-0.5 w-5 rounded-full bg-current" />
+            <span className="block h-0.5 w-5 rounded-full bg-current" />
+          </span>
+        </button>
       </nav>
+      {isMounted &&
+        createPortal(
+          <>
+            <div
+              className={[
+                'fixed inset-0 z-40 bg-foreground/35 transition-opacity duration-200 min-[761px]:hidden',
+                isDrawerOpen
+                  ? 'pointer-events-auto opacity-100'
+                  : 'pointer-events-none opacity-0',
+              ].join(' ')}
+              onClick={closeDrawer}
+            />
+            <aside
+              className={[
+                'fixed inset-y-0 left-0 z-50 grid w-[min(320px,calc(100%-40px))] content-start gap-6 border-r border-line bg-panel p-5 shadow-panel transition-transform duration-300 ease-out min-[761px]:hidden',
+                isDrawerOpen ? 'translate-x-0' : '-translate-x-full',
+              ].join(' ')}
+              id="mobile-navigation"
+            >
+              <div className="flex items-center justify-between gap-4">
+                <Link className="flex items-center gap-3" href={routes.home}>
+                  <FrogLogo className="w-10 shrink-0" />
+                  <span className="grid gap-0.5">
+                    <strong>Sliding Tiles</strong>
+                    <span className="text-[0.82rem] text-muted">
+                      {session ? `Playing as ${session.name}` : 'Play your way'}
+                    </span>
+                  </span>
+                </Link>
+                <button
+                  aria-label="Close navigation menu"
+                  className="grid h-10 w-10 cursor-pointer place-items-center rounded-[7px] border border-line text-muted"
+                  onClick={closeDrawer}
+                  type="button"
+                >
+                  <span className="text-2xl leading-none">&times;</span>
+                </button>
+              </div>
+              <div className="grid gap-2">{navigationLinks}</div>
+            </aside>
+          </>,
+          document.body,
+        )}
     </header>
   );
 }

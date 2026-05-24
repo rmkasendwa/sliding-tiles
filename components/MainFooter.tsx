@@ -14,7 +14,7 @@ const footerLinks = [
 export function MainFooter() {
   return (
     <footer className="border-t border-line bg-background/70">
-      <div className="mx-auto flex w-[min(1600px,calc(100%-40px))] flex-wrap items-center justify-between gap-4 py-4 text-sm text-muted">
+      <div className="page-rail mx-auto flex flex-wrap items-center justify-between gap-4 py-4 text-sm text-muted">
         <div className="flex items-center gap-3">
           <FrogLogo className="w-9 shrink-0" variant="monochrome" />
           <div className="grid gap-1">
