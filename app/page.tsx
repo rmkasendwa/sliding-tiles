@@ -26,10 +26,28 @@ const flow = [
   'Celebrate the solved image before the next board appears.',
 ];
 
-const stats = [
-  { label: 'Play mode', value: 'Guest' },
-  { label: 'Account mode', value: 'Saved' },
-  { label: 'Challenge', value: 'Moves' },
+const playModes = [
+  {
+    label: 'Jump in',
+    title: 'Guest run',
+    text: 'Start instantly and keep the board in this browser.',
+  },
+  {
+    label: 'Come back',
+    title: 'Saved run',
+    text: 'Sign in to sync progress before the pond gets away.',
+  },
+  {
+    label: 'Compete',
+    title: 'Clean run',
+    text: 'Finish with fewer moves and chase the leaderboard.',
+  },
+];
+
+const heroSignals = [
+  'Peek at the solved pond when you are stuck.',
+  'Save the board when you sign in.',
+  'Climb the leaderboard with cleaner runs.',
 ];
 
 function HomePuzzlePreview() {
@@ -73,18 +91,18 @@ export default function HomePage() {
   return (
     <div className="grid gap-0 overflow-x-clip">
       <section className="mx-auto grid min-h-svh w-[min(1600px,calc(100%-40px))] grid-cols-[minmax(0,0.92fr)_minmax(360px,1.08fr)] items-center gap-12 py-10 max-[900px]:grid-cols-1">
-        <div className="grid gap-5">
+        <div className="grid gap-6">
           <FrogLogo className="w-14" />
           <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
-            Froggy puzzle runs
-          </p>
-          <h1 className="max-w-[9ch] text-[clamp(3rem,8vw,7rem)] leading-[0.9]">
             Sliding Tiles
+          </p>
+          <h1 className="whitespace-nowrap text-[clamp(3rem,6.6vw,6.1rem)] leading-[0.9] max-[560px]:whitespace-normal">
+            Solve the pond
           </h1>
-          <p className="max-w-[58ch] text-[1.08rem] leading-[1.7] text-muted">
-            Rebuild a bright pond scene one sliding crop at a time. Play a quick
-            anonymous board, or sign in to save progress and compete for cleaner
-            finishes.
+          <p className="max-w-[58ch] text-[1.12rem] leading-[1.7] text-muted">
+            A calm little frog scene has been scrambled into sliding pieces.
+            Move the tiles, find the picture, and see how few moves it takes to
+            make the pond whole again.
           </p>
           <div className="flex flex-wrap gap-3">
             <Link
@@ -100,6 +118,14 @@ export default function HomePage() {
               View leaderboard
             </Link>
           </div>
+          <ul className="grid max-w-[58ch] gap-2.5 pt-2 text-sm font-bold text-accent-strong">
+            {heroSignals.map((signal) => (
+              <li className="flex items-center gap-2" key={signal}>
+                <span className="block h-2 w-2 rounded-full bg-accent" />
+                <span>{signal}</span>
+              </li>
+            ))}
+          </ul>
         </div>
         <HomePuzzlePreview />
       </section>
@@ -134,21 +160,21 @@ export default function HomePage() {
       </section>
 
       <section className="bg-[#dfeccf] py-16">
-        <div className="mx-auto grid w-[min(1600px,calc(100%-40px))] grid-cols-[minmax(0,0.9fr)_minmax(320px,1.1fr)] items-center gap-8 max-[900px]:grid-cols-1">
-          <div className="grid gap-3">
+        <div className="mx-auto grid w-[min(1600px,calc(100%-40px))] gap-8">
+          <div className="grid max-w-[960px] gap-3">
             <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
               From shuffle to splash
             </p>
-            <h2 className="max-w-[12ch] text-[clamp(2.2rem,4vw,4.4rem)] leading-none">
+            <h2 className="whitespace-nowrap text-[clamp(2.4rem,5vw,5.2rem)] leading-none max-[700px]:whitespace-normal">
               Built for one more try
             </h2>
-            <p className="max-w-[58ch] leading-7 text-muted">
+            <p className="max-w-[68ch] leading-7 text-muted">
               Keep your run moving with clear feedback, saved progress when you
               sign in, and a satisfying pause on the finished image before the
               next challenge begins.
             </p>
           </div>
-          <ol className="grid gap-3 [counter-reset:step]">
+          <ol className="grid grid-cols-3 gap-4 [counter-reset:step] max-[900px]:grid-cols-1">
             {flow.map((item) => (
               <li
                 className="grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-3 rounded-[7px] border border-accent/16 bg-white/55 p-3 [counter-increment:step] before:grid before:aspect-square before:place-items-center before:rounded-full before:bg-accent before:text-sm before:font-bold before:text-white before:content-[counter(step)]"
@@ -161,12 +187,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto grid w-[min(1600px,calc(100%-40px))] grid-cols-[minmax(0,1fr)_auto] items-center gap-8 py-16 max-[900px]:grid-cols-1">
+      <section className="mx-auto grid w-[min(1600px,calc(100%-40px))] grid-cols-[minmax(560px,0.78fr)_minmax(0,1.22fr)] items-center gap-8 py-16 max-[1180px]:grid-cols-1">
         <div className="grid gap-4">
           <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
             Ready when you are
           </p>
-          <h2 className="text-[clamp(2rem,4vw,4rem)] leading-none">
+          <h2 className="whitespace-nowrap text-[clamp(2rem,3.5vw,3.5rem)] leading-none max-[640px]:whitespace-normal">
             Start with a quick board
           </h2>
           <p className="max-w-[60ch] leading-7 text-muted">
@@ -188,17 +214,23 @@ export default function HomePage() {
             </Link>
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-2 text-center max-[520px]:grid-cols-1">
-          {stats.map((item) => (
+        <div className="grid grid-cols-3 gap-4 max-[760px]:grid-cols-1">
+          {playModes.map((item) => (
             <div
-              className="min-w-28 rounded-lg border border-line bg-panel px-4 py-3 shadow-[0_16px_44px_rgba(35,35,28,0.08)]"
-              key={item.label}
+              className="grid gap-2.5 rounded-lg border border-line bg-panel p-4 shadow-[0_12px_34px_rgba(35,35,28,0.07)] max-[760px]:grid-cols-[2.8rem_minmax(0,1fr)] max-[760px]:items-center max-[760px]:p-3"
+              key={item.title}
             >
-              <strong className="block text-xl text-accent-strong">
-                {item.value}
-              </strong>
-              <span className="mt-1 block text-xs uppercase text-muted">
-                {item.label}
+              <span className="grid aspect-square w-9 place-items-center rounded-full bg-accent/10 text-xs font-extrabold text-accent-strong max-[760px]:w-auto">
+                {item.label.slice(0, 1)}
+              </span>
+              <span className="grid gap-1">
+                <span className="text-xs font-extrabold uppercase text-accent-strong">
+                  {item.label}
+                </span>
+                <strong className="text-lg leading-tight">{item.title}</strong>
+                <span className="text-sm leading-6 text-muted">
+                  {item.text}
+                </span>
               </span>
             </div>
           ))}
