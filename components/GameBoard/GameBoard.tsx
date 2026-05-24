@@ -1,6 +1,6 @@
 'use client';
 
-import { Maximize2, Minimize2, Volume2, VolumeX } from 'lucide-react';
+import { Maximize2 } from 'lucide-react';
 import type { MouseEvent } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -27,8 +27,8 @@ import {
   LEVEL_COMPLETE_CELEBRATION_DELAY_MS,
   LOCAL_STORAGE_KEY,
 } from './constants';
+import { GameHud } from './GameHud';
 import { GameInfoPanel } from './GameInfoPanel';
-import { SolutionImage } from './SolutionPreview';
 
 export type GameBoardProps = {
   initialBoard: BoardState;
@@ -299,8 +299,6 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
       void boardFrame.requestFullscreen();
     }
   }, []);
-  const SoundIcon = isMuted ? VolumeX : Volume2;
-  const FullscreenIcon = isBoardFullscreen ? Minimize2 : Maximize2;
 
   return (
     <div className="grid min-h-full w-full grid-cols-[minmax(0,1fr)_320px] items-start gap-5 max-[900px]:grid-cols-1">
@@ -314,51 +312,24 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
         aria-label="Sliding tile board"
         ref={boardFrameRef}
       >
-        <div
-          className={[
-            'absolute right-4 top-4 z-20 w-32 rounded-lg border border-white/20 bg-panel/92 p-1.5 shadow-panel backdrop-blur',
-            isBoardFullscreen ? 'grid' : 'hidden max-[900px]:grid',
-          ].join(' ')}
-        >
-          <button
-            aria-label="Open run details"
-            className="relative grid cursor-pointer text-left transition-transform hover:-translate-y-0.5"
-            onClick={openInfoModal}
-            type="button"
-          >
-            <SolutionImage columns={columns} rows={rows} />
-            <span className="absolute right-1 top-1 rounded-full bg-panel/90 px-2 py-0.5 text-[0.65rem] font-bold text-accent-strong backdrop-blur">
-              L{board.level}
-            </span>
-          </button>
-          <div className="mt-1.5 flex items-center justify-between gap-1.5">
-            <span
-              aria-label={`${board.moves} moves`}
-              className="inline-flex h-8 min-w-0 items-center justify-center truncate whitespace-nowrap rounded-[6px] bg-accent/8 px-2 text-[0.78rem] font-bold text-accent-strong"
-              title={`${board.moves} moves`}
-            >
-              {board.moves} {board.moves === 1 ? 'move' : 'moves'}
-            </span>
-            <button
-              aria-label={isMuted ? 'Turn sound on' : 'Turn sound off'}
-              aria-pressed={!isMuted}
-              className="grid h-8 w-8 cursor-pointer place-items-center rounded-[6px] border border-line text-accent-strong transition-colors hover:bg-accent/10"
-              onClick={toggleMuted}
-              type="button"
-            >
-              <SoundIcon
-                aria-hidden="true"
-                className="size-4"
-                strokeWidth={2.2}
-              />
-            </button>
-          </div>
-        </div>
+        <GameHud
+          columns={columns}
+          isFullscreen={isBoardFullscreen}
+          isMuted={isMuted}
+          level={board.level}
+          moves={board.moves}
+          onOpenDetails={openInfoModal}
+          onRestart={restartLevel}
+          onToggleFullscreen={toggleBoardFullscreen}
+          onToggleMuted={toggleMuted}
+          rows={rows}
+          variant={isBoardFullscreen ? 'fullscreen' : 'compact'}
+        />
         <div
           className={[
             'relative aspect-square overflow-hidden rounded-lg',
             isBoardFullscreen
-              ? 'w-[min(calc(100vw-32px),calc(100svh-32px))]'
+              ? 'w-[min(calc(100vw-32px),calc(100svh-32px))] min-[900px]:w-[min(calc(100vw-244px),calc(100svh-32px))]'
               : 'w-[min(100%,calc(100svh-128px))]',
           ].join(' ')}
           onMouseDown={startBoardHint}
@@ -426,11 +397,14 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
           aria-label={
             isBoardFullscreen ? 'Exit fullscreen board' : 'Enter fullscreen board'
           }
-          className="absolute bottom-4 right-4 z-20 grid h-11 w-11 cursor-pointer place-items-center rounded-[7px] border border-white/20 bg-panel/92 text-accent-strong shadow-panel backdrop-blur transition-colors hover:bg-panel"
+          className={[
+            'absolute bottom-4 right-4 z-20 h-11 w-11 cursor-pointer place-items-center rounded-[7px] border border-white/20 bg-panel/92 text-accent-strong shadow-panel backdrop-blur transition-colors hover:bg-panel',
+            isBoardFullscreen ? 'hidden' : 'grid',
+          ].join(' ')}
           onClick={toggleBoardFullscreen}
           type="button"
         >
-          <FullscreenIcon
+          <Maximize2
             aria-hidden="true"
             className="size-5"
             strokeWidth={2.2}
