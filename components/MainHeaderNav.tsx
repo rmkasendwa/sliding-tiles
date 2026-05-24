@@ -8,7 +8,6 @@ import { createPortal } from 'react-dom';
 import { routes, type AppRoute } from '@/lib/routes';
 
 import { FrogLogo } from './FrogLogo';
-import { useSound } from './SoundProvider';
 
 type MainHeaderNavProps = {
   logout: () => Promise<void>;
@@ -53,7 +52,6 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
   const [hasScrolledHome, setHasScrolledHome] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  const { isMuted, toggleMuted } = useSound();
   const shouldRevealHeader = !isHomePage || hasScrolledHome;
   const closeDrawer = () => setIsDrawerOpen(false);
 
@@ -181,14 +179,6 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
           </Link>
         </>
       )}
-      <button
-        aria-pressed={!isMuted}
-        className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[7px] border border-line px-3.5 text-muted transition-colors hover:bg-accent/10 hover:text-accent-strong"
-        onClick={toggleMuted}
-        type="button"
-      >
-        {isMuted ? 'Sound off' : 'Sound on'}
-      </button>
     </>
   );
 
@@ -369,22 +359,6 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
                     Navigation
                   </span>
                   <div className="grid gap-1">{drawerNavigationLinks}</div>
-                </div>
-                <div className="grid gap-1 border-t border-line pt-4">
-                  <span className="px-3 text-[0.72rem] font-bold uppercase tracking-[0.08em] text-accent-strong">
-                    Preferences
-                  </span>
-                  <button
-                    aria-pressed={!isMuted}
-                    className="flex min-h-12 cursor-pointer items-center justify-between rounded-[7px] px-3 text-left text-[1.05rem] text-foreground transition-colors hover:bg-accent/8"
-                    onClick={toggleMuted}
-                    type="button"
-                  >
-                    <span>{isMuted ? 'Sound off' : 'Sound on'}</span>
-                    <span className="text-sm text-muted" aria-hidden="true">
-                      {isMuted ? 'Off' : 'On'}
-                    </span>
-                  </button>
                 </div>
               </div>
             </aside>

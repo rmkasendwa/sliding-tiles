@@ -35,7 +35,7 @@ export type GameBoardProps = {
 };
 
 export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
-  const { playSound } = useSound();
+  const { isMuted, playSound, toggleMuted } = useSound();
   const [board, setBoard] = useState<BoardState>(initialBoard);
   const [message, setMessage] = useState('');
   const [hintedSlot, setHintedSlot] = useState<string | null>(null);
@@ -368,10 +368,12 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
           board={board}
           columns={columns}
           gameModeLabel={gameModeLabel}
+          isMuted={isMuted}
           isCelebrating={isCelebrating}
           isSignedIn={isSignedIn}
           message={message}
           onRestart={restartLevel}
+          onToggleMuted={toggleMuted}
           rows={rows}
         />
       </aside>
@@ -388,12 +390,14 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
               board={board}
               columns={columns}
               gameModeLabel={gameModeLabel}
+              isMuted={isMuted}
               isModal
               isCelebrating={isCelebrating}
               isSignedIn={isSignedIn}
               message={message}
               onClose={() => setIsInfoModalOpen(false)}
               onRestart={restartLevel}
+              onToggleMuted={toggleMuted}
               rows={rows}
             />
           </div>

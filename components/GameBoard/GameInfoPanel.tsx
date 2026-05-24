@@ -5,12 +5,14 @@ export type GameInfoPanelProps = {
   board: BoardState;
   columns: number;
   gameModeLabel: string;
+  isMuted: boolean;
   isModal?: boolean;
   isCelebrating: boolean;
   isSignedIn: boolean;
   message: string;
   onClose?: () => void;
   onRestart: () => void;
+  onToggleMuted: () => void;
   rows: number;
 };
 
@@ -18,12 +20,14 @@ export function GameInfoPanel({
   board,
   columns,
   gameModeLabel,
+  isMuted,
   isModal = false,
   isCelebrating,
   isSignedIn,
   message,
   onClose,
   onRestart,
+  onToggleMuted,
   rows,
 }: GameInfoPanelProps) {
   return (
@@ -92,14 +96,24 @@ export function GameInfoPanel({
           and post leaderboard times.
         </p>
       )}
-      <button
-        className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[7px] border border-accent/30 px-3.5 font-bold text-accent-strong"
-        disabled={isCelebrating}
-        onClick={onRestart}
-        type="button"
-      >
-        Restart level
-      </button>
+      <div className="grid grid-cols-2 gap-2.5">
+        <button
+          aria-pressed={!isMuted}
+          className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[7px] border border-line px-3.5 font-bold text-muted transition-colors hover:bg-accent/10 hover:text-accent-strong"
+          onClick={onToggleMuted}
+          type="button"
+        >
+          {isMuted ? 'Sound off' : 'Sound on'}
+        </button>
+        <button
+          className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[7px] border border-accent/30 px-3.5 font-bold text-accent-strong"
+          disabled={isCelebrating}
+          onClick={onRestart}
+          type="button"
+        >
+          Restart level
+        </button>
+      </div>
       {message && (
         <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
           {message}
