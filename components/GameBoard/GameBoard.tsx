@@ -1,6 +1,6 @@
 'use client';
 
-import { Volume2, VolumeX } from 'lucide-react';
+import { Maximize2, Minimize2, Volume2, VolumeX } from 'lucide-react';
 import type { MouseEvent } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -45,6 +45,8 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   const [isShowingHintPlaceholder, setIsShowingHintPlaceholder] =
     useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
+  const [isBoardFullscreen, setIsBoardFullscreen] = useState(false);
+  const boardFrameRef = useRef<HTMLElement>(null);
   const boardHintTimeoutRef = useRef<number | null>(null);
   const placeholderRevealTimeoutRef = useRef<number | null>(null);
   const celebrationTimeoutRef = useRef<number | null>(null);
@@ -216,6 +218,18 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
     };
   }, [isInfoModalOpen]);
 
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsBoardFullscreen(document.fullscreenElement === boardFrameRef.current);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
   const startBoardHint = useCallback(
     (event: MouseEvent<HTMLDivElement>) => {
       if (event.button !== 0) {
@@ -270,15 +284,42 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   const openInfoModal = useCallback(() => {
     setIsInfoModalOpen(true);
   }, []);
+  const toggleBoardFullscreen = useCallback(() => {
+    const boardFrame = boardFrameRef.current;
+    if (!boardFrame) {
+      return;
+    }
+
+    if (document.fullscreenElement === boardFrame) {
+      void document.exitFullscreen();
+      return;
+    }
+
+    if (document.fullscreenEnabled) {
+      void boardFrame.requestFullscreen();
+    }
+  }, []);
   const SoundIcon = isMuted ? VolumeX : Volume2;
+  const FullscreenIcon = isBoardFullscreen ? Minimize2 : Maximize2;
 
   return (
     <div className="grid min-h-full w-full grid-cols-[minmax(0,1fr)_320px] items-start gap-5 max-[900px]:grid-cols-1">
       <section
-        className="relative grid h-[calc(100svh-104px)] min-h-0 place-items-center overflow-hidden rounded-lg bg-[#17231f] p-3 shadow-[0_24px_80px_rgba(0,0,0,0.24)] max-[900px]:p-2.5"
+        className={[
+          'relative grid min-h-0 place-items-center overflow-hidden bg-[#17231f] shadow-[0_24px_80px_rgba(0,0,0,0.24)]',
+          isBoardFullscreen
+            ? 'h-screen rounded-none p-4'
+            : 'h-[calc(100svh-104px)] rounded-lg p-3 max-[900px]:p-2.5',
+        ].join(' ')}
         aria-label="Sliding tile board"
+        ref={boardFrameRef}
       >
-        <div className="absolute right-4 top-4 z-20 hidden w-32 rounded-lg border border-white/20 bg-panel/92 p-1.5 shadow-panel backdrop-blur max-[900px]:grid">
+        <div
+          className={[
+            'absolute right-4 top-4 z-20 w-32 rounded-lg border border-white/20 bg-panel/92 p-1.5 shadow-panel backdrop-blur',
+            isBoardFullscreen ? 'grid' : 'hidden max-[900px]:grid',
+          ].join(' ')}
+        >
           <button
             aria-label="Open run details"
             className="relative grid cursor-pointer text-left transition-transform hover:-translate-y-0.5"
@@ -314,7 +355,12 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
           </div>
         </div>
         <div
-          className="relative aspect-square w-[min(100%,calc(100svh-128px))] overflow-hidden rounded-lg"
+          className={[
+            'relative aspect-square overflow-hidden rounded-lg',
+            isBoardFullscreen
+              ? 'w-[min(calc(100vw-32px),calc(100svh-32px))]'
+              : 'w-[min(100%,calc(100svh-128px))]',
+          ].join(' ')}
           onMouseDown={startBoardHint}
           onMouseLeave={clearBoardHint}
           onMouseUp={clearBoardHint}
@@ -376,6 +422,20 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
             </div>
           )}
         </div>
+        <button
+          aria-label={
+            isBoardFullscreen ? 'Exit fullscreen board' : 'Enter fullscreen board'
+          }
+          className="absolute bottom-4 right-4 z-20 grid h-11 w-11 cursor-pointer place-items-center rounded-[7px] border border-white/20 bg-panel/92 text-accent-strong shadow-panel backdrop-blur transition-colors hover:bg-panel"
+          onClick={toggleBoardFullscreen}
+          type="button"
+        >
+          <FullscreenIcon
+            aria-hidden="true"
+            className="size-5"
+            strokeWidth={2.2}
+          />
+        </button>
       </section>
 
       <aside className="max-[900px]:hidden">
