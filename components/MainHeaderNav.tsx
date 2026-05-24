@@ -20,11 +20,23 @@ const baseLinkClass =
 const inactiveLinkClass =
   'border-transparent text-foreground hover:bg-accent/10';
 const activeLinkClass = 'border-transparent bg-accent/6 text-accent-strong';
+const drawerLinkClass =
+  'group flex min-h-12 items-center justify-between rounded-[7px] border border-transparent px-3 text-left text-[1.05rem] transition-colors hover:bg-accent/8';
+const drawerActiveLinkClass =
+  'border-line bg-accent/8 font-bold text-accent-strong';
+const drawerInactiveLinkClass = 'text-foreground';
 
 function getNavLinkClass(isActive: boolean) {
   return [baseLinkClass, isActive ? activeLinkClass : inactiveLinkClass].join(
     ' ',
   );
+}
+
+function getDrawerLinkClass(isActive: boolean) {
+  return [
+    drawerLinkClass,
+    isActive ? drawerActiveLinkClass : drawerInactiveLinkClass,
+  ].join(' ');
 }
 
 function isRouteActive(pathname: string, href: AppRoute) {
@@ -99,7 +111,7 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
     };
   }, [isDrawerOpen]);
 
-  const navigationLinks = (
+  const desktopNavigationLinks = (
     <>
       <Link
         aria-current={isRouteActive(pathname, routes.play) ? 'page' : undefined}
@@ -180,6 +192,92 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
     </>
   );
 
+  const drawerNavigationLinks = (
+    <>
+      <Link
+        aria-current={isRouteActive(pathname, routes.play) ? 'page' : undefined}
+        className={getDrawerLinkClass(isRouteActive(pathname, routes.play))}
+        href={routes.play}
+        onClick={closeDrawer}
+      >
+        <span>Play</span>
+        {isRouteActive(pathname, routes.play) ? (
+          <span className="h-2 w-2 rounded-full bg-accent" aria-hidden="true" />
+        ) : null}
+      </Link>
+      <Link
+        aria-current={
+          isRouteActive(pathname, routes.leaderboard) ? 'page' : undefined
+        }
+        className={getDrawerLinkClass(isRouteActive(pathname, routes.leaderboard))}
+        href={routes.leaderboard}
+        onClick={closeDrawer}
+      >
+        <span>Leaderboard</span>
+        {isRouteActive(pathname, routes.leaderboard) ? (
+          <span className="h-2 w-2 rounded-full bg-accent" aria-hidden="true" />
+        ) : null}
+      </Link>
+      {session ? (
+        <>
+          <Link
+            aria-current={
+              isRouteActive(pathname, routes.profile) ? 'page' : undefined
+            }
+            className={getDrawerLinkClass(isRouteActive(pathname, routes.profile))}
+            href={routes.profile}
+            onClick={closeDrawer}
+          >
+            <span>Profile</span>
+            {isRouteActive(pathname, routes.profile) ? (
+              <span
+                className="h-2 w-2 rounded-full bg-accent"
+                aria-hidden="true"
+              />
+            ) : null}
+          </Link>
+          <form action={logout}>
+            <button
+              className="flex min-h-12 w-full cursor-pointer items-center rounded-[7px] px-3 text-left text-[1.05rem] font-bold text-danger transition-colors hover:bg-danger/8"
+              type="submit"
+            >
+              Log out
+            </button>
+          </form>
+        </>
+      ) : (
+        <>
+          <Link
+            aria-current={
+              isRouteActive(pathname, routes.login) ? 'page' : undefined
+            }
+            className={getDrawerLinkClass(isRouteActive(pathname, routes.login))}
+            href={routes.login}
+            onClick={closeDrawer}
+          >
+            <span>Log in</span>
+            {isRouteActive(pathname, routes.login) ? (
+              <span
+                className="h-2 w-2 rounded-full bg-accent"
+                aria-hidden="true"
+              />
+            ) : null}
+          </Link>
+          <Link
+            aria-current={
+              isRouteActive(pathname, routes.signup) ? 'page' : undefined
+            }
+            className="flex min-h-12 items-center rounded-[7px] bg-accent px-3 text-left text-[1.05rem] font-bold text-white transition-colors hover:bg-accent-strong"
+            href={routes.signup}
+            onClick={closeDrawer}
+          >
+            Sign up
+          </Link>
+        </>
+      )}
+    </>
+  );
+
   return (
     <header
       className={[
@@ -204,7 +302,7 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
           </span>
         </Link>
         <div className="flex items-center justify-end gap-2 max-[760px]:hidden">
-          {navigationLinks}
+          {desktopNavigationLinks}
         </div>
         <button
           aria-controls="mobile-navigation"
@@ -259,7 +357,30 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
                   <span className="text-2xl leading-none">&times;</span>
                 </button>
               </div>
-              <div className="grid gap-2">{navigationLinks}</div>
+              <div className="grid gap-5">
+                <div className="grid gap-1">
+                  <span className="px-3 text-[0.72rem] font-bold uppercase tracking-[0.08em] text-accent-strong">
+                    Navigation
+                  </span>
+                  <div className="grid gap-1">{drawerNavigationLinks}</div>
+                </div>
+                <div className="grid gap-1 border-t border-line pt-4">
+                  <span className="px-3 text-[0.72rem] font-bold uppercase tracking-[0.08em] text-accent-strong">
+                    Preferences
+                  </span>
+                  <button
+                    aria-pressed={!isMuted}
+                    className="flex min-h-12 cursor-pointer items-center justify-between rounded-[7px] px-3 text-left text-[1.05rem] text-foreground transition-colors hover:bg-accent/8"
+                    onClick={toggleMuted}
+                    type="button"
+                  >
+                    <span>{isMuted ? 'Sound off' : 'Sound on'}</span>
+                    <span className="text-sm text-muted" aria-hidden="true">
+                      {isMuted ? 'Off' : 'On'}
+                    </span>
+                  </button>
+                </div>
+              </div>
             </aside>
           </>,
           document.body,
