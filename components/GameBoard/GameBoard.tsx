@@ -1,5 +1,6 @@
 'use client';
 
+import { Volume2, VolumeX } from 'lucide-react';
 import type { MouseEvent } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -269,6 +270,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   const openInfoModal = useCallback(() => {
     setIsInfoModalOpen(true);
   }, []);
+  const SoundIcon = isMuted ? VolumeX : Volume2;
 
   return (
     <div className="grid min-h-full w-full grid-cols-[minmax(0,1fr)_320px] items-start gap-5 max-[900px]:grid-cols-1">
@@ -276,28 +278,41 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
         className="relative grid h-[calc(100svh-104px)] min-h-0 place-items-center overflow-hidden rounded-lg bg-[#17231f] p-3 shadow-[0_24px_80px_rgba(0,0,0,0.24)] max-[900px]:p-2.5"
         aria-label="Sliding tile board"
       >
-        <button
-          aria-label="Open run details"
-          className="absolute right-4 top-4 z-20 hidden w-24 cursor-pointer rounded-lg border border-white/20 bg-panel/92 p-1.5 text-left shadow-panel backdrop-blur transition-transform hover:-translate-y-0.5 max-[900px]:grid"
-          onClick={openInfoModal}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
-              event.preventDefault();
-              openInfoModal();
-            }
-          }}
-          onPointerDown={(event) => {
-            event.stopPropagation();
-            openInfoModal();
-          }}
-          type="button"
-        >
-          <SolutionImage columns={columns} rows={rows} />
-          <span className="mt-1 flex items-center justify-between gap-2 px-0.5 text-[0.7rem] font-bold text-accent-strong">
-            <span>Guide</span>
-            <span>L{board.level}</span>
-          </span>
-        </button>
+        <div className="absolute right-4 top-4 z-20 hidden w-32 rounded-lg border border-white/20 bg-panel/92 p-1.5 shadow-panel backdrop-blur max-[900px]:grid">
+          <button
+            aria-label="Open run details"
+            className="relative grid cursor-pointer text-left transition-transform hover:-translate-y-0.5"
+            onClick={openInfoModal}
+            type="button"
+          >
+            <SolutionImage columns={columns} rows={rows} />
+            <span className="absolute right-1 top-1 rounded-full bg-panel/90 px-2 py-0.5 text-[0.65rem] font-bold text-accent-strong backdrop-blur">
+              L{board.level}
+            </span>
+          </button>
+          <div className="mt-1.5 flex items-center justify-between gap-1.5">
+            <span
+              aria-label={`${board.moves} moves`}
+              className="inline-flex h-8 min-w-0 items-center justify-center truncate whitespace-nowrap rounded-[6px] bg-accent/8 px-2 text-[0.78rem] font-bold text-accent-strong"
+              title={`${board.moves} moves`}
+            >
+              {board.moves} {board.moves === 1 ? 'move' : 'moves'}
+            </span>
+            <button
+              aria-label={isMuted ? 'Turn sound on' : 'Turn sound off'}
+              aria-pressed={!isMuted}
+              className="grid h-8 w-8 cursor-pointer place-items-center rounded-[6px] border border-line text-accent-strong transition-colors hover:bg-accent/10"
+              onClick={toggleMuted}
+              type="button"
+            >
+              <SoundIcon
+                aria-hidden="true"
+                className="size-4"
+                strokeWidth={2.2}
+              />
+            </button>
+          </div>
+        </div>
         <div
           className="relative aspect-square w-[min(100%,calc(100svh-128px))] overflow-hidden rounded-lg"
           onMouseDown={startBoardHint}

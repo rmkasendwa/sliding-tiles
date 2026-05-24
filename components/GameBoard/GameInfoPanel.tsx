@@ -1,3 +1,5 @@
+import { Volume2, VolumeX } from 'lucide-react';
+
 import type { BoardState } from '@/lib/board';
 import { SolutionPreview } from './SolutionPreview';
 
@@ -30,6 +32,8 @@ export function GameInfoPanel({
   onToggleMuted,
   rows,
 }: GameInfoPanelProps) {
+  const SoundIcon = isMuted ? VolumeX : Volume2;
+
   return (
     <div
       className={[
@@ -99,10 +103,11 @@ export function GameInfoPanel({
       <div className="grid grid-cols-2 gap-2.5">
         <button
           aria-pressed={!isMuted}
-          className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[7px] border border-line px-3.5 font-bold text-muted transition-colors hover:bg-accent/10 hover:text-accent-strong"
+          className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-[7px] border border-line px-3.5 font-bold text-muted transition-colors hover:bg-accent/10 hover:text-accent-strong"
           onClick={onToggleMuted}
           type="button"
         >
+          <SoundIcon aria-hidden="true" className="size-4" strokeWidth={2.2} />
           {isMuted ? 'Sound off' : 'Sound on'}
         </button>
         <button
