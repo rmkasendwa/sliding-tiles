@@ -62,11 +62,11 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
   return (
     <header
       className={[
-        'top-0 z-20 border-b border-line bg-background/85 backdrop-blur transition-[opacity,transform,visibility] duration-300',
+        'top-0 z-20 border-b border-line bg-background/85 backdrop-blur transition-transform duration-300 ease-out',
         isHomePage ? 'fixed inset-x-0' : 'sticky',
         shouldRevealHeader
-          ? 'visible translate-y-0 opacity-100'
-          : 'invisible pointer-events-none -translate-y-full opacity-0',
+          ? 'translate-y-0'
+          : 'pointer-events-none -translate-y-full',
       ].join(' ')}
     >
       <nav
