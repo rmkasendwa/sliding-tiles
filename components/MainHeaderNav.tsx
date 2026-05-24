@@ -209,7 +209,9 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
         aria-current={
           isRouteActive(pathname, routes.leaderboard) ? 'page' : undefined
         }
-        className={getDrawerLinkClass(isRouteActive(pathname, routes.leaderboard))}
+        className={getDrawerLinkClass(
+          isRouteActive(pathname, routes.leaderboard),
+        )}
         href={routes.leaderboard}
         onClick={closeDrawer}
       >
@@ -224,7 +226,9 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
             aria-current={
               isRouteActive(pathname, routes.profile) ? 'page' : undefined
             }
-            className={getDrawerLinkClass(isRouteActive(pathname, routes.profile))}
+            className={getDrawerLinkClass(
+              isRouteActive(pathname, routes.profile),
+            )}
             href={routes.profile}
             onClick={closeDrawer}
           >
@@ -251,7 +255,9 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
             aria-current={
               isRouteActive(pathname, routes.login) ? 'page' : undefined
             }
-            className={getDrawerLinkClass(isRouteActive(pathname, routes.login))}
+            className={getDrawerLinkClass(
+              isRouteActive(pathname, routes.login),
+            )}
             href={routes.login}
             onClick={closeDrawer}
           >
@@ -281,7 +287,7 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
   return (
     <header
       className={[
-        'top-0 z-20 border-b border-line bg-background/85 backdrop-blur transition-transform duration-300 ease-out',
+        'top-0 z-30 border-b border-line bg-background/85 backdrop-blur transition-transform duration-300 ease-out',
         isHomePage ? 'fixed inset-x-0' : 'sticky',
         shouldRevealHeader
           ? 'translate-y-0'

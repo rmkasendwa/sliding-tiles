@@ -635,7 +635,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
             onClick={() => setIsInfoModalOpen(false)}
             type="button"
           />
-          <div className="relative z-10 h-[calc(100svh-28px)] w-[min(620px,calc(100vw-28px))] overflow-y-auto rounded-xl">
+          <div className="relative z-10 max-h-[calc(100svh-28px)] w-full max-w-lg overflow-y-auto rounded-xl">
             <GameInfoPanel
               board={board}
               columns={columns}
