@@ -510,17 +510,17 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
         </div>
         <div
           aria-label={`Level ${board.level}, ${columns} by ${rows} grid`}
-          className="absolute left-4 top-4 z-40 rounded-[7px] border border-white/20 bg-panel/92 px-3 py-2 text-sm font-bold text-accent-strong shadow-panel backdrop-blur"
+          className="board-overlay absolute left-4 top-4 z-40 rounded-[7px] border px-3 py-2 text-sm font-bold text-accent-strong"
         >
           Level {board.level} · {columns}x{rows}
         </div>
         <div
           aria-label={`${board.moves} ${board.moves === 1 ? 'move' : 'moves'}`}
-          className="absolute bottom-4 left-4 z-40 rounded-[7px] border border-white/20 bg-panel/92 px-3 py-2 text-sm font-bold text-accent-strong shadow-panel backdrop-blur"
+          className="board-overlay absolute bottom-4 left-4 z-40 rounded-[7px] border px-3 py-2 text-sm font-bold text-accent-strong"
         >
           {board.moves} {board.moves === 1 ? 'move' : 'moves'}
         </div>
-        <div className="absolute bottom-4 right-4 z-40 flex gap-1 rounded-[7px] border border-white/20 bg-panel/92 p-1 text-accent-strong shadow-panel backdrop-blur">
+        <div className="board-overlay absolute bottom-4 right-4 z-40 flex gap-1 rounded-[7px] border p-1 text-accent-strong">
           <button
             aria-label="Restart level"
             className="grid h-8 w-8 cursor-pointer place-items-center rounded-[6px] border border-line transition-colors hover:bg-accent/10"

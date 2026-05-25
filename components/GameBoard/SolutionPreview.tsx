@@ -31,13 +31,10 @@ export function SolutionPreview({
   rows,
 }: SolutionPreviewProps) {
   return (
-    <figure className="m-0 grid gap-2">
+    <figure className="m-0">
       <div className={isCompact ? 'mx-auto w-full max-w-72' : ''}>
         <SolutionImage columns={columns} rows={rows} />
       </div>
-      <figcaption className="text-[0.82rem] text-muted">
-        Reference image
-      </figcaption>
     </figure>
   );
 }

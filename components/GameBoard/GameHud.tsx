@@ -18,7 +18,7 @@ export function GameHud({
       <div className="fullscreen-game-hud">
         <button
           aria-label="Open run details"
-          className="fullscreen-game-hud__preview relative grid cursor-pointer text-left transition-transform hover:-translate-y-0.5"
+          className="game-hud-preview fullscreen-game-hud__preview relative grid cursor-pointer text-left transition-transform hover:-translate-y-0.5"
           onClick={onOpenDetails}
           type="button"
         >
@@ -29,10 +29,10 @@ export function GameHud({
   }
 
   return (
-    <div className="absolute right-4 top-4 z-20 hidden w-24 rounded-lg border border-white/20 bg-panel/92 p-1.5 shadow-panel backdrop-blur max-[900px]:grid">
+    <div className="board-overlay absolute right-4 top-4 z-20 hidden w-24 rounded-lg border p-1 max-[900px]:grid">
       <button
         aria-label="Open run details"
-        className="relative grid cursor-pointer text-left transition-transform hover:-translate-y-0.5"
+        className="game-hud-preview relative grid cursor-pointer text-left transition-transform hover:-translate-y-0.5"
         onClick={onOpenDetails}
         type="button"
       >
