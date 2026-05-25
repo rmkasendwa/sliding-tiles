@@ -11,7 +11,7 @@ import {
   type ReactNode,
 } from 'react';
 
-type SoundCue = 'complete' | 'hint' | 'invalid' | 'move';
+type SoundCue = 'complete' | 'hint' | 'invalid' | 'lock' | 'move' | 'shuffle';
 
 type SoundContextValue = {
   isMuted: boolean;
@@ -80,6 +80,9 @@ export function SoundProvider({ children }: { children: ReactNode }) {
         case 'invalid':
           playAudio(invalidSoundRef.current, { volume: 0.18 });
           break;
+        case 'lock':
+          playAudio(moveSoundRef.current, { playbackRate: 1.36, volume: 0.18 });
+          break;
         case 'hint':
           playAudio(hintSoundRef.current, { volume: 0.14 });
           window.setTimeout(() => {
@@ -98,6 +101,18 @@ export function SoundProvider({ children }: { children: ReactNode }) {
               playAudio(frogSoundRef.current, { volume: 0.16 });
             }
           }, 80);
+          break;
+        case 'shuffle':
+          [0, 70, 145, 230].forEach((delay, index) => {
+            window.setTimeout(() => {
+              if (!isMuted) {
+                playAudio(moveSoundRef.current, {
+                  playbackRate: 0.86 + index * 0.08,
+                  volume: 0.2,
+                });
+              }
+            }, delay);
+          });
           break;
       }
     },

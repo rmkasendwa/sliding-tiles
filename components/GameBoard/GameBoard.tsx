@@ -28,6 +28,7 @@ import {
   LEVEL_COMPLETE_CELEBRATION_DELAY_MS,
   LOCAL_STORAGE_KEY,
   RESET_GATHER_DELAY_MS,
+  TILE_ENTRY_LOCK_IN_DELAY_MS,
 } from './constants';
 import { GameHud } from './GameHud';
 import { GameInfoPanel } from './GameInfoPanel';
@@ -59,6 +60,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   const placeholderRevealTimeoutRef = useRef<number | null>(null);
   const celebrationTimeoutRef = useRef<number | null>(null);
   const levelAdvanceTimeoutRef = useRef<number | null>(null);
+  const lockInTimeoutRef = useRef<number | null>(null);
   const resetTimeoutRef = useRef<number | null>(null);
   const boardHintMouseUpRef = useRef<(() => void) | null>(null);
   const suppressNextClickRef = useRef(false);
@@ -77,6 +79,20 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   const movableSlotKeys = useMemo(() => {
     return new Set(board.movableSlots.map(slotKey));
   }, [board.movableSlots]);
+
+  const scheduleLockInSound = useCallback(
+    (delay = TILE_ENTRY_LOCK_IN_DELAY_MS) => {
+      if (lockInTimeoutRef.current !== null) {
+        window.clearTimeout(lockInTimeoutRef.current);
+      }
+
+      lockInTimeoutRef.current = window.setTimeout(() => {
+        playSound('lock');
+        lockInTimeoutRef.current = null;
+      }, delay);
+    },
+    [playSound],
+  );
 
   const completeLevel = useCallback(
     (completedBoard: BoardState) => {
@@ -101,6 +117,8 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
         celebrationTimeoutRef.current = null;
 
         levelAdvanceTimeoutRef.current = window.setTimeout(() => {
+          playSound('shuffle');
+          scheduleLockInSound();
           setBoardEntryAnimationKey((key) => key + 1);
           setTileRotationSeed((seed) => seed + 1);
           setBoard(
@@ -117,7 +135,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
         }, LEVEL_COMPLETE_ADVANCE_DELAY_MS);
       }, LEVEL_COMPLETE_CELEBRATION_DELAY_MS);
     },
-    [isSignedIn, playSound],
+    [isSignedIn, playSound, scheduleLockInSound],
   );
 
   const moveTile = useCallback(
@@ -205,6 +223,9 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
       }
       if (levelAdvanceTimeoutRef.current !== null) {
         window.clearTimeout(levelAdvanceTimeoutRef.current);
+      }
+      if (lockInTimeoutRef.current !== null) {
+        window.clearTimeout(lockInTimeoutRef.current);
       }
       if (resetTimeoutRef.current !== null) {
         window.clearTimeout(resetTimeoutRef.current);
@@ -383,6 +404,8 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
     }
     setIsCelebrating(false);
     setMessage('');
+    playSound('shuffle');
+    scheduleLockInSound(RESET_GATHER_DELAY_MS + TILE_ENTRY_LOCK_IN_DELAY_MS);
     setTileRotationSeed((seed) => seed + 1);
     setIsResetting(true);
     resetTimeoutRef.current = window.setTimeout(() => {
@@ -391,7 +414,14 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
       setIsResetting(false);
       resetTimeoutRef.current = null;
     }, RESET_GATHER_DELAY_MS);
-  }, [board.dimensions, board.level, clearBoardHint, isResetting]);
+  }, [
+    board.dimensions,
+    board.level,
+    clearBoardHint,
+    isResetting,
+    playSound,
+    scheduleLockInSound,
+  ]);
 
   const gameModeLabel = isSignedIn ? 'Saved run' : 'Anonymous run';
   const exitBoardFullscreen = useCallback(async () => {
