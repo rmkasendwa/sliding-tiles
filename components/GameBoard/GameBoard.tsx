@@ -1,6 +1,6 @@
 'use client';
 
-import { Maximize2 } from 'lucide-react';
+import { Maximize2, Minimize2, RotateCcw, Volume2, VolumeX } from 'lucide-react';
 import type { PointerEvent, TouchEvent } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -38,6 +38,7 @@ export type GameBoardProps = {
 
 export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   const { isMuted, playSound, toggleMuted } = useSound();
+  const SoundIcon = isMuted ? VolumeX : Volume2;
   const [board, setBoard] = useState<BoardState>(initialBoard);
   const [message, setMessage] = useState('');
   const [hintedSlot, setHintedSlot] = useState<string | null>(null);
@@ -47,6 +48,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
     useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [isBoardFullscreen, setIsBoardFullscreen] = useState(false);
+  const FullscreenIcon = isBoardFullscreen ? Minimize2 : Maximize2;
   const boardFrameRef = useRef<HTMLElement>(null);
   const boardSurfaceRef = useRef<HTMLDivElement>(null);
   const boardHintTimeoutRef = useRef<number | null>(null);
@@ -429,14 +431,9 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
       >
         <GameHud
           columns={columns}
-          isFullscreen={isBoardFullscreen}
-          isMuted={isMuted}
           level={board.level}
           moves={board.moves}
           onOpenDetails={openInfoModal}
-          onRestart={restartLevel}
-          onToggleFullscreen={toggleBoardFullscreen}
-          onToggleMuted={toggleMuted}
           rows={rows}
           variant={isBoardFullscreen ? 'fullscreen' : 'compact'}
         />
@@ -513,23 +510,47 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
             </div>
           )}
         </div>
-        <button
-          aria-label={
-            isBoardFullscreen ? 'Exit fullscreen board' : 'Enter fullscreen board'
-          }
-          className={[
-            'absolute bottom-4 right-4 z-20 h-11 w-11 cursor-pointer place-items-center rounded-[7px] border border-white/20 bg-panel/92 text-accent-strong shadow-panel backdrop-blur transition-colors hover:bg-panel',
-            isBoardFullscreen ? 'hidden' : 'grid',
-          ].join(' ')}
-          onClick={toggleBoardFullscreen}
-          type="button"
-        >
-          <Maximize2
-            aria-hidden="true"
-            className="size-5"
-            strokeWidth={2.2}
-          />
-        </button>
+        <div className="absolute bottom-4 right-4 z-40 flex gap-1.5 rounded-[7px] border border-white/20 bg-panel/92 p-1.5 text-accent-strong shadow-panel backdrop-blur">
+          <button
+            aria-label="Restart level"
+            className="grid h-9 w-9 cursor-pointer place-items-center rounded-[6px] border border-line transition-colors hover:bg-accent/10"
+            onClick={restartLevel}
+            type="button"
+          >
+            <RotateCcw
+              aria-hidden="true"
+              className="size-4"
+              strokeWidth={2.2}
+            />
+          </button>
+          <button
+            aria-label={isMuted ? 'Turn sound on' : 'Turn sound off'}
+            aria-pressed={!isMuted}
+            className="grid h-9 w-9 cursor-pointer place-items-center rounded-[6px] border border-line transition-colors hover:bg-accent/10"
+            onClick={toggleMuted}
+            type="button"
+          >
+            <SoundIcon
+              aria-hidden="true"
+              className="size-4"
+              strokeWidth={2.2}
+            />
+          </button>
+          <button
+            aria-label={
+              isBoardFullscreen ? 'Exit fullscreen board' : 'Enter fullscreen board'
+            }
+            className="grid h-9 w-9 cursor-pointer place-items-center rounded-[6px] border border-line transition-colors hover:bg-accent/10"
+            onClick={toggleBoardFullscreen}
+            type="button"
+          >
+            <FullscreenIcon
+              aria-hidden="true"
+              className="size-4"
+              strokeWidth={2.2}
+            />
+          </button>
+        </div>
       </section>
 
       <aside className="max-[900px]:hidden">
@@ -537,12 +558,8 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
           board={board}
           columns={columns}
           gameModeLabel={gameModeLabel}
-          isMuted={isMuted}
-          isCelebrating={isCelebrating}
           isSignedIn={isSignedIn}
           message={message}
-          onRestart={restartLevel}
-          onToggleMuted={toggleMuted}
           rows={rows}
         />
       </aside>
@@ -559,14 +576,10 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
               board={board}
               columns={columns}
               gameModeLabel={gameModeLabel}
-              isMuted={isMuted}
               isModal
-              isCelebrating={isCelebrating}
               isSignedIn={isSignedIn}
               message={message}
               onClose={() => setIsInfoModalOpen(false)}
-              onRestart={restartLevel}
-              onToggleMuted={toggleMuted}
               rows={rows}
             />
           </div>

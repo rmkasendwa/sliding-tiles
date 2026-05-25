@@ -135,22 +135,6 @@
       font-size: 1rem;
     }
 
-    .fullscreen-game-hud__actions {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 0.35rem;
-      width: auto;
-    }
-
-    .fullscreen-game-hud__actions > button {
-      height: 2rem;
-      width: 2rem;
-      border-radius: 0.375rem;
-    }
-
-    .fullscreen-game-hud__actions svg {
-      width: 0.9rem;
-      height: 0.9rem;
-    }
   }
 
   @media (max-width: 480px) and (orientation: portrait) {
