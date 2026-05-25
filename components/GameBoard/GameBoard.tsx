@@ -265,6 +265,14 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
     [clearBoardHint, isCelebrating, playSound],
   );
 
+  const clearBoardHintFromPointer = useCallback(() => {
+    if (isCelebrating) {
+      return;
+    }
+
+    clearBoardHint();
+  }, [clearBoardHint, isCelebrating]);
+
   const restartLevel = useCallback(() => {
     clearBoardHint();
     if (levelAdvanceTimeoutRef.current !== null) {
@@ -333,8 +341,8 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
               : 'w-[min(100%,calc(100svh-128px))]',
           ].join(' ')}
           onMouseDown={startBoardHint}
-          onMouseLeave={clearBoardHint}
-          onMouseUp={clearBoardHint}
+          onMouseLeave={clearBoardHintFromPointer}
+          onMouseUp={clearBoardHintFromPointer}
           style={{ background: BOARD_SURFACE_BACKGROUND }}
         >
           {board.tileGrid.flat().map((tile) => {
