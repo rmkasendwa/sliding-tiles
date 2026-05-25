@@ -1,6 +1,12 @@
 'use client';
 
-import { Maximize2, Minimize2, RotateCcw, Volume2, VolumeX } from 'lucide-react';
+import {
+  Maximize2,
+  Minimize2,
+  RotateCcw,
+  Volume2,
+  VolumeX,
+} from 'lucide-react';
 import type { PointerEvent, TouchEvent } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -43,7 +49,6 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
     useSound();
   const SoundIcon = isMuted ? VolumeX : Volume2;
   const [board, setBoard] = useState<BoardState>(initialBoard);
-  const [message, setMessage] = useState('');
   const [hintedSlot, setHintedSlot] = useState<string | null>(null);
   const [isCelebrating, setIsCelebrating] = useState(false);
   const [isShowingSolvedHint, setIsShowingSolvedHint] = useState(false);
@@ -103,7 +108,6 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   const completeLevel = useCallback(
     (completedBoard: BoardState) => {
       playSound('complete');
-      setMessage(`Level ${completedBoard.level} complete`);
       setHintedSlot(null);
       if (isSignedIn) {
         void recordCompletedLevel(completedBoard);
@@ -133,7 +137,6 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
               nextGridDimensions(completedBoard.dimensions),
             ),
           );
-          setMessage('');
           setIsCelebrating(false);
           setIsShowingSolvedHint(false);
           setIsShowingHintPlaceholder(false);
@@ -349,7 +352,10 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
         return;
       }
 
-      const column = Math.min(columns - 1, Math.floor((x / rect.width) * columns));
+      const column = Math.min(
+        columns - 1,
+        Math.floor((x / rect.width) * columns),
+      );
       const row = Math.min(rows - 1, Math.floor((y / rect.height) * rows));
       const tappedSlot: Slot = [row, column];
 
@@ -409,7 +415,6 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
       celebrationTimeoutRef.current = null;
     }
     setIsCelebrating(false);
-    setMessage('');
     playSound('shuffle');
     scheduleLockInSound(RESET_GATHER_DELAY_MS + TILE_ENTRY_LOCK_IN_DELAY_MS);
     setTileRotationSeed((seed) => seed + 1);
@@ -478,11 +483,11 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   return (
     <div className="grid min-h-full w-full grid-cols-[minmax(0,1fr)_320px] items-start gap-5 max-[900px]:grid-cols-1">
       <section
-          className={[
-            'relative grid min-h-0 place-items-center overflow-hidden bg-[#17231f] shadow-[0_24px_80px_rgba(0,0,0,0.24)]',
-            isBoardFullscreen
-              ? 'fullscreen-board-stage fixed inset-0 z-50 h-screen rounded-none p-4'
-              : 'h-[calc(100svh-104px)] rounded-lg p-3 max-[900px]:p-2.5',
+        className={[
+          'relative grid min-h-0 place-items-center overflow-hidden bg-[#17231f] shadow-[0_24px_80px_rgba(0,0,0,0.24)]',
+          isBoardFullscreen
+            ? 'fullscreen-board-stage fixed inset-0 z-50 h-screen rounded-none p-4'
+            : 'h-[calc(100svh-104px)] rounded-lg p-3 max-[900px]:p-2.5',
         ].join(' ')}
         aria-label="Sliding tile board"
         ref={boardFrameRef}
@@ -583,7 +588,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
         <div className="board-overlay absolute bottom-4 right-4 z-40 flex gap-1 rounded-[7px] border p-1 text-accent-strong">
           <button
             aria-label="Restart level"
-            className="grid h-8 w-8 cursor-pointer place-items-center rounded-[6px] border border-line transition-colors hover:bg-accent/10"
+            className="grid h-8 w-8 cursor-pointer place-items-center rounded-md border border-line transition-colors hover:bg-accent/10"
             disabled={isResetting}
             onClick={restartLevel}
             type="button"
@@ -597,7 +602,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
           <button
             aria-label={isMuted ? 'Turn sound on' : 'Turn sound off'}
             aria-pressed={!isMuted}
-            className="grid h-8 w-8 cursor-pointer place-items-center rounded-[6px] border border-line transition-colors hover:bg-accent/10"
+            className="grid h-8 w-8 cursor-pointer place-items-center rounded-md border border-line transition-colors hover:bg-accent/10"
             onClick={toggleMuted}
             type="button"
           >
@@ -609,9 +614,11 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
           </button>
           <button
             aria-label={
-              isBoardFullscreen ? 'Exit fullscreen board' : 'Enter fullscreen board'
+              isBoardFullscreen
+                ? 'Exit fullscreen board'
+                : 'Enter fullscreen board'
             }
-            className="grid h-8 w-8 cursor-pointer place-items-center rounded-[6px] border border-line transition-colors hover:bg-accent/10"
+            className="grid h-8 w-8 cursor-pointer place-items-center rounded-md border border-line transition-colors hover:bg-accent/10"
             onClick={toggleBoardFullscreen}
             type="button"
           >
@@ -630,7 +637,6 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
           columns={columns}
           gameModeLabel={gameModeLabel}
           isSignedIn={isSignedIn}
-          message={message}
           rows={rows}
         />
       </aside>
@@ -649,7 +655,6 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
               gameModeLabel={gameModeLabel}
               isModal
               isSignedIn={isSignedIn}
-              message={message}
               onClose={() => setIsInfoModalOpen(false)}
               rows={rows}
             />

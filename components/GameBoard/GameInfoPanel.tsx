@@ -7,7 +7,6 @@ export type GameInfoPanelProps = {
   gameModeLabel: string;
   isModal?: boolean;
   isSignedIn: boolean;
-  message: string;
   onClose?: () => void;
   rows: number;
 };
@@ -18,7 +17,6 @@ export function GameInfoPanel({
   gameModeLabel,
   isModal = false,
   isSignedIn,
-  message,
   onClose,
   rows,
 }: GameInfoPanelProps) {
@@ -74,11 +72,6 @@ export function GameInfoPanel({
         <p className="leading-normal text-muted">
           Anonymous progress stays in this browser. Sign in to sync your board
           and post leaderboard times.
-        </p>
-      )}
-      {message && (
-        <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
-          {message}
         </p>
       )}
     </div>
