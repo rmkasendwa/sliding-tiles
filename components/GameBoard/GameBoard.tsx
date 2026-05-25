@@ -39,7 +39,8 @@ export type GameBoardProps = {
 };
 
 export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
-  const { isMuted, playSound, toggleMuted } = useSound();
+  const { isMuted, playSound, startAmbience, stopAmbience, toggleMuted } =
+    useSound();
   const SoundIcon = isMuted ? VolumeX : Volume2;
   const [board, setBoard] = useState<BoardState>(initialBoard);
   const [message, setMessage] = useState('');
@@ -64,6 +65,11 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   const resetTimeoutRef = useRef<number | null>(null);
   const boardHintMouseUpRef = useRef<(() => void) | null>(null);
   const suppressNextClickRef = useRef(false);
+
+  useEffect(() => {
+    startAmbience();
+    return stopAmbience;
+  }, [startAmbience, stopAmbience]);
 
   useEffect(() => {
     if (isSignedIn) {
