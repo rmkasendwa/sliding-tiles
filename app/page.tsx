@@ -72,7 +72,7 @@ function HomePuzzlePreview() {
                     ? 'repeating-linear-gradient(-45deg, rgba(30, 37, 34, 0.16) 0 10px, rgba(30, 37, 34, 0.16) 10px 18px, rgba(255, 255, 255, 0.3) 18px 28px, rgba(255, 255, 255, 0.3) 28px 36px), #ece4d3'
                     : undefined,
                 backgroundImage:
-                  homeIndex === null ? undefined : "url('/api/assets/frog')",
+                  homeIndex === null ? undefined : "url('/frog.svg')",
                 backgroundPosition:
                   homeIndex === null
                     ? undefined

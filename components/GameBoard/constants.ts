@@ -13,8 +13,8 @@ export const HINT_PLACEHOLDER_TRANSITION =
 export const BOARD_SURFACE_BACKGROUND =
   'repeating-linear-gradient(-45deg, rgba(30, 37, 34, 0.12) 0 10px, rgba(30, 37, 34, 0.12) 10px 18px, rgba(255, 255, 255, 0.22) 18px 28px, rgba(255, 255, 255, 0.22) 28px 36px), #ece4d3';
 export const SOLUTION_GRID_BACKGROUND =
-  "linear-gradient(to right, rgba(255, 255, 255, 0.42) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.42) 1px, transparent 1px), url('/api/assets/frog')";
-export const TILE_BACKGROUND = "url('/api/assets/frog')";
+  "linear-gradient(to right, rgba(255, 255, 255, 0.42) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.42) 1px, transparent 1px), url('/frog.svg')";
+export const TILE_BACKGROUND = "url('/frog.svg')";
 
 export const CELEBRATION_PARTICLES = Array.from(
   { length: 30 },
