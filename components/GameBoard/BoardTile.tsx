@@ -42,6 +42,23 @@ export function BoardTile({
   const [homeRow, homeColumn] = tile.homeSlot;
   const [row, column] = isShowingSolvedHint ? tile.homeSlot : tile.slot;
   const isHintPlaceholder = tile.type === 'PLACEHOLDER';
+  const activateTile = () => {
+    if (isHintPlaceholder) {
+      return;
+    }
+
+    if (suppressNextClickRef.current) {
+      suppressNextClickRef.current = false;
+      return;
+    }
+
+    if (isMovable) {
+      onMove(tile.slot);
+    } else {
+      onInvalidMove();
+      onHint(slotKey(tile.homeSlot));
+    }
+  };
   const tileClasses = [
     'absolute cursor-pointer rounded-md border border-black/20 bg-no-repeat shadow-[inset_0_-3px_4px_rgba(0,0,0,0.26),inset_0_3px_4px_rgba(255,255,255,0.34),0_16px_22px_rgba(0,0,0,0.24)] hover:z-[8] focus-visible:z-[8]',
     isMovable ? '' : 'cursor-not-allowed',
@@ -62,23 +79,7 @@ export function BoardTile({
       className={tileClasses}
       key={tile.position}
       onBlur={() => onHint(null)}
-      onClick={() => {
-        if (isHintPlaceholder) {
-          return;
-        }
-
-        if (suppressNextClickRef.current) {
-          suppressNextClickRef.current = false;
-          return;
-        }
-
-        if (isMovable) {
-          onMove(tile.slot);
-        } else {
-          onInvalidMove();
-          onHint(slotKey(tile.homeSlot));
-        }
-      }}
+      onClick={activateTile}
       onMouseEnter={() => {
         if (!isMovable && !isHintPlaceholder) {
           onHint(slotKey(tile.homeSlot));
@@ -96,6 +97,8 @@ export function BoardTile({
           columns > 1 ? (homeColumn / (columns - 1)) * 100 : 0
         }% ${rows > 1 ? (homeRow / (rows - 1)) * 100 : 0}%`,
         opacity: isHintPlaceholder && !isHintPlaceholderVisible ? 0 : 1,
+        WebkitTapHighlightColor: 'transparent',
+        touchAction: 'manipulation',
         transition: isHintPlaceholder
           ? HINT_PLACEHOLDER_TRANSITION
           : TILE_TRANSITION,

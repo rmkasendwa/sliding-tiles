@@ -1,7 +1,7 @@
 'use client';
 
 import { Maximize2 } from 'lucide-react';
-import type { MouseEvent } from 'react';
+import type { PointerEvent, TouchEvent } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { recordCompletedLevel, saveGameState } from '@/app/actions/game';
@@ -13,6 +13,7 @@ import {
   moveBoardTile,
   nextGridDimensions,
   slotKey,
+  slotsEqual,
 } from '@/lib/board';
 
 import { useSound } from '../SoundProvider';
@@ -47,6 +48,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [isBoardFullscreen, setIsBoardFullscreen] = useState(false);
   const boardFrameRef = useRef<HTMLElement>(null);
+  const boardSurfaceRef = useRef<HTMLDivElement>(null);
   const boardHintTimeoutRef = useRef<number | null>(null);
   const placeholderRevealTimeoutRef = useRef<number | null>(null);
   const celebrationTimeoutRef = useRef<number | null>(null);
@@ -220,7 +222,14 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
 
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsBoardFullscreen(document.fullscreenElement === boardFrameRef.current);
+      if (document.fullscreenElement === boardFrameRef.current) {
+        setIsBoardFullscreen(true);
+        return;
+      }
+
+      if (!document.fullscreenElement) {
+        setIsBoardFullscreen(false);
+      }
     };
 
     document.addEventListener('fullscreenchange', handleFullscreenChange);
@@ -230,9 +239,22 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!isBoardFullscreen) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isBoardFullscreen]);
+
   const startBoardHint = useCallback(
-    (event: MouseEvent<HTMLDivElement>) => {
-      if (event.button !== 0) {
+    (event: PointerEvent<HTMLDivElement>) => {
+      if (event.pointerType !== 'mouse' || event.button !== 0) {
         return;
       }
 
@@ -273,6 +295,65 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
     clearBoardHint();
   }, [clearBoardHint, isCelebrating]);
 
+  const moveTileAtClientPoint = useCallback(
+    (clientX: number, clientY: number) => {
+      const boardSurface = boardSurfaceRef.current;
+      if (!boardSurface || isCelebrating) {
+        return;
+      }
+
+      const rect = boardSurface.getBoundingClientRect();
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
+
+      if (x < 0 || y < 0 || x > rect.width || y > rect.height) {
+        return;
+      }
+
+      const column = Math.min(columns - 1, Math.floor((x / rect.width) * columns));
+      const row = Math.min(rows - 1, Math.floor((y / rect.height) * rows));
+      const tappedSlot: Slot = [row, column];
+
+      if (!movableSlotKeys.has(slotKey(tappedSlot))) {
+        playSound('invalid');
+        const tappedTile = board.tileGrid
+          .flat()
+          .find((tile) => slotsEqual(tile.slot, tappedSlot));
+
+        if (tappedTile && tappedTile.type !== 'PLACEHOLDER') {
+          setHintedSlot(slotKey(tappedTile.homeSlot));
+        }
+
+        return;
+      }
+
+      moveTile(tappedSlot);
+    },
+    [
+      board.tileGrid,
+      columns,
+      isCelebrating,
+      movableSlotKeys,
+      moveTile,
+      playSound,
+      rows,
+    ],
+  );
+
+  const moveTileFromTouch = useCallback(
+    (event: TouchEvent<HTMLDivElement>) => {
+      const touch = event.changedTouches[0];
+      if (!touch) {
+        return;
+      }
+
+      event.preventDefault();
+      clearBoardHintFromPointer();
+      moveTileAtClientPoint(touch.clientX, touch.clientY);
+    },
+    [clearBoardHintFromPointer, moveTileAtClientPoint],
+  );
+
   const restartLevel = useCallback(() => {
     clearBoardHint();
     if (levelAdvanceTimeoutRef.current !== null) {
@@ -289,24 +370,50 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   }, [board.dimensions, board.level, clearBoardHint]);
 
   const gameModeLabel = isSignedIn ? 'Saved run' : 'Anonymous run';
-  const openInfoModal = useCallback(() => {
-    setIsInfoModalOpen(true);
+  const exitBoardFullscreen = useCallback(async () => {
+    const boardFrame = boardFrameRef.current;
+
+    if (document.fullscreenElement === boardFrame) {
+      await document.exitFullscreen();
+      return;
+    }
+
+    setIsBoardFullscreen(false);
   }, []);
-  const toggleBoardFullscreen = useCallback(() => {
+  const openInfoModal = useCallback(async () => {
+    if (isBoardFullscreen) {
+      await exitBoardFullscreen();
+
+      if (window.matchMedia('(max-width: 900px)').matches) {
+        setIsInfoModalOpen(true);
+      }
+
+      return;
+    }
+
+    setIsInfoModalOpen(true);
+  }, [exitBoardFullscreen, isBoardFullscreen]);
+  const toggleBoardFullscreen = useCallback(async () => {
     const boardFrame = boardFrameRef.current;
     if (!boardFrame) {
       return;
     }
 
-    if (document.fullscreenElement === boardFrame) {
-      void document.exitFullscreen();
+    if (isBoardFullscreen) {
+      await exitBoardFullscreen();
       return;
     }
 
-    if (document.fullscreenEnabled) {
-      void boardFrame.requestFullscreen();
+    setIsBoardFullscreen(true);
+
+    if (document.fullscreenEnabled && boardFrame.requestFullscreen) {
+      try {
+        await boardFrame.requestFullscreen();
+      } catch {
+        setIsBoardFullscreen(true);
+      }
     }
-  }, []);
+  }, [exitBoardFullscreen, isBoardFullscreen]);
 
   return (
     <div className="grid min-h-full w-full grid-cols-[minmax(0,1fr)_320px] items-start gap-5 max-[900px]:grid-cols-1">
@@ -314,7 +421,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
           className={[
             'relative grid min-h-0 place-items-center overflow-hidden bg-[#17231f] shadow-[0_24px_80px_rgba(0,0,0,0.24)]',
             isBoardFullscreen
-              ? 'fullscreen-board-stage h-screen rounded-none p-4'
+              ? 'fullscreen-board-stage fixed inset-0 z-50 h-screen rounded-none p-4'
               : 'h-[calc(100svh-104px)] rounded-lg p-3 max-[900px]:p-2.5',
         ].join(' ')}
         aria-label="Sliding tile board"
@@ -334,16 +441,21 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
           variant={isBoardFullscreen ? 'fullscreen' : 'compact'}
         />
         <div
+          ref={boardSurfaceRef}
           className={[
             'relative aspect-square overflow-hidden rounded-lg',
             isBoardFullscreen
               ? 'fullscreen-board-shell'
               : 'w-[min(100%,calc(100svh-128px))]',
           ].join(' ')}
-          onMouseDown={startBoardHint}
-          onMouseLeave={clearBoardHintFromPointer}
-          onMouseUp={clearBoardHintFromPointer}
-          style={{ background: BOARD_SURFACE_BACKGROUND }}
+          onPointerDown={startBoardHint}
+          onPointerLeave={clearBoardHintFromPointer}
+          onPointerUp={clearBoardHintFromPointer}
+          onTouchEnd={moveTileFromTouch}
+          style={{
+            background: BOARD_SURFACE_BACKGROUND,
+            touchAction: 'manipulation',
+          }}
         >
           {board.tileGrid.flat().map((tile) => {
             if (tile.type === 'PLACEHOLDER' && !isShowingSolvedHint) {

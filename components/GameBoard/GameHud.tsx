@@ -14,7 +14,7 @@ type GameHudProps = {
   isMuted: boolean;
   level: number;
   moves: number;
-  onOpenDetails: () => void;
+  onOpenDetails: () => void | Promise<void>;
   onRestart: () => void;
   onToggleFullscreen: () => void;
   onToggleMuted: () => void;
@@ -50,7 +50,12 @@ export function GameHud({
         >
           <SolutionImage columns={columns} rows={rows} />
         </button>
-        <div className="fullscreen-game-hud__stats grid grid-cols-2 gap-2">
+        <button
+          aria-label="Open run details"
+          className="fullscreen-game-hud__stats grid cursor-pointer grid-cols-2 gap-2 text-left transition-transform hover:-translate-y-0.5"
+          onClick={onOpenDetails}
+          type="button"
+        >
           <div className="rounded-[7px] bg-accent/8 p-2">
             <span className="block text-[0.65rem] font-bold uppercase text-muted">
               Level
@@ -67,7 +72,7 @@ export function GameHud({
               {moves}
             </strong>
           </div>
-        </div>
+        </button>
         <div className="fullscreen-game-hud__actions grid grid-cols-3 gap-2">
           <button
             aria-label="Restart level"
