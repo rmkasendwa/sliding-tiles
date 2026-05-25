@@ -277,7 +277,7 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
   return (
     <header
       className={[
-        'top-0 z-30 border-b border-line bg-background/85 backdrop-blur transition-transform duration-300 ease-out',
+        'top-0 z-50 border-b border-line bg-background/85 backdrop-blur transition-transform duration-300 ease-out',
         isHomePage ? 'fixed inset-x-0' : 'sticky',
         shouldRevealHeader
           ? 'translate-y-0'
@@ -320,7 +320,7 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
           <>
             <div
               className={[
-                'fixed inset-0 z-40 bg-foreground/35 transition-opacity duration-200 min-[761px]:hidden',
+                'fixed inset-0 z-50 bg-foreground/35 transition-opacity duration-200 min-[761px]:hidden',
                 isDrawerOpen
                   ? 'pointer-events-auto opacity-100'
                   : 'pointer-events-none opacity-0',
