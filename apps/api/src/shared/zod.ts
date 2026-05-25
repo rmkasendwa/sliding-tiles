@@ -1,0 +1,49 @@
+import { BadRequestException } from '@nestjs/common';
+import { z } from 'zod';
+
+export function parseBody<T>(schema: z.ZodType<T>, body: unknown): T {
+  const result = schema.safeParse(body);
+  if (result.success) {
+    return result.data;
+  }
+
+  throw new BadRequestException({
+    errors: result.error.flatten().fieldErrors,
+    message: 'Request validation failed.',
+  });
+}
+
+export const boardStateSchema = z.object({
+  dimensions: z.tuple([z.number().int().positive(), z.number().int().positive()]),
+  emptySlot: z.tuple([z.number().int().nonnegative(), z.number().int().nonnegative()]),
+  level: z.number().int().positive(),
+  movableSlots: z.array(
+    z.tuple([z.number().int().nonnegative(), z.number().int().nonnegative()]),
+  ),
+  moves: z.number().int().nonnegative(),
+  startedAt: z.string().datetime(),
+  tileGrid: z.array(z.array(z.unknown())),
+});
+
+export const loginSchema = z.object({
+  email: z.string().trim().email('Enter a valid email address.'),
+  password: z.string().min(1, 'Enter your password.'),
+});
+
+export const signupSchema = z.object({
+  email: z.string().trim().email('Enter a valid email address.'),
+  name: z.string().trim().min(2, 'Name must be at least 2 characters.'),
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters.')
+    .regex(/[a-zA-Z]/, 'Password needs at least one letter.')
+    .regex(/[0-9]/, 'Password needs at least one number.'),
+});
+
+export const saveGameStateSchema = z.object({
+  board: boardStateSchema,
+});
+
+export const completedLevelSchema = z.object({
+  board: boardStateSchema,
+});

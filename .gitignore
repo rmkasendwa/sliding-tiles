@@ -1,11 +1,12 @@
 .next
-app/generated/prisma
+apps/web/.next
 nbproject
 target
+dist
 temp
 package
 node_modules
-tsconfig.tsbuildinfo
+*.tsbuildinfo
 builds
 coverage
 sandbox

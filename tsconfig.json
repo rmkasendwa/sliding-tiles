@@ -9,6 +9,8 @@
     "allowJs": false,
     "skipLibCheck": true,
     "strict": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
@@ -16,28 +18,17 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "paths": {
-      "@/*": [
-        "./*"
-      ]
-    }
+    "incremental": true
   },
   "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    "apps/**/*.ts",
+    "apps/**/*.tsx",
+    "prisma.config.ts"
   ],
   "exclude": [
     "node_modules",
     "dist",
+    "apps/web/.next",
     "main-ui",
     "backend"
   ]
