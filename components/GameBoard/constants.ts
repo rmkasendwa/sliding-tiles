@@ -4,6 +4,7 @@ export const BOARD_HINT_DELAY_MS = 500;
 export const BOARD_HINT_TILE_REVEAL_DELAY_MS = 220;
 export const LEVEL_COMPLETE_CELEBRATION_DELAY_MS = 500;
 export const LEVEL_COMPLETE_ADVANCE_DELAY_MS = 10000;
+export const RESET_GATHER_DELAY_MS = 500;
 
 export const TILE_TRANSITION =
   'left 180ms ease, top 180ms ease, box-shadow 180ms ease';

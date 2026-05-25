@@ -27,6 +27,7 @@ import {
   LEVEL_COMPLETE_ADVANCE_DELAY_MS,
   LEVEL_COMPLETE_CELEBRATION_DELAY_MS,
   LOCAL_STORAGE_KEY,
+  RESET_GATHER_DELAY_MS,
 } from './constants';
 import { GameHud } from './GameHud';
 import { GameInfoPanel } from './GameInfoPanel';
@@ -46,6 +47,9 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   const [isShowingSolvedHint, setIsShowingSolvedHint] = useState(false);
   const [isShowingHintPlaceholder, setIsShowingHintPlaceholder] =
     useState(false);
+  const [boardEntryAnimationKey, setBoardEntryAnimationKey] = useState(0);
+  const [tileRotationSeed, setTileRotationSeed] = useState(0);
+  const [isResetting, setIsResetting] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [isBoardFullscreen, setIsBoardFullscreen] = useState(false);
   const FullscreenIcon = isBoardFullscreen ? Minimize2 : Maximize2;
@@ -55,6 +59,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   const placeholderRevealTimeoutRef = useRef<number | null>(null);
   const celebrationTimeoutRef = useRef<number | null>(null);
   const levelAdvanceTimeoutRef = useRef<number | null>(null);
+  const resetTimeoutRef = useRef<number | null>(null);
   const boardHintMouseUpRef = useRef<(() => void) | null>(null);
   const suppressNextClickRef = useRef(false);
 
@@ -96,6 +101,8 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
         celebrationTimeoutRef.current = null;
 
         levelAdvanceTimeoutRef.current = window.setTimeout(() => {
+          setBoardEntryAnimationKey((key) => key + 1);
+          setTileRotationSeed((seed) => seed + 1);
           setBoard(
             createBoardState(
               completedBoard.level + 1,
@@ -115,7 +122,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
 
   const moveTile = useCallback(
     (slot: Slot) => {
-      if (isCelebrating) {
+      if (isCelebrating || isResetting) {
         return;
       }
 
@@ -130,13 +137,13 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
         completeLevel(nextBoard);
       }
     },
-    [board, completeLevel, isCelebrating, playSound],
+    [board, completeLevel, isCelebrating, isResetting, playSound],
   );
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const [row, column] = board.emptySlot;
-      if (isCelebrating) {
+      if (isCelebrating || isResetting) {
         return;
       }
 
@@ -167,7 +174,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [board, isCelebrating, movableSlotKeys, moveTile]);
+  }, [board, isCelebrating, isResetting, movableSlotKeys, moveTile]);
 
   const [columns, rows] = board.dimensions;
   const tileWidth = BOARD_SIZE / columns;
@@ -198,6 +205,9 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
       }
       if (levelAdvanceTimeoutRef.current !== null) {
         window.clearTimeout(levelAdvanceTimeoutRef.current);
+      }
+      if (resetTimeoutRef.current !== null) {
+        window.clearTimeout(resetTimeoutRef.current);
       }
     };
   }, [clearBoardHint]);
@@ -260,7 +270,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
         return;
       }
 
-      if (isCelebrating) {
+      if (isCelebrating || isResetting) {
         return;
       }
 
@@ -286,21 +296,21 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
       boardHintMouseUpRef.current = clearBoardHint;
       window.addEventListener('mouseup', clearBoardHint, { once: true });
     },
-    [clearBoardHint, isCelebrating, playSound],
+    [clearBoardHint, isCelebrating, isResetting, playSound],
   );
 
   const clearBoardHintFromPointer = useCallback(() => {
-    if (isCelebrating) {
+    if (isCelebrating || isResetting) {
       return;
     }
 
     clearBoardHint();
-  }, [clearBoardHint, isCelebrating]);
+  }, [clearBoardHint, isCelebrating, isResetting]);
 
   const moveTileAtClientPoint = useCallback(
     (clientX: number, clientY: number) => {
       const boardSurface = boardSurfaceRef.current;
-      if (!boardSurface || isCelebrating) {
+      if (!boardSurface || isCelebrating || isResetting) {
         return;
       }
 
@@ -335,6 +345,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
       board.tileGrid,
       columns,
       isCelebrating,
+      isResetting,
       movableSlotKeys,
       moveTile,
       playSound,
@@ -357,6 +368,10 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   );
 
   const restartLevel = useCallback(() => {
+    if (isResetting) {
+      return;
+    }
+
     clearBoardHint();
     if (levelAdvanceTimeoutRef.current !== null) {
       window.clearTimeout(levelAdvanceTimeoutRef.current);
@@ -368,8 +383,15 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
     }
     setIsCelebrating(false);
     setMessage('');
-    setBoard(createBoardState(board.level, board.dimensions));
-  }, [board.dimensions, board.level, clearBoardHint]);
+    setTileRotationSeed((seed) => seed + 1);
+    setIsResetting(true);
+    resetTimeoutRef.current = window.setTimeout(() => {
+      setBoardEntryAnimationKey((key) => key + 1);
+      setBoard(createBoardState(board.level, board.dimensions));
+      setIsResetting(false);
+      resetTimeoutRef.current = null;
+    }, RESET_GATHER_DELAY_MS);
+  }, [board.dimensions, board.level, clearBoardHint, isResetting]);
 
   const gameModeLabel = isSignedIn ? 'Saved run' : 'Anonymous run';
   const exitBoardFullscreen = useCallback(async () => {
@@ -465,8 +487,9 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
                 hintedSlot={hintedSlot}
                 isHintPlaceholderVisible={isShowingHintPlaceholder}
                 isMovable={isMovable}
+                isResetting={isResetting}
                 isShowingSolvedHint={isShowingSolvedHint}
-                key={tile.position}
+                key={`${boardEntryAnimationKey}:${tile.position}`}
                 onHint={
                   tile.type === 'PLACEHOLDER' ? () => undefined : setHintedSlot
                 }
@@ -476,6 +499,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
                 suppressNextClickRef={suppressNextClickRef}
                 tile={tile}
                 tileHeight={tileHeight}
+                tileRotationSeed={tileRotationSeed}
                 tileWidth={tileWidth}
               />
             );
@@ -524,6 +548,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
           <button
             aria-label="Restart level"
             className="grid h-8 w-8 cursor-pointer place-items-center rounded-[6px] border border-line transition-colors hover:bg-accent/10"
+            disabled={isResetting}
             onClick={restartLevel}
             type="button"
           >

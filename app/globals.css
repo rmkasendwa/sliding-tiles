@@ -133,6 +133,44 @@
   }
 }
 
+@keyframes tile-enter {
+  0%,
+  18% {
+    filter: saturate(0.9);
+    transform: translate3d(var(--tile-entry-x), var(--tile-entry-y), 0)
+      rotate(var(--tile-entry-rotation)) scale(0.72);
+  }
+
+  82% {
+    filter: saturate(1.03);
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1.008);
+  }
+
+  100% {
+    filter: saturate(1);
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+}
+
+@keyframes tile-reset-exit {
+  0% {
+    filter: saturate(1);
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+
+  100% {
+    filter: saturate(0.9);
+    transform: translate3d(var(--tile-entry-x), var(--tile-entry-y), 0)
+      rotate(var(--tile-entry-rotation)) scale(0.72);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .board-tile {
+    animation: none !important;
+  }
+}
+
 @keyframes celebration-float {
   0% {
     opacity: 0;
