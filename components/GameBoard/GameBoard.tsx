@@ -311,11 +311,11 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   return (
     <div className="grid min-h-full w-full grid-cols-[minmax(0,1fr)_320px] items-start gap-5 max-[900px]:grid-cols-1">
       <section
-        className={[
-          'relative grid min-h-0 place-items-center overflow-hidden bg-[#17231f] shadow-[0_24px_80px_rgba(0,0,0,0.24)]',
-          isBoardFullscreen
-            ? 'h-screen rounded-none p-4'
-            : 'h-[calc(100svh-104px)] rounded-lg p-3 max-[900px]:p-2.5',
+          className={[
+            'relative grid min-h-0 place-items-center overflow-hidden bg-[#17231f] shadow-[0_24px_80px_rgba(0,0,0,0.24)]',
+            isBoardFullscreen
+              ? 'fullscreen-board-stage h-screen rounded-none p-4'
+              : 'h-[calc(100svh-104px)] rounded-lg p-3 max-[900px]:p-2.5',
         ].join(' ')}
         aria-label="Sliding tile board"
         ref={boardFrameRef}
@@ -337,7 +337,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
           className={[
             'relative aspect-square overflow-hidden rounded-lg',
             isBoardFullscreen
-              ? 'w-[min(calc(100vw-32px),calc(100svh-32px))] min-[900px]:w-[min(calc(100vw-244px),calc(100svh-32px))]'
+              ? 'fullscreen-board-shell'
               : 'w-[min(100%,calc(100svh-128px))]',
           ].join(' ')}
           onMouseDown={startBoardHint}

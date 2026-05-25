@@ -56,6 +56,68 @@
       width: min(1600px, calc(100% - 80px));
     }
   }
+
+  .fullscreen-board-shell {
+    width: min(calc(100vw - 32px), calc(100svh - 32px));
+  }
+
+  .fullscreen-game-hud {
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    z-index: 20;
+    display: grid;
+    width: 11rem;
+    gap: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 0.5rem;
+    background: color-mix(in srgb, var(--color-panel) 92%, transparent);
+    box-shadow: var(--shadow-panel);
+    padding: 0.5rem;
+    backdrop-filter: blur(12px);
+  }
+
+  @media (min-width: 761px) and (orientation: landscape) {
+    .fullscreen-board-stage {
+      padding-right: 14rem;
+    }
+
+    .fullscreen-board-shell {
+      width: min(calc(100vw - 256px), calc(100svh - 32px));
+    }
+  }
+
+  @media (orientation: portrait), (max-width: 760px) {
+    .fullscreen-board-stage {
+      align-content: center;
+      padding-top: 4.75rem;
+    }
+
+    .fullscreen-board-shell {
+      width: min(calc(100vw - 24px), calc(100svh - 112px));
+    }
+
+    .fullscreen-game-hud {
+      left: 0.75rem;
+      right: 0.75rem;
+      width: auto;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .fullscreen-game-hud__preview {
+      display: none;
+    }
+
+    .fullscreen-game-hud__stats {
+      min-width: 0;
+    }
+
+    .fullscreen-game-hud__actions {
+      width: 8.5rem;
+    }
+  }
 }
 
 @keyframes celebration-fade-in {

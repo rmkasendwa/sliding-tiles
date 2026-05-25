@@ -41,16 +41,16 @@ export function GameHud({
 
   if (variant === 'fullscreen') {
     return (
-      <div className="absolute right-4 top-1/2 z-20 grid w-44 -translate-y-1/2 gap-2 rounded-lg border border-white/15 bg-panel/92 p-2 shadow-panel backdrop-blur max-[760px]:right-3 max-[760px]:top-3 max-[760px]:w-32 max-[760px]:translate-y-0">
+      <div className="fullscreen-game-hud">
         <button
           aria-label="Open run details"
-          className="relative grid cursor-pointer text-left transition-transform hover:-translate-y-0.5 max-[760px]:hidden"
+          className="fullscreen-game-hud__preview relative grid cursor-pointer text-left transition-transform hover:-translate-y-0.5"
           onClick={onOpenDetails}
           type="button"
         >
           <SolutionImage columns={columns} rows={rows} />
         </button>
-        <div className="grid grid-cols-2 gap-2 max-[760px]:grid-cols-1">
+        <div className="fullscreen-game-hud__stats grid grid-cols-2 gap-2">
           <div className="rounded-[7px] bg-accent/8 p-2">
             <span className="block text-[0.65rem] font-bold uppercase text-muted">
               Level
@@ -68,7 +68,7 @@ export function GameHud({
             </strong>
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="fullscreen-game-hud__actions grid grid-cols-3 gap-2">
           <button
             aria-label="Restart level"
             className="grid h-10 cursor-pointer place-items-center rounded-[7px] border border-line text-accent-strong transition-colors hover:bg-accent/10"
