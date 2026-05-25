@@ -5,6 +5,7 @@ import {
   BOARD_SIZE,
   HINT_PLACEHOLDER_TRANSITION,
   TILE_BACKGROUND,
+  TILE_ENTRY_ANIMATION_MS,
   TILE_TRANSITION,
 } from './constants';
 
@@ -12,6 +13,7 @@ export type BoardTileProps = {
   columns: number;
   hintedSlot: string | null;
   isHintPlaceholderVisible: boolean;
+  isEntering: boolean;
   isMovable: boolean;
   isResetting: boolean;
   isShowingSolvedHint: boolean;
@@ -30,6 +32,7 @@ export function BoardTile({
   columns,
   hintedSlot,
   isHintPlaceholderVisible,
+  isEntering,
   isMovable,
   isResetting,
   isShowingSolvedHint,
@@ -117,7 +120,9 @@ export function BoardTile({
             ? undefined
             : isResetting
               ? 'tile-reset-exit 500ms cubic-bezier(0.42, 0, 0.28, 1) both'
-              : 'tile-enter 2800ms cubic-bezier(0.16, 0.72, 0.2, 1) both',
+              : isEntering
+                ? `tile-enter ${TILE_ENTRY_ANIMATION_MS}ms cubic-bezier(0.16, 0.72, 0.2, 1) both`
+                : undefined,
           transition: isHintPlaceholder
             ? HINT_PLACEHOLDER_TRANSITION
             : TILE_TRANSITION,

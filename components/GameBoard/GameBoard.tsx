@@ -34,6 +34,7 @@ import {
   LEVEL_COMPLETE_CELEBRATION_DELAY_MS,
   LOCAL_STORAGE_KEY,
   RESET_GATHER_DELAY_MS,
+  TILE_ENTRY_ANIMATION_MS,
   TILE_ENTRY_LOCK_IN_DELAY_MS,
 } from './constants';
 import { GameHud } from './GameHud';
@@ -55,6 +56,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   const [isShowingHintPlaceholder, setIsShowingHintPlaceholder] =
     useState(false);
   const [boardEntryAnimationKey, setBoardEntryAnimationKey] = useState(0);
+  const [isBoardEntering, setIsBoardEntering] = useState(true);
   const [tileRotationSeed, setTileRotationSeed] = useState(0);
   const [isResetting, setIsResetting] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
@@ -66,6 +68,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   const placeholderRevealTimeoutRef = useRef<number | null>(null);
   const celebrationTimeoutRef = useRef<number | null>(null);
   const levelAdvanceTimeoutRef = useRef<number | null>(null);
+  const boardEntryTimeoutRef = useRef<number | null>(null);
   const lockInTimeoutRef = useRef<number | null>(null);
   const resetTimeoutRef = useRef<number | null>(null);
   const boardHintMouseUpRef = useRef<(() => void) | null>(null);
@@ -75,6 +78,24 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
     startAmbience();
     return stopAmbience;
   }, [startAmbience, stopAmbience]);
+
+  useEffect(() => {
+    if (boardEntryTimeoutRef.current !== null) {
+      window.clearTimeout(boardEntryTimeoutRef.current);
+    }
+
+    boardEntryTimeoutRef.current = window.setTimeout(() => {
+      setIsBoardEntering(false);
+      boardEntryTimeoutRef.current = null;
+    }, TILE_ENTRY_ANIMATION_MS);
+
+    return () => {
+      if (boardEntryTimeoutRef.current !== null) {
+        window.clearTimeout(boardEntryTimeoutRef.current);
+        boardEntryTimeoutRef.current = null;
+      }
+    };
+  }, [boardEntryAnimationKey]);
 
   useEffect(() => {
     if (isSignedIn) {
@@ -129,6 +150,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
         levelAdvanceTimeoutRef.current = window.setTimeout(() => {
           playSound('shuffle');
           scheduleLockInSound();
+          setIsBoardEntering(true);
           setBoardEntryAnimationKey((key) => key + 1);
           setTileRotationSeed((seed) => seed + 1);
           setBoard(
@@ -232,6 +254,9 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
       }
       if (levelAdvanceTimeoutRef.current !== null) {
         window.clearTimeout(levelAdvanceTimeoutRef.current);
+      }
+      if (boardEntryTimeoutRef.current !== null) {
+        window.clearTimeout(boardEntryTimeoutRef.current);
       }
       if (lockInTimeoutRef.current !== null) {
         window.clearTimeout(lockInTimeoutRef.current);
@@ -420,6 +445,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
     setTileRotationSeed((seed) => seed + 1);
     setIsResetting(true);
     resetTimeoutRef.current = window.setTimeout(() => {
+      setIsBoardEntering(true);
       setBoardEntryAnimationKey((key) => key + 1);
       setBoard(createBoardState(board.level, board.dimensions));
       setIsResetting(false);
@@ -527,6 +553,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
                 columns={columns}
                 hintedSlot={hintedSlot}
                 isHintPlaceholderVisible={isShowingHintPlaceholder}
+                isEntering={isBoardEntering}
                 isMovable={isMovable}
                 isResetting={isResetting}
                 isShowingSolvedHint={isShowingSolvedHint}
