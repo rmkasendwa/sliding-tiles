@@ -56,7 +56,7 @@ export function GameHud({
           onClick={onOpenDetails}
           type="button"
         >
-          <div className="rounded-[7px] bg-accent/8 p-2">
+          <div className="fullscreen-game-hud__stat rounded-[7px] bg-accent/8 p-2">
             <span className="block text-[0.65rem] font-bold uppercase text-muted">
               Level
             </span>
@@ -64,7 +64,7 @@ export function GameHud({
               {level}
             </strong>
           </div>
-          <div className="rounded-[7px] bg-accent/8 p-2">
+          <div className="fullscreen-game-hud__stat rounded-[7px] bg-accent/8 p-2">
             <span className="block text-[0.65rem] font-bold uppercase text-muted">
               Moves
             </span>
