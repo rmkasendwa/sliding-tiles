@@ -431,8 +431,6 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
       >
         <GameHud
           columns={columns}
-          level={board.level}
-          moves={board.moves}
           onOpenDetails={openInfoModal}
           rows={rows}
           variant={isBoardFullscreen ? 'fullscreen' : 'compact'}
@@ -510,10 +508,22 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
             </div>
           )}
         </div>
-        <div className="absolute bottom-4 right-4 z-40 flex gap-1.5 rounded-[7px] border border-white/20 bg-panel/92 p-1.5 text-accent-strong shadow-panel backdrop-blur">
+        <div
+          aria-label={`Level ${board.level}, ${columns} by ${rows} grid`}
+          className="absolute left-4 top-4 z-40 rounded-[7px] border border-white/20 bg-panel/92 px-3 py-2 text-sm font-bold text-accent-strong shadow-panel backdrop-blur"
+        >
+          Level {board.level} · {columns}x{rows}
+        </div>
+        <div
+          aria-label={`${board.moves} ${board.moves === 1 ? 'move' : 'moves'}`}
+          className="absolute bottom-4 left-4 z-40 rounded-[7px] border border-white/20 bg-panel/92 px-3 py-2 text-sm font-bold text-accent-strong shadow-panel backdrop-blur"
+        >
+          {board.moves} {board.moves === 1 ? 'move' : 'moves'}
+        </div>
+        <div className="absolute bottom-4 right-4 z-40 flex gap-1 rounded-[7px] border border-white/20 bg-panel/92 p-1 text-accent-strong shadow-panel backdrop-blur">
           <button
             aria-label="Restart level"
-            className="grid h-9 w-9 cursor-pointer place-items-center rounded-[6px] border border-line transition-colors hover:bg-accent/10"
+            className="grid h-8 w-8 cursor-pointer place-items-center rounded-[6px] border border-line transition-colors hover:bg-accent/10"
             onClick={restartLevel}
             type="button"
           >
@@ -526,7 +536,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
           <button
             aria-label={isMuted ? 'Turn sound on' : 'Turn sound off'}
             aria-pressed={!isMuted}
-            className="grid h-9 w-9 cursor-pointer place-items-center rounded-[6px] border border-line transition-colors hover:bg-accent/10"
+            className="grid h-8 w-8 cursor-pointer place-items-center rounded-[6px] border border-line transition-colors hover:bg-accent/10"
             onClick={toggleMuted}
             type="button"
           >
@@ -540,7 +550,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
             aria-label={
               isBoardFullscreen ? 'Exit fullscreen board' : 'Enter fullscreen board'
             }
-            className="grid h-9 w-9 cursor-pointer place-items-center rounded-[6px] border border-line transition-colors hover:bg-accent/10"
+            className="grid h-8 w-8 cursor-pointer place-items-center rounded-[6px] border border-line transition-colors hover:bg-accent/10"
             onClick={toggleBoardFullscreen}
             type="button"
           >

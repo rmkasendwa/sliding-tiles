@@ -67,7 +67,7 @@
     top: 1rem;
     z-index: 20;
     display: grid;
-    width: 11rem;
+    width: 8.25rem;
     gap: 0.5rem;
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 0.5rem;
@@ -79,11 +79,11 @@
 
   @media (min-width: 761px) and (orientation: landscape) {
     .fullscreen-board-stage {
-      padding-right: 14rem;
+      padding-right: 10.75rem;
     }
 
     .fullscreen-board-shell {
-      width: min(calc(100vw - 256px), calc(100svh - 32px));
+      width: min(calc(100vw - 204px), calc(100svh - 32px));
     }
   }
 
@@ -101,7 +101,7 @@
       left: auto;
       right: 0.75rem;
       top: 0.75rem;
-      width: 7.5rem;
+      width: 6rem;
       grid-template-columns: 1fr;
       gap: 0.4rem;
       border-radius: 0.5rem;
@@ -112,39 +112,6 @@
       display: grid;
     }
 
-    .fullscreen-game-hud__stats {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 0.35rem;
-      min-width: 0;
-    }
-
-    .fullscreen-game-hud__stat {
-      display: grid;
-      min-width: 0;
-      gap: 0.15rem;
-      padding: 0.3rem;
-    }
-
-    .fullscreen-game-hud__stat span {
-      font-size: 0.58rem;
-      line-height: 1;
-    }
-
-    .fullscreen-game-hud__stat strong {
-      margin-top: 0;
-      font-size: 1rem;
-    }
-
-  }
-
-  @media (max-width: 480px) and (orientation: portrait) {
-    .fullscreen-game-hud__stat {
-      justify-content: center;
-    }
-
-    .fullscreen-game-hud__stat span {
-      display: none;
-    }
   }
 }
 

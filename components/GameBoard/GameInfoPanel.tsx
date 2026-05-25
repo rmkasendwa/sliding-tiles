@@ -66,18 +66,6 @@ export function GameInfoPanel({
         </p>
       </div>
       <SolutionPreview columns={columns} isCompact={isModal} rows={rows} />
-      <div className="grid grid-cols-2 gap-2.5">
-        <div className="rounded-[7px] border border-line bg-white/50 p-3">
-          <span className="block text-[0.78rem] text-muted">Grid</span>
-          <strong className="mt-1 block text-[1.4rem]">
-            {columns}x{rows}
-          </strong>
-        </div>
-        <div className="rounded-[7px] border border-line bg-white/50 p-3">
-          <span className="block text-[0.78rem] text-muted">Moves</span>
-          <strong className="mt-1 block text-[1.4rem]">{board.moves}</strong>
-        </div>
-      </div>
       <p className="rounded-lg border border-line bg-white/40 p-3 text-sm leading-6 text-muted">
         Use arrow keys or WASD. Click movable tiles to slide them, or click a
         locked tile to flash where it belongs.
