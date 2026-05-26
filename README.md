@@ -124,3 +124,8 @@ API_CORS_ORIGINS="http://localhost:3000,http://192.168.1.100:3000"
 Open `http://YOUR_LAN_IP:WEB_PORT` on the phone while both devices are on the same
 network. If you change `NEXT_ALLOWED_DEV_ORIGINS` or `API_CORS_ORIGINS`,
 restart the dev servers so both apps pick up the new values.
+
+## Attributions
+
+- The sliding-door sound used for the tile fan-out effect comes from Mixkit:
+  [mixkit-heavy-sliding-door-1523.wav](https://assets.mixkit.co/active_storage/sfx/1523/1523.wav)

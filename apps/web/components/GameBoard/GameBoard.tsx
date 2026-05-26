@@ -91,6 +91,8 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   const levelAdvanceTimeoutRef = useRef<number | null>(null);
   const boardEntryTimeoutRef = useRef<number | null>(null);
   const lockInTimeoutRef = useRef<number | null>(null);
+  const entryMotionSoundTimeoutsRef = useRef<number[]>([]);
+  const entryMotionSoundCycleRef = useRef<number>(-1);
   const resetTimeoutRef = useRef<number | null>(null);
   const boardHintMouseUpRef = useRef<(() => void) | null>(null);
   const suppressNextClickRef = useRef(false);
@@ -171,6 +173,59 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
     [playSound],
   );
 
+  const clearEntryMotionSoundTimers = useCallback(() => {
+    entryMotionSoundTimeoutsRef.current.forEach((timeout) => {
+      window.clearTimeout(timeout);
+    });
+    entryMotionSoundTimeoutsRef.current = [];
+  }, []);
+
+  const scheduleEntryMotionSounds = useCallback(() => {
+    clearEntryMotionSoundTimers();
+
+    const tileCount = board.dimensions[0] * board.dimensions[1] - 1;
+    const cueStart = Math.round(TILE_ENTRY_ANIMATION_MS * 0.06);
+    const cueEnd = Math.max(
+      cueStart,
+      Math.min(TILE_ENTRY_ANIMATION_MS, TILE_ENTRY_LOCK_IN_DELAY_MS - 210),
+    );
+    const cueInterval = Math.max(150, 210 - tileCount * 4);
+    const cueCount = Math.max(
+      1,
+      Math.min(2, Math.floor((cueEnd - cueStart) / cueInterval) + 1),
+    );
+    const sweepDelays = Array.from({ length: cueCount }, (_, index) => {
+      const delay = cueStart + index * cueInterval;
+      return Math.min(delay, cueEnd);
+    });
+
+    entryMotionSoundTimeoutsRef.current = sweepDelays.map((delay) =>
+      window.setTimeout(() => {
+        playSound('whoosh');
+      }, delay),
+    );
+  }, [board.dimensions, clearEntryMotionSoundTimers, playSound]);
+
+  useEffect(() => {
+    if (!isBoardEntering || isMuted) {
+      return clearEntryMotionSoundTimers;
+    }
+
+    if (entryMotionSoundCycleRef.current === boardEntryAnimationKey) {
+      return clearEntryMotionSoundTimers;
+    }
+
+    entryMotionSoundCycleRef.current = boardEntryAnimationKey;
+    scheduleEntryMotionSounds();
+    return clearEntryMotionSoundTimers;
+  }, [
+    boardEntryAnimationKey,
+    clearEntryMotionSoundTimers,
+    isBoardEntering,
+    isMuted,
+    scheduleEntryMotionSounds,
+  ]);
+
   useEffect(() => {
     if (boardEntryAnimationKey !== 0) {
       return;
@@ -180,10 +235,9 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
       return;
     }
 
-    playSound('shuffle');
     scheduleLockInSound();
     hasPlayedInitialEntrySoundRef.current = true;
-  }, [boardEntryAnimationKey, isMuted, playSound, scheduleLockInSound]);
+  }, [boardEntryAnimationKey, isMuted, scheduleLockInSound]);
 
   const resetClock = useCallback(() => {
     const levelStart = Date.now();
@@ -235,7 +289,6 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
         celebrationTimeoutRef.current = null;
 
         levelAdvanceTimeoutRef.current = window.setTimeout(() => {
-          playSound('shuffle');
           scheduleLockInSound();
           resetClock();
           setIsBoardEntering(true);
@@ -347,6 +400,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   useEffect(() => {
     return () => {
       clearBoardHint();
+      clearEntryMotionSoundTimers();
       if (celebrationTimeoutRef.current !== null) {
         window.clearTimeout(celebrationTimeoutRef.current);
       }
@@ -363,7 +417,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
         window.clearTimeout(resetTimeoutRef.current);
       }
     };
-  }, [clearBoardHint]);
+  }, [clearBoardHint, clearEntryMotionSoundTimers]);
 
   useEffect(() => {
     if (!isInfoModalOpen) {

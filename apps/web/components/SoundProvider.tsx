@@ -11,7 +11,15 @@ import {
   type ReactNode,
 } from 'react';
 
-type SoundCue = 'complete' | 'hint' | 'invalid' | 'lock' | 'move' | 'shuffle';
+type SoundCue =
+  | 'complete'
+  | 'frog'
+  | 'hint'
+  | 'invalid'
+  | 'lock'
+  | 'move'
+  | 'shuffle'
+  | 'whoosh';
 type EffectCue = 'complete' | 'frog' | 'hint' | 'invalid' | 'move';
 type SoundRange = readonly [number, number];
 
@@ -123,12 +131,14 @@ export function SoundProvider({ children }: { children: ReactNode }) {
   const hintSoundRef = useRef<HTMLAudioElement>(null);
   const completeSoundRef = useRef<HTMLAudioElement>(null);
   const frogSoundRef = useRef<HTMLAudioElement>(null);
+  const whooshSoundRef = useRef<HTMLAudioElement>(null);
   const hasStartedAmbienceRef = useRef(false);
   const canPersistMutedPreferenceRef = useRef(false);
   const shouldAutostartAmbienceRef = useRef(false);
   const ignoreBlurUntilRef = useRef(0);
   const autostartRetryTimeoutRef = useRef<number | null>(null);
   const autostartRetryCountRef = useRef(0);
+  const whooshAudioContextRef = useRef<AudioContext | null>(null);
   const [isMuted, setIsMuted] = useState(true);
   const [needsAudioUnlock, setNeedsAudioUnlock] = useState(false);
   const isMutedRef = useRef(isMuted);
@@ -142,6 +152,7 @@ export function SoundProvider({ children }: { children: ReactNode }) {
       hintSoundRef.current,
       completeSoundRef.current,
       frogSoundRef.current,
+      whooshSoundRef.current,
     ],
     [],
   );
@@ -359,6 +370,10 @@ export function SoundProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const handleUserInteraction = () => {
       setNeedsAudioUnlock(false);
+      const audioContext = whooshAudioContextRef.current;
+      if (audioContext && audioContext.state === 'suspended') {
+        void audioContext.resume().catch(() => undefined);
+      }
       playAmbience(true);
     };
     const handleFocus = () => {
@@ -389,6 +404,11 @@ export function SoundProvider({ children }: { children: ReactNode }) {
       clearAutostartRetry();
       pauseAmbience();
       hasStartedAmbienceRef.current = false;
+      const audioContext = whooshAudioContextRef.current;
+      whooshAudioContextRef.current = null;
+      if (audioContext) {
+        void audioContext.close().catch(() => undefined);
+      }
       window.removeEventListener('pointerdown', handleUserInteraction);
       window.removeEventListener('keydown', handleUserInteraction);
       window.removeEventListener('focus', handleFocus);
@@ -408,6 +428,9 @@ export function SoundProvider({ children }: { children: ReactNode }) {
       switch (cue) {
         case 'move':
           playAudio(moveSoundRef.current, { volume: 0.32 });
+          break;
+        case 'frog':
+          playAudio(frogSoundRef.current, { volume: 0.12 });
           break;
         case 'invalid':
           playAudio(invalidSoundRef.current, { volume: 0.18 });
@@ -445,6 +468,19 @@ export function SoundProvider({ children }: { children: ReactNode }) {
               }
             }, delay);
           });
+          break;
+        case 'whoosh':
+          playAudio(whooshSoundRef.current, {
+            playbackRate: 1,
+            volume: 0.62,
+          });
+          window.setTimeout(() => {
+            const whooshAudio = whooshSoundRef.current;
+            if (whooshAudio && !whooshAudio.paused) {
+              whooshAudio.pause();
+              whooshAudio.currentTime = 0;
+            }
+          }, 420);
           break;
       }
     },
@@ -577,6 +613,12 @@ export function SoundProvider({ children }: { children: ReactNode }) {
         ref={frogSoundRef}
         preload="auto"
         src={ACTIVE_SOUND_PACK.effects.frog}
+      />
+      <audio
+        muted={isMuted}
+        ref={whooshSoundRef}
+        preload="auto"
+        src="/sounds/mixkit-heavy-sliding-door-1523.wav"
       />
     </SoundContext.Provider>
   );
