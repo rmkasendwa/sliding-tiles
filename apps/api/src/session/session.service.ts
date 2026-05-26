@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { SignJWT, jwtVerify } from 'jose';
 import type { Request, Response } from 'express';
 
 import {
@@ -11,6 +10,7 @@ import { SessionPayload, SessionUser } from './session.types';
 @Injectable()
 export class SessionService {
   async createSession(user: SessionUser) {
+    const { SignJWT } = await import('jose');
     const expiresAt = new Date(Date.now() + SESSION_DURATION_SECONDS * 1000);
     const token = await new SignJWT({
       ...user,
@@ -49,6 +49,7 @@ export class SessionService {
 
   async verifySessionToken(token: string): Promise<SessionUser | null> {
     try {
+      const { jwtVerify } = await import('jose');
       const { payload } = await jwtVerify(token, this.getSessionSecret());
       const session = payload as SessionPayload;
 
