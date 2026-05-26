@@ -42,17 +42,29 @@
 
 @layer components {
   .page-rail {
+    width: min(1200px, calc(100% - 40px));
+  }
+
+  .page-rail-wide {
     width: min(1600px, calc(100% - 40px));
   }
 
   @media (min-width: 768px) {
     .page-rail {
+      width: min(1200px, calc(100% - 64px));
+    }
+
+    .page-rail-wide {
       width: min(1600px, calc(100% - 64px));
     }
   }
 
   @media (min-width: 1280px) {
     .page-rail {
+      width: min(1200px, calc(100% - 80px));
+    }
+
+    .page-rail-wide {
       width: min(1600px, calc(100% - 80px));
     }
   }

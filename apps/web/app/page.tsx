@@ -96,7 +96,7 @@ export default function HomePage() {
           <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
             Sliding Tiles
           </p>
-          <h1 className="whitespace-nowrap text-[clamp(3rem,6.6vw,6.1rem)] leading-[0.9] max-[560px]:whitespace-normal">
+          <h1 className="text-[clamp(3rem,6.6vw,6.1rem)] leading-[0.9]">
             Solve the pond
           </h1>
           <p className="max-w-[58ch] text-[1.12rem] leading-[1.7] text-muted">

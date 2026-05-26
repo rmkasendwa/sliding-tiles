@@ -146,7 +146,7 @@ export default async function ProfilePage() {
   ];
 
   return (
-    <section className="page-rail mx-auto grid max-w-[1280px] gap-6 pt-5 pb-10">
+    <section className="page-rail mx-auto grid max-w-[1200px] gap-6 pt-5 pb-10">
       <div className="grid gap-4 rounded-xl border border-accent/20 bg-[radial-gradient(circle_at_top_right,rgba(116,191,77,0.18),transparent_54%),linear-gradient(140deg,rgba(24,58,43,0.08),rgba(255,255,255,0.36))] p-5 shadow-panel min-[980px]:grid-cols-[minmax(0,1fr)_340px]">
         <div>
           <p className="text-[0.78rem] font-extrabold uppercase tracking-[0.08em] text-accent-strong">

@@ -14,7 +14,7 @@ export default async function PlayPage() {
   );
 
   return (
-    <section className="page-rail mx-auto grid min-h-[calc(100svh-154px)] py-4">
+    <section className="page-rail-wide mx-auto grid min-h-[calc(100svh-154px)] py-4">
       <GameBoard initialBoard={initialBoard} isSignedIn={Boolean(session)} />
     </section>
   );
