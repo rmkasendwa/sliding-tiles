@@ -674,7 +674,7 @@ function GameBoardContent({ initialBoard, isSignedIn }: GameBoardProps) {
           'relative grid min-h-0 place-items-center overflow-hidden bg-[#17231f] shadow-[0_24px_80px_rgba(0,0,0,0.24)]',
           isBoardFullscreen
             ? 'fullscreen-board-stage fixed inset-0 z-50 h-screen rounded-none p-4'
-            : 'h-[calc(100svh-104px)] rounded-lg p-3 max-[900px]:p-2.5',
+            : 'h-[calc(100svh-36px)] rounded-lg p-3 max-[900px]:p-2.5',
         ].join(' ')}
         aria-label="Sliding tile board"
         ref={boardFrameRef}

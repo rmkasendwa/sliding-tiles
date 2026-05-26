@@ -64,11 +64,13 @@ function getInitials(name: string) {
 export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
   const pathname = usePathname();
   const isHomePage = pathname === routes.home;
-  const [hasScrolledHome, setHasScrolledHome] = useState(false);
+  const isPlayPage = pathname === routes.play;
+  const [hasScrolledRevealPage, setHasScrolledRevealPage] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  const shouldRevealHeader = !isHomePage || hasScrolledHome;
+  const shouldRevealHeader =
+    !(isHomePage || isPlayPage) || hasScrolledRevealPage;
   const closeDrawer = () => setIsDrawerOpen(false);
   const closeAccountMenu = () => setIsAccountMenuOpen(false);
   const accountMenuRef = useRef<HTMLDivElement>(null);
@@ -83,12 +85,12 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
   }, []);
 
   useEffect(() => {
-    if (!isHomePage) {
+    if (!isHomePage && !isPlayPage) {
       return;
     }
 
     const updateScrolledState = () => {
-      setHasScrolledHome(window.scrollY > 48);
+      setHasScrolledRevealPage(window.scrollY > 48);
     };
 
     const frameId = window.requestAnimationFrame(updateScrolledState);
@@ -98,7 +100,7 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
       window.cancelAnimationFrame(frameId);
       window.removeEventListener('scroll', updateScrolledState);
     };
-  }, [isHomePage]);
+  }, [isHomePage, isPlayPage]);
 
   useEffect(() => {
     const frameId = window.requestAnimationFrame(() => {
@@ -323,7 +325,7 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
     <header
       className={[
         'top-0 z-50 border-b border-line bg-background/85 backdrop-blur transition-transform duration-300 ease-out',
-        isHomePage ? 'fixed inset-x-0' : 'sticky',
+        isHomePage || isPlayPage ? 'fixed inset-x-0' : 'sticky',
         shouldRevealHeader
           ? 'translate-y-0'
           : 'pointer-events-none -translate-y-full',
