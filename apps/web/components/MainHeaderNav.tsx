@@ -351,7 +351,7 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
               <button
                 aria-expanded={isAccountMenuOpen}
                 aria-haspopup="menu"
-                className="inline-flex items-center gap-2 rounded-full border border-line bg-panel px-2 py-1.5 text-left transition-colors hover:bg-accent/6"
+                className="inline-flex items-center gap-1.5 rounded-full border border-line bg-panel py-0.5 pl-0.5 pr-2 text-left transition-colors hover:bg-accent/6"
                 onClick={() => setIsAccountMenuOpen((open) => !open)}
                 ref={accountButtonRef}
                 type="button"

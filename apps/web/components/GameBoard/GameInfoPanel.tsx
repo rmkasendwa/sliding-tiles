@@ -1,5 +1,19 @@
 import { SolutionPreview } from './SolutionPreview';
 
+function getInitials(name: string) {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+
+  if (words.length === 0) {
+    return 'U';
+  }
+
+  if (words.length === 1) {
+    return words[0].slice(0, 2).toUpperCase();
+  }
+
+  return `${words[0][0] ?? ''}${words[1][0] ?? ''}`.toUpperCase();
+}
+
 export type GameInfoPanelProps = {
   columns: number;
   gameModeLabel: string;
@@ -32,8 +46,13 @@ export function GameInfoPanel({
             {gameModeLabel}
           </p>
           <div className="flex items-center gap-2">
-            <span className="rounded-full border border-accent/20 bg-accent/10 px-3 py-1 text-xs font-bold text-accent-strong">
-              Player: {playerName ?? 'Guest'}
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/20 bg-accent/10 py-0.5 pl-0.5 pr-2 text-sm font-bold text-accent-strong">
+              <span className="grid h-6 w-6 place-items-center rounded-full bg-accent-strong text-[0.65rem] font-extrabold tracking-[0.08em] text-white">
+                {getInitials(playerName ?? 'Guest')}
+              </span>
+              <span className="max-w-44 text-[0.85rem] truncate">
+                {playerName ?? 'Guest'}
+              </span>
             </span>
             {onClose && (
               <button
