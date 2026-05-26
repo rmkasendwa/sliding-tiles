@@ -45,6 +45,19 @@ export type GameBoardProps = {
   isSignedIn: boolean;
 };
 
+function formatElapsedTime(milliseconds: number) {
+  const totalSeconds = Math.max(0, Math.floor(milliseconds / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  }
+
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
 export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   const { isMuted, playSound, startAmbience, stopAmbience, toggleMuted } =
     useSound();
@@ -57,6 +70,14 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
     useState(false);
   const [boardEntryAnimationKey, setBoardEntryAnimationKey] = useState(0);
   const [isBoardEntering, setIsBoardEntering] = useState(true);
+  const [levelStartedAtMs, setLevelStartedAtMs] = useState(() => {
+    const initialElapsed = Math.max(0, initialBoard.elapsedTimeMs ?? 0);
+    return Date.now() - initialElapsed;
+  });
+  const [clockNowMs, setClockNowMs] = useState(() => Date.now());
+  const [isClockRunning, setIsClockRunning] = useState(
+    () => initialBoard.moves > 0,
+  );
   const [tileRotationSeed, setTileRotationSeed] = useState(0);
   const [isResetting, setIsResetting] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
@@ -98,15 +119,38 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   }, [boardEntryAnimationKey]);
 
   useEffect(() => {
+    if (!isClockRunning) {
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      setClockNowMs(Date.now());
+    }, 1000);
+
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, [isClockRunning]);
+
+  useEffect(() => {
+    const elapsedTimeMs = Math.max(0, clockNowMs - levelStartedAtMs);
+    const boardWithElapsed = {
+      ...board,
+      elapsedTimeMs,
+    };
+
     if (isSignedIn) {
       const timeout = window.setTimeout(() => {
-        void saveGameState(board);
+        void saveGameState(boardWithElapsed);
       }, 350);
       return () => window.clearTimeout(timeout);
     }
 
-    window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(board));
-  }, [board, isSignedIn]);
+    window.localStorage.setItem(
+      LOCAL_STORAGE_KEY,
+      JSON.stringify(boardWithElapsed),
+    );
+  }, [board, clockNowMs, isSignedIn, levelStartedAtMs]);
 
   const movableSlotKeys = useMemo(() => {
     return new Set(board.movableSlots.map(slotKey));
@@ -126,12 +170,40 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
     [playSound],
   );
 
+  const resetClock = useCallback(() => {
+    const levelStart = Date.now();
+    setLevelStartedAtMs(levelStart);
+    setClockNowMs(levelStart);
+    setIsClockRunning(false);
+  }, []);
+
+  const startClockIfNeeded = useCallback(() => {
+    if (isClockRunning) {
+      return;
+    }
+
+    const levelStart = Date.now();
+    setLevelStartedAtMs(levelStart);
+    setClockNowMs(levelStart);
+    setIsClockRunning(true);
+  }, [isClockRunning]);
+
   const completeLevel = useCallback(
     (completedBoard: BoardState) => {
+      const completedAtMs = Date.now();
+      const completedElapsedTimeMs = Math.max(
+        0,
+        completedAtMs - levelStartedAtMs,
+      );
       playSound('complete');
+      setClockNowMs(completedAtMs);
+      setIsClockRunning(false);
       setHintedSlot(null);
       if (isSignedIn) {
-        void recordCompletedLevel(completedBoard);
+        void recordCompletedLevel({
+          ...completedBoard,
+          elapsedTimeMs: completedElapsedTimeMs,
+        });
       }
 
       if (celebrationTimeoutRef.current !== null) {
@@ -150,6 +222,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
         levelAdvanceTimeoutRef.current = window.setTimeout(() => {
           playSound('shuffle');
           scheduleLockInSound();
+          resetClock();
           setIsBoardEntering(true);
           setBoardEntryAnimationKey((key) => key + 1);
           setTileRotationSeed((seed) => seed + 1);
@@ -166,7 +239,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
         }, LEVEL_COMPLETE_ADVANCE_DELAY_MS);
       }, LEVEL_COMPLETE_CELEBRATION_DELAY_MS);
     },
-    [isSignedIn, playSound, scheduleLockInSound],
+    [isSignedIn, levelStartedAtMs, playSound, resetClock, scheduleLockInSound],
   );
 
   const moveTile = useCallback(
@@ -179,6 +252,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
       setBoard(nextBoard);
 
       if (nextBoard !== board) {
+        startClockIfNeeded();
         playSound('move');
       }
 
@@ -186,7 +260,14 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
         completeLevel(nextBoard);
       }
     },
-    [board, completeLevel, isCelebrating, isResetting, playSound],
+    [
+      board,
+      completeLevel,
+      isCelebrating,
+      isResetting,
+      playSound,
+      startClockIfNeeded,
+    ],
   );
 
   useEffect(() => {
@@ -228,6 +309,8 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   const [columns, rows] = board.dimensions;
   const tileWidth = BOARD_SIZE / columns;
   const tileHeight = BOARD_SIZE / rows;
+  const elapsedTimeMs = Math.max(0, clockNowMs - levelStartedAtMs);
+  const elapsedTimeLabel = formatElapsedTime(elapsedTimeMs);
 
   const clearBoardHint = useCallback(() => {
     if (boardHintTimeoutRef.current !== null) {
@@ -445,6 +528,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
     setTileRotationSeed((seed) => seed + 1);
     setIsResetting(true);
     resetTimeoutRef.current = window.setTimeout(() => {
+      resetClock();
       setIsBoardEntering(true);
       setBoardEntryAnimationKey((key) => key + 1);
       setBoard(createBoardState(board.level, board.dimensions));
@@ -457,6 +541,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
     clearBoardHint,
     isResetting,
     playSound,
+    resetClock,
     scheduleLockInSound,
   ]);
 
@@ -607,10 +692,11 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
           Level {board.level} · {columns}x{rows}
         </div>
         <div
-          aria-label={`${board.moves} ${board.moves === 1 ? 'move' : 'moves'}`}
+          aria-label={`${board.moves} ${board.moves === 1 ? 'move' : 'moves'}, elapsed time ${elapsedTimeLabel}`}
           className="board-overlay absolute bottom-4 left-4 z-40 rounded-[7px] border px-3 py-2 text-sm font-bold text-accent-strong"
         >
-          {board.moves} {board.moves === 1 ? 'move' : 'moves'}
+          {board.moves} {board.moves === 1 ? 'move' : 'moves'} ·{' '}
+          {elapsedTimeLabel}
         </div>
         <div className="board-overlay absolute bottom-4 right-4 z-40 flex gap-1 rounded-[7px] border p-1 text-accent-strong">
           <button

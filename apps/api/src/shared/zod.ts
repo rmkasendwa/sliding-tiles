@@ -14,8 +14,15 @@ export function parseBody<T>(schema: z.ZodType<T>, body: unknown): T {
 }
 
 export const boardStateSchema = z.object({
-  dimensions: z.tuple([z.number().int().positive(), z.number().int().positive()]),
-  emptySlot: z.tuple([z.number().int().nonnegative(), z.number().int().nonnegative()]),
+  dimensions: z.tuple([
+    z.number().int().positive(),
+    z.number().int().positive(),
+  ]),
+  emptySlot: z.tuple([
+    z.number().int().nonnegative(),
+    z.number().int().nonnegative(),
+  ]),
+  elapsedTimeMs: z.number().int().nonnegative().default(0),
   level: z.number().int().positive(),
   movableSlots: z.array(
     z.tuple([z.number().int().nonnegative(), z.number().int().nonnegative()]),

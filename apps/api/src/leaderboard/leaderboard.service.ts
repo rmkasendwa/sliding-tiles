@@ -27,10 +27,11 @@ export class LeaderboardService {
   }
 
   async recordCompletedLevel(userId: string, board: BoardStateDto) {
-    const timeSeconds = Math.max(
-      1,
-      Math.round((Date.now() - new Date(board.startedAt).getTime()) / 1000),
-    );
+    const elapsedMs =
+      board.elapsedTimeMs > 0
+        ? board.elapsedTimeMs
+        : Math.max(0, Date.now() - new Date(board.startedAt).getTime());
+    const timeSeconds = Math.max(1, Math.round(elapsedMs / 1000));
     const score = await this.prisma.leaderboard.create({
       data: {
         level: board.level,

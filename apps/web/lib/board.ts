@@ -18,8 +18,18 @@ export type BoardState = {
   emptySlot: Slot;
   movableSlots: Slot[];
   moves: number;
+  elapsedTimeMs: number;
   startedAt: string;
 };
+
+export function normalizeBoardState(
+  board: BoardState | Omit<BoardState, 'elapsedTimeMs'>,
+): BoardState {
+  return {
+    ...board,
+    elapsedTimeMs: 'elapsedTimeMs' in board ? board.elapsedTimeMs : 0,
+  };
+}
 
 export const BASE_GRID_DIMENSIONS: Slot = [3, 2];
 
@@ -33,7 +43,7 @@ export function slotsEqual(a: Slot, b: Slot) {
 
 export function getMovableSlots(
   [emptyRow, emptyColumn]: Slot,
-  [maxRow, maxColumn]: Slot
+  [maxRow, maxColumn]: Slot,
 ): Slot[] {
   const closest: Slot[] = [
     [emptyRow - 1, emptyColumn],
@@ -54,7 +64,7 @@ export function getMaxSlot(tileGrid: TileGrid): Slot {
 export function moveTileLogically(
   tileGrid: TileGrid,
   emptySlot: Slot,
-  movableSlot: Slot
+  movableSlot: Slot,
 ): TileGrid {
   return tileGrid.map((row) =>
     row.map((tile) => {
@@ -67,13 +77,13 @@ export function moveTileLogically(
       }
 
       return tile;
-    })
+    }),
   );
 }
 
 export function isTileGridInOrder(tileGrid: TileGrid): boolean {
   return tileGrid.every((row) =>
-    row.every((tile) => slotsEqual(tile.slot, tile.homeSlot))
+    row.every((tile) => slotsEqual(tile.slot, tile.homeSlot)),
   );
 }
 
@@ -96,7 +106,7 @@ export function createSolvedTileGrid([columnCount, rowCount]: Slot): TileGrid {
       }
 
       return tile;
-    })
+    }),
   );
 }
 
@@ -115,7 +125,11 @@ export function randomizeTileGrid(tileGrid: TileGrid, moves: number) {
     const slotInTransit =
       candidates[Math.floor(Math.random() * candidates.length)];
 
-    randomizedGrid = moveTileLogically(randomizedGrid, emptySlot, slotInTransit);
+    randomizedGrid = moveTileLogically(
+      randomizedGrid,
+      emptySlot,
+      slotInTransit,
+    );
     previousSlot = emptySlot;
     emptySlot = slotInTransit;
     movableSlots = getMovableSlots(emptySlot, maxSlot);
@@ -137,7 +151,7 @@ export function createBoardState(level = 1, dimensions = BASE_GRID_DIMENSIONS) {
 
   const { tileGrid, emptySlot, movableSlots } = randomizeTileGrid(
     solvedTileGrid,
-    randomizationMoves
+    randomizationMoves,
   );
 
   return {
@@ -147,12 +161,15 @@ export function createBoardState(level = 1, dimensions = BASE_GRID_DIMENSIONS) {
     emptySlot,
     movableSlots,
     moves: 0,
+    elapsedTimeMs: 0,
     startedAt: new Date().toISOString(),
   } satisfies BoardState;
 }
 
 export function moveBoardTile(board: BoardState, slot: Slot): BoardState {
-  if (!board.movableSlots.some((movableSlot) => slotsEqual(movableSlot, slot))) {
+  if (
+    !board.movableSlots.some((movableSlot) => slotsEqual(movableSlot, slot))
+  ) {
     return board;
   }
 
