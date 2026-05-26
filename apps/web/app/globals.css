@@ -121,6 +121,16 @@
     border-color: rgba(30, 37, 34, 0.08);
     border-radius: 0.35rem;
   }
+
+  .profile-reveal {
+    animation: profile-rise 520ms ease-out both;
+  }
+
+  .profile-trend-bar {
+    transform-origin: left center;
+    transform: scaleX(var(--bar-scale, 1));
+    animation: profile-bar-fill 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
 }
 
 @keyframes celebration-fade-in {
@@ -189,5 +199,34 @@
   100% {
     opacity: 0;
     transform: translate3d(0, -78px, 0) scale(1.28);
+  }
+}
+
+@keyframes profile-rise {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes profile-bar-fill {
+  0% {
+    transform: scaleX(0);
+  }
+
+  100% {
+    transform: scaleX(var(--bar-scale, 1));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profile-reveal,
+  .profile-trend-bar {
+    animation: none !important;
   }
 }

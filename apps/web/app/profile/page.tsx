@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 import { ApiGameState, ApiScore, apiRequest } from '@/lib/api';
@@ -71,6 +72,8 @@ export default async function ProfilePage() {
             scores.length,
         )
       : null;
+  const firstCompletedRun =
+    scores.length > 0 ? scores[scores.length - 1] : null;
   const latestRun = scores[0] ?? null;
   const bestPaceRun =
     scores.length > 0
@@ -107,9 +110,43 @@ export default async function ProfilePage() {
       ? 'Efficiency minded'
       : null,
   ].filter((badge): badge is string => Boolean(badge));
+  const trendRuns = [...scores]
+    .slice(0, 5)
+    .reverse()
+    .map((score) => ({
+      id: score.id,
+      level: score.level,
+      pace: score.timeSeconds / Math.max(score.level, 1),
+      timestamp: score.completedAt,
+    }));
+  const minTrendPace =
+    trendRuns.length > 0 ? Math.min(...trendRuns.map((run) => run.pace)) : 0;
+  const maxTrendPace =
+    trendRuns.length > 0 ? Math.max(...trendRuns.map((run) => run.pace)) : 0;
+  const trendRange = Math.max(maxTrendPace - minTrendPace, 0.0001);
+  const nextTargetLevel =
+    Math.max(highestCompletedLevel, gameState?.level ?? 0) + 1;
+  const milestoneItems = [
+    {
+      label: 'First clear',
+      value: firstCompletedRun ? `Level ${firstCompletedRun.level}` : 'Pending',
+    },
+    {
+      label: 'Personal best',
+      value: bestRun ? formatDuration(bestRun.timeSeconds) : 'Pending',
+    },
+    {
+      label: 'Current board',
+      value: gameState ? `Level ${gameState.level}` : 'No active run',
+    },
+    {
+      label: 'Next target',
+      value: `Level ${nextTargetLevel}`,
+    },
+  ];
 
   return (
-    <section className="page-rail mx-auto grid max-w-[1280px] gap-6 py-11 pb-14">
+    <section className="page-rail mx-auto grid max-w-[1280px] gap-6 pt-5 pb-10">
       <div className="grid gap-4 rounded-xl border border-accent/20 bg-[radial-gradient(circle_at_top_right,rgba(116,191,77,0.18),transparent_54%),linear-gradient(140deg,rgba(24,58,43,0.08),rgba(255,255,255,0.36))] p-5 shadow-panel min-[980px]:grid-cols-[minmax(0,1fr)_340px]">
         <div>
           <p className="text-[0.78rem] font-extrabold uppercase tracking-[0.08em] text-accent-strong">
@@ -137,6 +174,20 @@ export default async function ProfilePage() {
                 {badge}
               </span>
             ))}
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link
+              className="inline-flex min-h-9 items-center justify-center rounded-[7px] border border-accent bg-accent px-3 text-sm font-bold text-white"
+              href={routes.play}
+            >
+              Continue playing
+            </Link>
+            <Link
+              className="inline-flex min-h-9 items-center justify-center rounded-[7px] border border-accent/30 bg-white/72 px-3 text-sm font-bold text-accent-strong"
+              href={routes.leaderboard}
+            >
+              View leaderboard
+            </Link>
           </div>
         </div>
         <div className="rounded-lg border border-line bg-panel/90 p-4">
@@ -180,8 +231,41 @@ export default async function ProfilePage() {
         </div>
       </div>
 
+      <section
+        className="profile-reveal rounded-lg border border-line bg-panel p-4 shadow-panel"
+        style={{ animationDelay: '40ms' }}
+      >
+        <div className="flex items-end justify-between gap-3">
+          <h2 className="text-[1.12rem] font-bold">Milestone journey</h2>
+          <span className="text-xs font-bold uppercase tracking-[0.08em] text-muted">
+            Progress map
+          </span>
+        </div>
+        <div className="mt-3 grid grid-cols-4 gap-3 max-[980px]:grid-cols-2 max-[620px]:grid-cols-1">
+          {milestoneItems.map((item, index) => (
+            <article
+              className="relative rounded-[8px] border border-line bg-white/65 p-3"
+              key={item.label}
+            >
+              {index < milestoneItems.length - 1 ? (
+                <span className="absolute right-[-9px] top-1/2 hidden h-[2px] w-[14px] -translate-y-1/2 bg-accent/25 min-[981px]:block" />
+              ) : null}
+              <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-muted">
+                {item.label}
+              </p>
+              <p className="mt-1 text-sm font-bold text-foreground">
+                {item.value}
+              </p>
+            </article>
+          ))}
+        </div>
+      </section>
+
       <div className="grid gap-3 min-[880px]:grid-cols-3">
-        <article className="rounded-lg border border-line bg-panel p-4 shadow-panel">
+        <article
+          className="profile-reveal rounded-lg border border-line bg-panel p-4 shadow-panel"
+          style={{ animationDelay: '70ms' }}
+        >
           <p className="text-[0.75rem] font-extrabold uppercase text-muted">
             Latest run
           </p>
@@ -194,7 +278,10 @@ export default async function ProfilePage() {
               : 'No completed runs yet'}
           </p>
         </article>
-        <article className="rounded-lg border border-line bg-panel p-4 shadow-panel">
+        <article
+          className="profile-reveal rounded-lg border border-line bg-panel p-4 shadow-panel"
+          style={{ animationDelay: '100ms' }}
+        >
           <p className="text-[0.75rem] font-extrabold uppercase text-muted">
             Best pace
           </p>
@@ -209,7 +296,10 @@ export default async function ProfilePage() {
               : 'Complete runs to measure pace'}
           </p>
         </article>
-        <article className="rounded-lg border border-line bg-panel p-4 shadow-panel">
+        <article
+          className="profile-reveal rounded-lg border border-line bg-panel p-4 shadow-panel"
+          style={{ animationDelay: '130ms' }}
+        >
           <p className="text-[0.75rem] font-extrabold uppercase text-muted">
             Recent average
           </p>
@@ -224,7 +314,10 @@ export default async function ProfilePage() {
 
       <div className="grid grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] items-start gap-5 max-[980px]:grid-cols-1">
         <div className="grid gap-5">
-          <section className="grid gap-4 rounded-lg border border-line bg-panel p-4 shadow-panel">
+          <section
+            className="profile-reveal grid gap-4 rounded-lg border border-line bg-panel p-4 shadow-panel"
+            style={{ animationDelay: '160ms' }}
+          >
             <div className="flex items-end justify-between gap-3">
               <h2 className="text-[clamp(1.6rem,3vw,2.2rem)]">Saved board</h2>
               <span className="text-xs font-bold uppercase tracking-[0.08em] text-muted">
@@ -274,13 +367,19 @@ export default async function ProfilePage() {
           </section>
 
           <div className="grid grid-cols-3 gap-3 max-[620px]:grid-cols-1">
-            <article className="rounded-lg border border-line bg-panel p-4 shadow-panel">
+            <article
+              className="profile-reveal rounded-lg border border-line bg-panel p-4 shadow-panel"
+              style={{ animationDelay: '190ms' }}
+            >
               <p className="text-[0.75rem] font-extrabold uppercase text-muted">
                 Completed runs
               </p>
               <p className="mt-1 text-2xl font-bold">{completedRuns}</p>
             </article>
-            <article className="rounded-lg border border-line bg-panel p-4 shadow-panel">
+            <article
+              className="profile-reveal rounded-lg border border-line bg-panel p-4 shadow-panel"
+              style={{ animationDelay: '220ms' }}
+            >
               <p className="text-[0.75rem] font-extrabold uppercase text-muted">
                 Best level
               </p>
@@ -288,7 +387,10 @@ export default async function ProfilePage() {
                 {highestCompletedLevel > 0 ? highestCompletedLevel : '-'}
               </p>
             </article>
-            <article className="rounded-lg border border-line bg-panel p-4 shadow-panel">
+            <article
+              className="profile-reveal rounded-lg border border-line bg-panel p-4 shadow-panel"
+              style={{ animationDelay: '250ms' }}
+            >
               <p className="text-[0.75rem] font-extrabold uppercase text-muted">
                 Fastest clear
               </p>
@@ -297,9 +399,107 @@ export default async function ProfilePage() {
               </p>
             </article>
           </div>
+
+          <section
+            className="profile-reveal grid gap-3 rounded-lg border border-line bg-panel p-4 shadow-panel"
+            style={{ animationDelay: '280ms' }}
+          >
+            <div className="flex items-end justify-between gap-2">
+              <h3 className="text-[1.12rem] font-bold">Performance trend</h3>
+              <span className="text-xs font-bold uppercase tracking-[0.08em] text-muted">
+                Last {trendRuns.length}
+              </span>
+            </div>
+            {trendRuns.length > 0 ? (
+              <div className="grid gap-2.5">
+                {trendRuns.map((run) => {
+                  const normalized = 1 - (run.pace - minTrendPace) / trendRange;
+                  const widthPercent = Math.round(38 + normalized * 62);
+
+                  return (
+                    <article className="grid gap-1" key={run.id}>
+                      <div className="flex items-center justify-between gap-2 text-sm">
+                        <p className="font-semibold text-foreground">
+                          Level {run.level}
+                        </p>
+                        <p className="text-muted">
+                          {formatDateTime(run.timestamp)}
+                        </p>
+                      </div>
+                      <div className="h-2.5 w-full overflow-hidden rounded-full bg-white/70">
+                        <div
+                          className="profile-trend-bar h-full rounded-full bg-[linear-gradient(90deg,#6cb34d,#2f7f61)]"
+                          style={
+                            {
+                              '--bar-scale': `${widthPercent / 100}`,
+                              animationDelay: `${(trendRuns.length - 1) * 40}ms`,
+                            } as React.CSSProperties
+                          }
+                        />
+                      </div>
+                      <p className="text-xs text-muted">
+                        Pace {run.pace.toFixed(1)}s/lvl
+                      </p>
+                    </article>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-muted">
+                Complete a few runs to see your recent pace trend.
+              </p>
+            )}
+          </section>
+
+          <section
+            className="profile-reveal grid gap-3 rounded-lg border border-line bg-panel p-4 shadow-panel"
+            style={{ animationDelay: '310ms' }}
+          >
+            <div className="flex items-end justify-between gap-2">
+              <h3 className="text-[1.12rem] font-bold">Personal records</h3>
+              <span className="text-xs font-bold uppercase tracking-[0.08em] text-muted">
+                Snapshot
+              </span>
+            </div>
+            <div className="grid gap-2.5">
+              <article className="rounded-[8px] border border-line bg-white/60 p-3">
+                <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-muted">
+                  Fastest clear
+                </p>
+                <p className="mt-1 text-sm font-bold text-foreground">
+                  {bestRun
+                    ? `${formatDuration(bestRun.timeSeconds)} on level ${bestRun.level}`
+                    : 'No record yet'}
+                </p>
+              </article>
+              <article className="rounded-[8px] border border-line bg-white/60 p-3">
+                <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-muted">
+                  Best pace run
+                </p>
+                <p className="mt-1 text-sm font-bold text-foreground">
+                  {bestPaceRun
+                    ? `${formatPace(bestPaceRun.timeSeconds, bestPaceRun.level)} at level ${bestPaceRun.level}`
+                    : 'No record yet'}
+                </p>
+              </article>
+              <article className="rounded-[8px] border border-line bg-white/60 p-3">
+                <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-muted">
+                  Cleanest run
+                </p>
+                <p className="mt-1 text-sm font-bold text-foreground">
+                  {cleanestRun
+                    ? `${cleanestRun.moves} moves on level ${cleanestRun.level}`
+                    : 'No record yet'}
+                </p>
+              </article>
+            </div>
+          </section>
         </div>
 
-        <section className="grid gap-4 rounded-lg border border-line bg-panel p-4 shadow-panel">
+        <section
+          className="profile-reveal grid gap-4 rounded-lg border border-line bg-panel p-4 shadow-panel"
+          style={{ animationDelay: '190ms' }}
+        >
           <div className="flex items-end justify-between gap-3">
             <h2 className="text-[clamp(1.6rem,3vw,2.2rem)]">Recent runs</h2>
             <span className="text-xs font-bold uppercase tracking-[0.08em] text-muted">

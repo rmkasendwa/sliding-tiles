@@ -127,8 +127,11 @@ export default async function LeaderboardPage() {
     : 0;
 
   return (
-    <section className="page-rail mx-auto grid gap-6 py-11 pb-14">
-      <div className="grid gap-4 rounded-xl border border-accent/20 bg-[radial-gradient(circle_at_top_right,rgba(128,196,78,0.2),transparent_48%),linear-gradient(140deg,rgba(24,58,43,0.08),rgba(255,255,255,0.35))] p-5 shadow-panel min-[1060px]:grid-cols-[minmax(0,1fr)_320px]">
+    <section className="page-rail mx-auto grid max-w-[1280px] gap-6 pt-5 pb-10">
+      <div
+        className="profile-reveal grid gap-4 rounded-xl border border-accent/20 bg-[radial-gradient(circle_at_top_right,rgba(128,196,78,0.2),transparent_48%),linear-gradient(140deg,rgba(24,58,43,0.08),rgba(255,255,255,0.35))] p-5 shadow-panel min-[1060px]:grid-cols-[minmax(0,1fr)_320px]"
+        style={{ animationDelay: '40ms' }}
+      >
         <div>
           <p className="text-[0.78rem] font-extrabold uppercase tracking-[0.08em] text-accent-strong">
             Pond hall of fame
@@ -183,7 +186,10 @@ export default async function LeaderboardPage() {
         </div>
       </div>
 
-      <div className="grid gap-3 min-[780px]:grid-cols-3">
+      <div
+        className="profile-reveal grid gap-3 min-[780px]:grid-cols-3"
+        style={{ animationDelay: '70ms' }}
+      >
         {podium.map((score, index) => {
           const rank = index + 1;
           const playerName = score.user?.name ?? 'Player';
@@ -237,7 +243,10 @@ export default async function LeaderboardPage() {
         ) : null}
       </div>
 
-      <div className="grid grid-cols-4 gap-3 max-[980px]:grid-cols-2 max-[620px]:grid-cols-1">
+      <div
+        className="profile-reveal grid grid-cols-4 gap-3 max-[980px]:grid-cols-2 max-[620px]:grid-cols-1"
+        style={{ animationDelay: '100ms' }}
+      >
         <article className="rounded-lg border border-line bg-panel p-4 shadow-panel">
           <p className="text-[0.75rem] font-extrabold uppercase text-muted">
             Posted runs
@@ -276,7 +285,10 @@ export default async function LeaderboardPage() {
         </div>
       ) : null}
 
-      <div className="hidden gap-4 min-[1120px]:grid min-[1120px]:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+      <div
+        className="profile-reveal hidden gap-4 min-[1120px]:grid min-[1120px]:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]"
+        style={{ animationDelay: '130ms' }}
+      >
         <article className="overflow-hidden rounded-lg border border-line bg-panel shadow-panel">
           <header className="border-b border-line px-4 py-3">
             <p className="text-[0.74rem] font-extrabold uppercase text-muted">
@@ -337,7 +349,10 @@ export default async function LeaderboardPage() {
         </article>
       </div>
 
-      <div className="grid gap-3 min-[901px]:hidden">
+      <div
+        className="profile-reveal grid gap-3 min-[901px]:hidden"
+        style={{ animationDelay: '130ms' }}
+      >
         {scores.map((score, index) => {
           const rank = index + 1;
           const isCurrentUser = Boolean(
@@ -384,7 +399,10 @@ export default async function LeaderboardPage() {
         ) : null}
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-line bg-panel shadow-panel">
+      <div
+        className="profile-reveal overflow-hidden rounded-lg border border-line bg-panel shadow-panel"
+        style={{ animationDelay: '160ms' }}
+      >
         <table className="hidden w-full border-collapse min-[901px]:table">
           <thead>
             <tr>
