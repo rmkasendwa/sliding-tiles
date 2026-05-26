@@ -1,21 +1,20 @@
-import type { BoardState } from '@/lib/board';
 import { SolutionPreview } from './SolutionPreview';
 
 export type GameInfoPanelProps = {
-  board: BoardState;
   columns: number;
   gameModeLabel: string;
   isModal?: boolean;
+  playerName?: string;
   isSignedIn: boolean;
   onClose?: () => void;
   rows: number;
 };
 
 export function GameInfoPanel({
-  board,
   columns,
   gameModeLabel,
   isModal = false,
+  playerName,
   isSignedIn,
   onClose,
   rows,
@@ -34,7 +33,7 @@ export function GameInfoPanel({
           </p>
           <div className="flex items-center gap-2">
             <span className="rounded-full border border-accent/20 bg-accent/10 px-3 py-1 text-xs font-bold text-accent-strong">
-              Level {board.level}
+              Player: {playerName ?? 'Guest'}
             </span>
             {onClose && (
               <button

@@ -43,6 +43,7 @@ import { GameInfoPanel } from './GameInfoPanel';
 export type GameBoardProps = {
   initialBoard: BoardState;
   isSignedIn: boolean;
+  playerName?: string;
   soundEnabled?: boolean;
 };
 
@@ -59,7 +60,11 @@ function formatElapsedTime(milliseconds: number) {
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
 
-function GameBoardContent({ initialBoard, isSignedIn }: GameBoardProps) {
+function GameBoardContent({
+  initialBoard,
+  isSignedIn,
+  playerName,
+}: GameBoardProps) {
   const {
     isEnabled: isSoundEnabled,
     isMuted,
@@ -824,10 +829,10 @@ function GameBoardContent({ initialBoard, isSignedIn }: GameBoardProps) {
 
       <aside className="play-panel-reveal max-[900px]:hidden">
         <GameInfoPanel
-          board={board}
           columns={columns}
           gameModeLabel={gameModeLabel}
           isSignedIn={isSignedIn}
+          playerName={playerName}
           rows={rows}
         />
       </aside>
@@ -841,12 +846,12 @@ function GameBoardContent({ initialBoard, isSignedIn }: GameBoardProps) {
           />
           <div className="relative z-10 max-h-[calc(100svh-28px)] w-full max-w-lg overflow-y-auto rounded-xl">
             <GameInfoPanel
-              board={board}
               columns={columns}
               gameModeLabel={gameModeLabel}
               isModal
               isSignedIn={isSignedIn}
               onClose={() => setIsInfoModalOpen(false)}
+              playerName={playerName}
               rows={rows}
             />
           </div>
@@ -859,11 +864,16 @@ function GameBoardContent({ initialBoard, isSignedIn }: GameBoardProps) {
 export function GameBoard({
   initialBoard,
   isSignedIn,
+  playerName,
   soundEnabled = true,
 }: GameBoardProps) {
   return (
     <SoundProvider enabled={soundEnabled}>
-      <GameBoardContent initialBoard={initialBoard} isSignedIn={isSignedIn} />
+      <GameBoardContent
+        initialBoard={initialBoard}
+        isSignedIn={isSignedIn}
+        playerName={playerName}
+      />
     </SoundProvider>
   );
 }
