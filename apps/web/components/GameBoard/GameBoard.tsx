@@ -668,10 +668,10 @@ function GameBoardContent({ initialBoard, isSignedIn }: GameBoardProps) {
   }, [exitBoardFullscreen, isBoardFullscreen]);
 
   return (
-    <div className="grid min-h-full w-full grid-cols-[minmax(0,1fr)_320px] items-start gap-5 max-[900px]:grid-cols-1">
+    <div className="play-shell-reveal grid min-h-full w-full grid-cols-[minmax(0,1fr)_320px] items-start gap-5 max-[900px]:grid-cols-1">
       <section
         className={[
-          'relative grid min-h-0 place-items-center overflow-hidden bg-[#17231f] shadow-[0_24px_80px_rgba(0,0,0,0.24)]',
+          'play-board-reveal relative grid min-h-0 place-items-center overflow-hidden bg-[#17231f] shadow-[0_24px_80px_rgba(0,0,0,0.24)]',
           isBoardFullscreen
             ? 'fullscreen-board-stage fixed inset-0 z-50 h-screen rounded-none p-4'
             : 'h-[calc(100svh-36px)] rounded-lg p-3 max-[900px]:p-2.5',
@@ -763,13 +763,13 @@ function GameBoardContent({ initialBoard, isSignedIn }: GameBoardProps) {
         </div>
         <div
           aria-label={`Level ${board.level}, ${columns} by ${rows} grid`}
-          className="board-overlay absolute left-4 top-4 z-40 rounded-[7px] border px-3 py-2 text-sm font-bold text-accent-strong"
+          className="play-overlay-float board-overlay absolute left-4 top-4 z-40 rounded-[7px] border px-3 py-2 text-sm font-bold text-accent-strong"
         >
           Level {board.level} · {columns}x{rows}
         </div>
         <div
           aria-label={`${board.moves} ${board.moves === 1 ? 'move' : 'moves'}, elapsed time ${elapsedTimeLabel}`}
-          className="board-overlay absolute bottom-4 left-4 z-40 rounded-[7px] border px-3 py-2 text-sm font-bold text-accent-strong"
+          className="play-overlay-float board-overlay absolute bottom-4 left-4 z-40 rounded-[7px] border px-3 py-2 text-sm font-bold text-accent-strong"
         >
           {board.moves} {board.moves === 1 ? 'move' : 'moves'} ·{' '}
           {elapsedTimeLabel}
@@ -822,7 +822,7 @@ function GameBoardContent({ initialBoard, isSignedIn }: GameBoardProps) {
         </div>
       </section>
 
-      <aside className="max-[900px]:hidden">
+      <aside className="play-panel-reveal max-[900px]:hidden">
         <GameInfoPanel
           board={board}
           columns={columns}
