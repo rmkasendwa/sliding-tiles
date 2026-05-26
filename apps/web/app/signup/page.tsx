@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { Sparkles } from 'lucide-react';
 
 import { AuthForm } from '@/components/AuthForm';
 import { routes } from '@/lib/routes';
@@ -12,11 +13,93 @@ export default async function SignupPage() {
   }
 
   return (
-    <section className="mx-auto my-9 w-[min(460px,100%)] px-4 py-11 pb-14">
-      <AuthForm mode="signup" />
-      <p className="mt-4 text-center leading-normal text-muted">
-        Already have an account? <Link href={routes.login}>Log in</Link>.
-      </p>
+    <section className="page-rail mx-auto my-7 px-4 pb-14 pt-10 sm:my-9 sm:px-6 sm:pt-11">
+      <div className="relative overflow-hidden rounded-[26px] border border-line/90 bg-[#efe3cd] p-4 shadow-panel sm:p-6 lg:p-8">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 opacity-55"
+          style={{
+            backgroundImage:
+              'radial-gradient(circle at 18% 14%, rgba(37,111,90,0.09), transparent 34%), radial-gradient(circle at 86% 84%, rgba(246,207,130,0.35), transparent 32%)',
+          }}
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -left-20 -top-20 h-64 w-64 rounded-full bg-accent/17 blur-2xl"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -bottom-28 right-0 h-64 w-64 rounded-full bg-[#f4d692]/35 blur-2xl"
+        />
+
+        <div className="relative grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,500px)] lg:items-stretch">
+          <div className="profile-reveal grid content-between gap-6 rounded-2xl border border-line/80 bg-linear-to-br from-white/88 via-panel/85 to-[#eadfc6]/86 p-5 sm:p-6">
+            <div className="grid gap-4">
+              <p className="inline-flex w-fit items-center rounded-full border border-accent/20 bg-accent/10 px-3 py-1 text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-accent-strong">
+                New challenger
+              </p>
+              <h1 className="max-w-[16ch] text-[clamp(2.05rem,5vw,3.45rem)] leading-[0.92] tracking-[-0.02em] text-foreground">
+                Start your first streak in the pond.
+              </h1>
+              <p className="max-w-[34ch] text-[1rem] leading-7 text-foreground/72">
+                Create your account to save progress automatically, climb the
+                leaderboard, and build your own solve history.
+              </p>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-xl border border-line/85 bg-white/78 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
+                <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
+                  Instant setup
+                </p>
+                <p className="mt-1 text-sm font-bold text-foreground">
+                  Under 1 min
+                </p>
+              </div>
+              <div className="rounded-xl border border-line/85 bg-white/78 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
+                <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
+                  Cloud sync
+                </p>
+                <p className="mt-1 text-sm font-bold text-foreground">
+                  Any device
+                </p>
+              </div>
+              <div className="rounded-xl border border-line/85 bg-white/78 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
+                <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
+                  Stats trail
+                </p>
+                <p className="mt-1 text-sm font-bold text-foreground">
+                  Every run
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="play-panel-reveal relative">
+            <div
+              aria-hidden="true"
+              className="absolute -inset-2 rounded-[20px] bg-linear-to-b from-accent/18 to-transparent blur-lg"
+            />
+            <div className="relative">
+              <p className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-line/80 bg-white/76 px-2.5 py-1 text-[0.74rem] font-bold uppercase tracking-[0.08em] text-foreground/75">
+                <Sparkles className="h-3.5 w-3.5 text-accent-strong" />
+                Account creation
+              </p>
+              <AuthForm mode="signup" />
+              <p className="mt-4 text-center leading-normal text-muted">
+                Already have an account?{' '}
+                <Link
+                  className="font-bold text-accent-strong transition-colors hover:text-accent"
+                  href={routes.login}
+                >
+                  Log in
+                </Link>
+                .
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
   );
 }
