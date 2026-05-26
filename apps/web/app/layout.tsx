@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 
 import { MainFooter } from '@/components/MainFooter';
 import { MainHeader } from '@/components/MainHeader';
-import { SoundProvider } from '@/components/SoundProvider';
 
 import './globals.css';
 
@@ -32,13 +31,11 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen">
-        <SoundProvider>
-          <div className="flex min-h-screen flex-col">
-            <MainHeader />
-            <main className="flex-1">{children}</main>
-            <MainFooter />
-          </div>
-        </SoundProvider>
+        <div className="flex min-h-screen flex-col">
+          <MainHeader />
+          <main className="flex-1">{children}</main>
+          <MainFooter />
+        </div>
       </body>
     </html>
   );

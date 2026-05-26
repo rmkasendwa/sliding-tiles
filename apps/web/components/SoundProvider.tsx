@@ -47,11 +47,17 @@ type SoundPack = {
 };
 
 type SoundContextValue = {
+  isEnabled: boolean;
   isMuted: boolean;
   playSound: (cue: SoundCue) => void;
   stopAmbience: () => void;
   startAmbience: () => void;
   toggleMuted: () => void;
+};
+
+type SoundProviderProps = {
+  children: ReactNode;
+  enabled?: boolean;
 };
 
 const SoundContext = createContext<SoundContextValue | null>(null);
@@ -122,7 +128,10 @@ function randomBetween([min, max]: SoundRange) {
   return min + Math.random() * (max - min);
 }
 
-export function SoundProvider({ children }: { children: ReactNode }) {
+export function SoundProvider({
+  children,
+  enabled = true,
+}: SoundProviderProps) {
   const ambientBedRefs = useRef(new Map<string, HTMLAudioElement>());
   const ambientAccentRefs = useRef(new Map<string, HTMLAudioElement>());
   const accentTimeoutRefs = useRef(new Map<string, number>());
@@ -133,12 +142,13 @@ export function SoundProvider({ children }: { children: ReactNode }) {
   const frogSoundRef = useRef<HTMLAudioElement>(null);
   const whooshSoundRef = useRef<HTMLAudioElement>(null);
   const hasStartedAmbienceRef = useRef(false);
+  const isAmbienceEnabledRef = useRef(false);
   const canPersistMutedPreferenceRef = useRef(false);
   const shouldAutostartAmbienceRef = useRef(false);
   const ignoreBlurUntilRef = useRef(0);
   const autostartRetryTimeoutRef = useRef<number | null>(null);
   const autostartRetryCountRef = useRef(0);
-  const whooshAudioContextRef = useRef<AudioContext | null>(null);
+  const [isAmbienceEnabled, setIsAmbienceEnabled] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [needsAudioUnlock, setNeedsAudioUnlock] = useState(false);
   const isMutedRef = useRef(isMuted);
@@ -233,17 +243,17 @@ export function SoundProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     applyMutedState(isMuted);
-    if (canPersistMutedPreferenceRef.current) {
+    if (enabled && canPersistMutedPreferenceRef.current) {
       window.localStorage.setItem(SOUND_STORAGE_KEY, String(isMuted));
     }
-  }, [applyMutedState, isMuted]);
+  }, [applyMutedState, enabled, isMuted]);
 
   const playAudio = useCallback(
     (
       audioElement: HTMLAudioElement | null,
       { playbackRate = 1, volume = 0.45 } = {},
     ) => {
-      if (!audioElement || isMuted) {
+      if (!enabled || !audioElement || isMuted) {
         return;
       }
 
@@ -253,26 +263,52 @@ export function SoundProvider({ children }: { children: ReactNode }) {
       audioElement.volume = volume;
       void audioElement.play().catch(() => undefined);
     },
-    [isMuted],
+    [enabled, isMuted],
   );
 
   useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
     const timeout = window.setTimeout(() => {
       const storedMutedPreference = getStoredMutedPreference();
       shouldAutostartAmbienceRef.current = !storedMutedPreference;
       ignoreBlurUntilRef.current = Date.now() + STARTUP_BLUR_IGNORE_MS;
       autostartRetryCountRef.current = 0;
-      setNeedsAudioUnlock(!storedMutedPreference);
+      setNeedsAudioUnlock(false);
       canPersistMutedPreferenceRef.current = true;
       applyMutedState(storedMutedPreference);
       setIsMuted(storedMutedPreference);
     }, 0);
 
     return () => window.clearTimeout(timeout);
-  }, [applyMutedState]);
+  }, [applyMutedState, enabled]);
+
+  useEffect(() => {
+    if (enabled) {
+      return;
+    }
+
+    isAmbienceEnabledRef.current = false;
+    hasStartedAmbienceRef.current = false;
+    shouldAutostartAmbienceRef.current = false;
+    canPersistMutedPreferenceRef.current = false;
+    clearAutostartRetry();
+    pauseAmbience();
+
+    if (!isMutedRef.current) {
+      applyMutedState(true);
+      setIsMuted(true);
+    }
+  }, [applyMutedState, clearAutostartRetry, enabled, pauseAmbience]);
 
   const playAmbience = useCallback(
     (force = false) => {
+      if (!enabled || !isAmbienceEnabledRef.current) {
+        return;
+      }
+
       hasStartedAmbienceRef.current = true;
 
       if (isMutedRef.current && !force) {
@@ -293,7 +329,11 @@ export function SoundProvider({ children }: { children: ReactNode }) {
         audioElement.volume = track.volume;
         void audioElement.play().catch((error: unknown) => {
           const domError = error as DOMException | undefined;
-          if (domError?.name === 'NotAllowedError' && !isMutedRef.current) {
+          if (
+            domError?.name === 'NotAllowedError' &&
+            !isMutedRef.current &&
+            isAmbienceEnabledRef.current
+          ) {
             setNeedsAudioUnlock(true);
           }
         });
@@ -305,7 +345,7 @@ export function SoundProvider({ children }: { children: ReactNode }) {
 
       ACTIVE_SOUND_PACK.ambience.accents.forEach(scheduleAccentTrack);
     },
-    [pauseAmbience, scheduleAccentTrack],
+    [enabled, pauseAmbience, scheduleAccentTrack],
   );
 
   const scheduleAutostartRetry = useCallback(() => {
@@ -341,6 +381,18 @@ export function SoundProvider({ children }: { children: ReactNode }) {
   }, [playAmbience]);
 
   useEffect(() => {
+    if (!enabled) {
+      clearAutostartRetry();
+      pauseAmbience();
+      return;
+    }
+
+    if (!isAmbienceEnabledRef.current) {
+      clearAutostartRetry();
+      pauseAmbience();
+      return;
+    }
+
     if (isMuted) {
       clearAutostartRetry();
       pauseAmbience();
@@ -361,6 +413,7 @@ export function SoundProvider({ children }: { children: ReactNode }) {
     }
   }, [
     clearAutostartRetry,
+    enabled,
     isMuted,
     pauseAmbience,
     playAmbience,
@@ -368,16 +421,20 @@ export function SoundProvider({ children }: { children: ReactNode }) {
   ]);
 
   useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
     const handleUserInteraction = () => {
-      setNeedsAudioUnlock(false);
-      const audioContext = whooshAudioContextRef.current;
-      if (audioContext && audioContext.state === 'suspended') {
-        void audioContext.resume().catch(() => undefined);
+      if (!isAmbienceEnabledRef.current) {
+        return;
       }
+
+      setNeedsAudioUnlock(false);
       playAmbience(true);
     };
     const handleFocus = () => {
-      if (hasStartedAmbienceRef.current) {
+      if (isAmbienceEnabledRef.current && hasStartedAmbienceRef.current) {
         playAmbience();
       }
     };
@@ -389,7 +446,10 @@ export function SoundProvider({ children }: { children: ReactNode }) {
     const handleVisibilityChange = () => {
       if (document.hidden) {
         pauseAmbience();
-      } else if (hasStartedAmbienceRef.current) {
+      } else if (
+        isAmbienceEnabledRef.current &&
+        hasStartedAmbienceRef.current
+      ) {
         playAmbience();
       }
     };
@@ -404,22 +464,17 @@ export function SoundProvider({ children }: { children: ReactNode }) {
       clearAutostartRetry();
       pauseAmbience();
       hasStartedAmbienceRef.current = false;
-      const audioContext = whooshAudioContextRef.current;
-      whooshAudioContextRef.current = null;
-      if (audioContext) {
-        void audioContext.close().catch(() => undefined);
-      }
       window.removeEventListener('pointerdown', handleUserInteraction);
       window.removeEventListener('keydown', handleUserInteraction);
       window.removeEventListener('focus', handleFocus);
       window.removeEventListener('blur', handleBlur);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [clearAutostartRetry, pauseAmbience, playAmbience]);
+  }, [clearAutostartRetry, enabled, pauseAmbience, playAmbience]);
 
   const playSound = useCallback(
     (cue: SoundCue) => {
-      if (isMuted) {
+      if (!enabled || isMuted) {
         return;
       }
 
@@ -484,18 +539,45 @@ export function SoundProvider({ children }: { children: ReactNode }) {
           break;
       }
     },
-    [isMuted, playAmbience, playAudio],
+    [enabled, isMuted, playAmbience, playAudio],
   );
 
   const toggleMuted = useCallback(() => {
+    if (!enabled) {
+      return;
+    }
+
     const nextMuted = !isMutedRef.current;
     applyMutedState(nextMuted);
     setIsMuted(nextMuted);
 
-    if (!nextMuted) {
+    if (!nextMuted && isAmbienceEnabledRef.current) {
       playAmbience(true);
     }
-  }, [applyMutedState, playAmbience]);
+  }, [applyMutedState, enabled, playAmbience]);
+
+  const startAmbience = useCallback(() => {
+    if (!enabled) {
+      return;
+    }
+
+    isAmbienceEnabledRef.current = true;
+    setIsAmbienceEnabled(true);
+    hasStartedAmbienceRef.current = true;
+
+    if (!isMutedRef.current) {
+      playAmbience(true);
+    }
+  }, [enabled, playAmbience]);
+
+  const stopAmbience = useCallback(() => {
+    isAmbienceEnabledRef.current = false;
+    setIsAmbienceEnabled(false);
+    hasStartedAmbienceRef.current = false;
+    clearAutostartRetry();
+    pauseAmbience();
+    setNeedsAudioUnlock(false);
+  }, [clearAutostartRetry, pauseAmbience]);
 
   const setAmbientBedRef = useCallback(
     (id: string) => (audioElement: HTMLAudioElement | null) => {
@@ -525,19 +607,20 @@ export function SoundProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo(
     () => ({
+      isEnabled: enabled,
       isMuted,
       playSound,
-      startAmbience: playAmbience,
-      stopAmbience: pauseAmbience,
+      startAmbience,
+      stopAmbience,
       toggleMuted,
     }),
-    [isMuted, pauseAmbience, playAmbience, playSound, toggleMuted],
+    [enabled, isMuted, playSound, startAmbience, stopAmbience, toggleMuted],
   );
 
   return (
     <SoundContext.Provider value={value}>
       {children}
-      {needsAudioUnlock && !isMuted ? (
+      {enabled && isAmbienceEnabled && needsAudioUnlock && !isMuted ? (
         <button
           aria-label="Enable sound"
           onClick={() => {
@@ -565,61 +648,65 @@ export function SoundProvider({ children }: { children: ReactNode }) {
           Tap to enable sound
         </button>
       ) : null}
-      {ACTIVE_SOUND_PACK.ambience.beds.map((track) => (
-        <audio
-          key={track.id}
-          loop
-          muted={isMuted}
-          preload="auto"
-          ref={setAmbientBedRef(track.id)}
-          src={track.src}
-        />
-      ))}
-      {ACTIVE_SOUND_PACK.ambience.accents.map((track) => (
-        <audio
-          key={track.id}
-          muted={isMuted}
-          preload="auto"
-          ref={setAmbientAccentRef(track.id)}
-          src={track.src}
-        />
-      ))}
-      <audio
-        muted={isMuted}
-        ref={moveSoundRef}
-        preload="auto"
-        src={ACTIVE_SOUND_PACK.effects.move}
-      />
-      <audio
-        muted={isMuted}
-        ref={invalidSoundRef}
-        preload="auto"
-        src={ACTIVE_SOUND_PACK.effects.invalid}
-      />
-      <audio
-        muted={isMuted}
-        ref={hintSoundRef}
-        preload="auto"
-        src={ACTIVE_SOUND_PACK.effects.hint}
-      />
-      <audio
-        muted={isMuted}
-        ref={completeSoundRef}
-        preload="auto"
-        src={ACTIVE_SOUND_PACK.effects.complete}
-      />
-      <audio
-        muted={isMuted}
-        ref={frogSoundRef}
-        preload="auto"
-        src={ACTIVE_SOUND_PACK.effects.frog}
-      />
-      <audio
-        muted={isMuted}
-        ref={whooshSoundRef}
-        preload="auto"
-        src="/sounds/mixkit-heavy-sliding-door-1523.wav"
-      />
+      {enabled ? (
+        <>
+          {ACTIVE_SOUND_PACK.ambience.beds.map((track) => (
+            <audio
+              key={track.id}
+              loop
+              muted={isMuted}
+              preload="auto"
+              ref={setAmbientBedRef(track.id)}
+              src={track.src}
+            />
+          ))}
+          {ACTIVE_SOUND_PACK.ambience.accents.map((track) => (
+            <audio
+              key={track.id}
+              muted={isMuted}
+              preload="auto"
+              ref={setAmbientAccentRef(track.id)}
+              src={track.src}
+            />
+          ))}
+          <audio
+            muted={isMuted}
+            ref={moveSoundRef}
+            preload="auto"
+            src={ACTIVE_SOUND_PACK.effects.move}
+          />
+          <audio
+            muted={isMuted}
+            ref={invalidSoundRef}
+            preload="auto"
+            src={ACTIVE_SOUND_PACK.effects.invalid}
+          />
+          <audio
+            muted={isMuted}
+            ref={hintSoundRef}
+            preload="auto"
+            src={ACTIVE_SOUND_PACK.effects.hint}
+          />
+          <audio
+            muted={isMuted}
+            ref={completeSoundRef}
+            preload="auto"
+            src={ACTIVE_SOUND_PACK.effects.complete}
+          />
+          <audio
+            muted={isMuted}
+            ref={frogSoundRef}
+            preload="auto"
+            src={ACTIVE_SOUND_PACK.effects.frog}
+          />
+          <audio
+            muted={isMuted}
+            ref={whooshSoundRef}
+            preload="auto"
+            src="/sounds/mixkit-heavy-sliding-door-1523.wav"
+          />
+        </>
+      ) : null}
     </SoundContext.Provider>
   );
 }

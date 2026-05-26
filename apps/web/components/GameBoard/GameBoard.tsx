@@ -22,7 +22,7 @@ import {
   slotsEqual,
 } from '@/lib/board';
 
-import { useSound } from '../SoundProvider';
+import { SoundProvider, useSound } from '../SoundProvider';
 import { BoardTile } from './BoardTile';
 import {
   BOARD_HINT_DELAY_MS,
@@ -43,6 +43,7 @@ import { GameInfoPanel } from './GameInfoPanel';
 export type GameBoardProps = {
   initialBoard: BoardState;
   isSignedIn: boolean;
+  soundEnabled?: boolean;
 };
 
 function formatElapsedTime(milliseconds: number) {
@@ -58,9 +59,15 @@ function formatElapsedTime(milliseconds: number) {
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
 
-export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
-  const { isMuted, playSound, startAmbience, stopAmbience, toggleMuted } =
-    useSound();
+function GameBoardContent({ initialBoard, isSignedIn }: GameBoardProps) {
+  const {
+    isEnabled: isSoundEnabled,
+    isMuted,
+    playSound,
+    startAmbience,
+    stopAmbience,
+    toggleMuted,
+  } = useSound();
   const SoundIcon = isMuted ? VolumeX : Volume2;
   const [board, setBoard] = useState<BoardState>(initialBoard);
   const [hintedSlot, setHintedSlot] = useState<string | null>(null);
@@ -781,19 +788,21 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
               strokeWidth={2.2}
             />
           </button>
-          <button
-            aria-label={isMuted ? 'Turn sound on' : 'Turn sound off'}
-            aria-pressed={!isMuted}
-            className="grid h-8 w-8 cursor-pointer place-items-center rounded-md border border-line transition-colors hover:bg-accent/10"
-            onClick={toggleMuted}
-            type="button"
-          >
-            <SoundIcon
-              aria-hidden="true"
-              className="size-4"
-              strokeWidth={2.2}
-            />
-          </button>
+          {isSoundEnabled ? (
+            <button
+              aria-label={isMuted ? 'Turn sound on' : 'Turn sound off'}
+              aria-pressed={!isMuted}
+              className="grid h-8 w-8 cursor-pointer place-items-center rounded-md border border-line transition-colors hover:bg-accent/10"
+              onClick={toggleMuted}
+              type="button"
+            >
+              <SoundIcon
+                aria-hidden="true"
+                className="size-4"
+                strokeWidth={2.2}
+              />
+            </button>
+          ) : null}
           <button
             aria-label={
               isBoardFullscreen
@@ -844,5 +853,17 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
         </div>
       )}
     </div>
+  );
+}
+
+export function GameBoard({
+  initialBoard,
+  isSignedIn,
+  soundEnabled = true,
+}: GameBoardProps) {
+  return (
+    <SoundProvider enabled={soundEnabled}>
+      <GameBoardContent initialBoard={initialBoard} isSignedIn={isSignedIn} />
+    </SoundProvider>
   );
 }
