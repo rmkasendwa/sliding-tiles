@@ -1,8 +1,9 @@
 'use client';
 
+import { LogOut, Mail, Trophy, User } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { routes, type AppRoute } from '@/lib/routes';
@@ -11,7 +12,7 @@ import { FrogLogo } from './FrogLogo';
 
 type MainHeaderNavProps = {
   logout: () => Promise<void>;
-  session: { name: string } | null;
+  session: { email: string; name: string } | null;
 };
 
 const baseLinkClass =
@@ -46,14 +47,32 @@ function isRouteActive(pathname: string, href: AppRoute) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+function getInitials(name: string) {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+
+  if (words.length === 0) {
+    return 'U';
+  }
+
+  if (words.length === 1) {
+    return words[0].slice(0, 2).toUpperCase();
+  }
+
+  return `${words[0][0] ?? ''}${words[1][0] ?? ''}`.toUpperCase();
+}
+
 export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
   const pathname = usePathname();
   const isHomePage = pathname === routes.home;
   const [hasScrolledHome, setHasScrolledHome] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const shouldRevealHeader = !isHomePage || hasScrolledHome;
   const closeDrawer = () => setIsDrawerOpen(false);
+  const closeAccountMenu = () => setIsAccountMenuOpen(false);
+  const accountMenuRef = useRef<HTMLDivElement>(null);
+  const accountButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const frameId = window.requestAnimationFrame(() => {
@@ -84,6 +103,7 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
   useEffect(() => {
     const frameId = window.requestAnimationFrame(() => {
       setIsDrawerOpen(false);
+      setIsAccountMenuOpen(false);
     });
 
     return () => window.cancelAnimationFrame(frameId);
@@ -109,6 +129,52 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
     };
   }, [isDrawerOpen]);
 
+  useEffect(() => {
+    if (!isAccountMenuOpen) {
+      return;
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+      if (
+        accountMenuRef.current?.contains(target) ||
+        accountButtonRef.current?.contains(target)
+      ) {
+        return;
+      }
+
+      setIsAccountMenuOpen(false);
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsAccountMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('pointerdown', handlePointerDown);
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isAccountMenuOpen]);
+
+  const handleCopyEmail = async () => {
+    if (!session) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(session.email);
+    } catch {
+      window.prompt('Copy your email address', session.email);
+    }
+
+    setIsAccountMenuOpen(false);
+  };
+
   const desktopNavigationLinks = (
     <>
       <Link
@@ -129,28 +195,7 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
       >
         Leaderboard
       </Link>
-      {session ? (
-        <>
-          <Link
-            aria-current={
-              isRouteActive(pathname, routes.profile) ? 'page' : undefined
-            }
-            className={getNavLinkClass(isRouteActive(pathname, routes.profile))}
-            href={routes.profile}
-            onClick={closeDrawer}
-          >
-            Profile
-          </Link>
-          <form action={logout}>
-            <button
-              className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[7px] border border-danger/30 px-3.5 font-bold text-danger"
-              type="submit"
-            >
-              Log out
-            </button>
-          </form>
-        </>
-      ) : (
+      {!session ? (
         <>
           <Link
             aria-current={
@@ -178,7 +223,7 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
             Sign up
           </Link>
         </>
-      )}
+      ) : null}
     </>
   );
 
@@ -299,6 +344,101 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
         </Link>
         <div className="flex items-center justify-end gap-2 max-[760px]:hidden">
           {desktopNavigationLinks}
+          {session ? (
+            <div className="relative">
+              <button
+                aria-expanded={isAccountMenuOpen}
+                aria-haspopup="menu"
+                className="inline-flex items-center gap-2 rounded-full border border-line bg-panel px-2 py-1.5 text-left transition-colors hover:bg-accent/6"
+                onClick={() => setIsAccountMenuOpen((open) => !open)}
+                ref={accountButtonRef}
+                type="button"
+              >
+                <span className="grid h-10 w-10 place-items-center rounded-full bg-accent-strong text-[0.95rem] font-bold uppercase text-white shadow-sm">
+                  {getInitials(session.name)}
+                </span>
+                <span className="grid pr-1">
+                  <strong className="max-w-48 truncate text-[0.95rem] text-foreground">
+                    {session.name}
+                  </strong>
+                </span>
+                <span className="mr-1 text-muted" aria-hidden="true">
+                  ▾
+                </span>
+              </button>
+              {isMounted ? (
+                <div
+                  className={[
+                    'absolute right-0 top-full z-50 mt-3 w-[min(18rem,calc(100vw-2rem))] overflow-hidden rounded-[18px] border border-line bg-panel shadow-panel transition-all duration-200',
+                    isAccountMenuOpen
+                      ? 'pointer-events-auto translate-y-0 opacity-100'
+                      : 'pointer-events-none -translate-y-2 opacity-0',
+                  ].join(' ')}
+                  ref={accountMenuRef}
+                  role="menu"
+                >
+                  <div className="border-b border-line px-4 py-4">
+                    <div className="flex items-center gap-3">
+                      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-accent-strong text-sm font-bold uppercase text-white">
+                        {getInitials(session.name)}
+                      </span>
+                      <div className="min-w-0 grid gap-0.5">
+                        <strong className="truncate text-[0.98rem] text-foreground">
+                          {session.name}
+                        </strong>
+                        <span className="truncate text-[0.82rem] text-muted">
+                          {session.email}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid gap-1 p-2">
+                    <Link
+                      className="flex min-h-11 items-center gap-2.5 rounded-[10px] px-3 text-[0.95rem] transition-colors hover:bg-accent/8"
+                      href={routes.profile}
+                      onClick={closeAccountMenu}
+                      role="menuitem"
+                    >
+                      <User className="h-4 w-4 text-muted" aria-hidden="true" />
+                      Profile
+                    </Link>
+                    <Link
+                      className="flex min-h-11 items-center gap-2.5 rounded-[10px] px-3 text-[0.95rem] transition-colors hover:bg-accent/8"
+                      href={routes.leaderboard}
+                      onClick={closeAccountMenu}
+                      role="menuitem"
+                    >
+                      <Trophy
+                        className="h-4 w-4 text-muted"
+                        aria-hidden="true"
+                      />
+                      Leaderboard
+                    </Link>
+                    <button
+                      className="flex min-h-11 items-center gap-2.5 rounded-[10px] px-3 text-left text-[0.95rem] transition-colors hover:bg-accent/8"
+                      onClick={handleCopyEmail}
+                      type="button"
+                    >
+                      <Mail className="h-4 w-4 text-muted" aria-hidden="true" />
+                      Copy email
+                    </button>
+                    <form action={logout} onSubmit={closeAccountMenu}>
+                      <button
+                        className="flex min-h-11 w-full items-center gap-2.5 rounded-[10px] px-3 text-left text-[0.95rem] font-bold text-danger transition-colors hover:bg-danger/8"
+                        type="submit"
+                      >
+                        <LogOut
+                          className="h-4 w-4 text-danger/80"
+                          aria-hidden="true"
+                        />
+                        Log out
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
         </div>
         <button
           aria-controls="mobile-navigation"
