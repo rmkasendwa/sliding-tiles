@@ -39,7 +39,7 @@ export default async function LoginPage() {
               <p className="inline-flex w-fit items-center rounded-full border border-accent/20 bg-accent/10 px-3 py-1 text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-accent-strong">
                 Pond access
               </p>
-              <h1 className="max-w-[14ch] text-[clamp(2.1rem,5vw,3.6rem)] leading-[0.92] tracking-[-0.02em] text-foreground">
+              <h1 className="auth-display-heading max-w-[14ch] text-foreground">
                 Jump back into your best run.
               </h1>
               <p className="max-w-[34ch] text-[1rem] leading-7 text-foreground/72">

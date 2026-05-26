@@ -170,6 +170,12 @@
   .play-overlay-float {
     animation: play-overlay-float 3200ms ease-in-out infinite;
   }
+
+  .auth-display-heading {
+    font-size: clamp(1.55rem, 3.3vw, 2.35rem);
+    line-height: 0.96;
+    letter-spacing: -0.015em;
+  }
 }
 
 @keyframes celebration-fade-in {

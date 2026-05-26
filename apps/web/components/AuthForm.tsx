@@ -14,21 +14,81 @@ type AuthFormProps = {
   mode: 'login' | 'signup';
 };
 
+type FormValues = {
+  confirmPassword: string;
+  email: string;
+  name: string;
+  password: string;
+};
+
+function getPasswordStrength(password: string) {
+  if (!password) {
+    return 0;
+  }
+
+  let score = 0;
+  if (password.length >= 8) {
+    score += 1;
+  }
+  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) {
+    score += 1;
+  }
+  if (/[0-9]/.test(password)) {
+    score += 1;
+  }
+  if (/[^a-zA-Z0-9]/.test(password)) {
+    score += 1;
+  }
+
+  return score;
+}
+
+function getPasswordStrengthLabel(strength: number) {
+  if (strength <= 1) {
+    return 'Weak';
+  }
+
+  if (strength <= 2) {
+    return 'Fair';
+  }
+
+  if (strength <= 3) {
+    return 'Good';
+  }
+
+  return 'Strong';
+}
+
 export function AuthForm({ mode }: AuthFormProps) {
   const isSignup = mode === 'signup';
   const [clientErrors, setClientErrors] = useState<Record<string, string>>({});
   const [editedFields, setEditedFields] = useState<Record<string, boolean>>({});
   const [dismissServerMessage, setDismissServerMessage] = useState(false);
-  const [formValues, setFormValues] = useState({
+  const [formValues, setFormValues] = useState<FormValues>({
+    confirmPassword: '',
     email: '',
     name: '',
     password: '',
   });
+  const passwordStrength = getPasswordStrength(formValues.password);
+  const passwordStrengthLabel = getPasswordStrengthLabel(passwordStrength);
+  const passwordStrengthClass =
+    passwordStrength <= 1
+      ? 'text-danger'
+      : passwordStrength <= 2
+        ? 'text-[#9a5d21]'
+        : passwordStrength <= 3
+          ? 'text-accent-strong'
+          : 'text-accent';
   const fieldLabelClass = isSignup
-    ? 'font-bold'
-    : 'text-[0.76rem] font-extrabold uppercase tracking-[0.07em] text-foreground/72';
+    ? 'text-[0.78rem] font-medium tracking-[0.01em] text-foreground/76'
+    : 'text-[0.68rem] font-bold uppercase tracking-[0.08em] text-foreground/64';
 
-  const validateField = (fieldName: string, rawValue: string) => {
+  const validateField = (
+    fieldName: keyof FormValues,
+    rawValue: string,
+    values: FormValues,
+  ) => {
     const value = rawValue.trim();
 
     if (fieldName === 'name') {
@@ -78,6 +138,22 @@ export function AuthForm({ mode }: AuthFormProps) {
       return undefined;
     }
 
+    if (fieldName === 'confirmPassword') {
+      if (!isSignup) {
+        return undefined;
+      }
+
+      if (!value) {
+        return 'Confirm your password.';
+      }
+
+      if (value !== values.password) {
+        return 'Passwords do not match.';
+      }
+
+      return undefined;
+    }
+
     return undefined;
   };
 
@@ -103,8 +179,12 @@ export function AuthForm({ mode }: AuthFormProps) {
     ].join(' ');
   };
 
-  const updateClientValidation = (fieldName: string, value: string) => {
-    const error = validateField(fieldName, value);
+  const updateClientValidation = (
+    fieldName: keyof FormValues,
+    value: string,
+    values: FormValues,
+  ) => {
+    const error = validateField(fieldName, value, values);
     setClientErrors((previous) => {
       if (!error) {
         if (!(fieldName in previous)) {
@@ -121,15 +201,25 @@ export function AuthForm({ mode }: AuthFormProps) {
   };
 
   const handleFieldChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target;
+    const fieldName = event.target.name as keyof FormValues;
+    const { value } = event.target;
+    const nextValues = {
+      ...formValues,
+      [fieldName]: value,
+    };
 
-    setFormValues((previous) => ({
-      ...previous,
-      [name]: value,
-    }));
-    setEditedFields((previous) => ({ ...previous, [name]: true }));
+    setFormValues(nextValues);
+    setEditedFields((previous) => ({ ...previous, [fieldName]: true }));
     setDismissServerMessage(true);
-    updateClientValidation(name, value);
+    updateClientValidation(fieldName, value, nextValues);
+
+    if (isSignup && fieldName === 'password' && nextValues.confirmPassword) {
+      updateClientValidation(
+        'confirmPassword',
+        nextValues.confirmPassword,
+        nextValues,
+      );
+    }
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -137,14 +227,20 @@ export function AuthForm({ mode }: AuthFormProps) {
     setDismissServerMessage(false);
 
     const formData = new FormData(event.currentTarget);
-    const fieldsToValidate = isSignup
-      ? ['name', 'email', 'password']
+    const submitValues: FormValues = {
+      confirmPassword: String(formData.get('confirmPassword') ?? ''),
+      email: String(formData.get('email') ?? ''),
+      name: String(formData.get('name') ?? ''),
+      password: String(formData.get('password') ?? ''),
+    };
+    const fieldsToValidate: Array<keyof FormValues> = isSignup
+      ? ['name', 'email', 'password', 'confirmPassword']
       : ['email', 'password'];
     const nextErrors: Record<string, string> = {};
 
     for (const fieldName of fieldsToValidate) {
-      const value = String(formData.get(fieldName) ?? '');
-      const error = validateField(fieldName, value);
+      const value = submitValues[fieldName];
+      const error = validateField(fieldName, value, submitValues);
       if (error) {
         nextErrors[fieldName] = error;
       }
@@ -174,17 +270,10 @@ export function AuthForm({ mode }: AuthFormProps) {
       ].join(' ')}
     >
       <div className="grid gap-1.5">
-        <p className="text-[0.73rem] font-extrabold uppercase tracking-[0.08em] text-accent-strong">
+        <p className="text-[0.62rem] font-bold uppercase tracking-widest text-accent-strong/90">
           {isSignup ? 'Create account' : 'Welcome back'}
         </p>
-        <h1
-          className={[
-            'leading-[0.94] tracking-[-0.02em]',
-            isSignup
-              ? 'text-[clamp(2.4rem,7vw,5.7rem)]'
-              : 'text-[clamp(1.7rem,3.8vw,2.3rem)]',
-          ].join(' ')}
-        >
+        <h1 className="auth-display-heading">
           {isSignup ? 'Sign up' : 'Log in'}
         </h1>
         {!isSignup && (
@@ -266,12 +355,72 @@ export function AuthForm({ mode }: AuthFormProps) {
           required
           value={formValues.password}
         />
+        {isSignup && (
+          <div className="mt-1 grid gap-1.5">
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-panel-strong/60">
+              <div
+                className={[
+                  'h-full rounded-full transition-all duration-200',
+                  passwordStrength <= 1
+                    ? 'bg-danger'
+                    : passwordStrength <= 2
+                      ? 'bg-[#b37a37]'
+                      : passwordStrength <= 3
+                        ? 'bg-accent-strong'
+                        : 'bg-accent',
+                ].join(' ')}
+                style={{ width: `${(passwordStrength / 4) * 100}%` }}
+              />
+            </div>
+            <p
+              className={[
+                'text-[0.78rem] font-bold',
+                passwordStrengthClass,
+              ].join(' ')}
+            >
+              Password strength: {passwordStrengthLabel}
+            </p>
+          </div>
+        )}
         {getFieldError('password') && (
           <p className="text-[0.9rem] text-danger" id="password-error">
             {getFieldError('password')}
           </p>
         )}
       </div>
+
+      {isSignup && (
+        <div className="grid gap-2">
+          <label className={fieldLabelClass} htmlFor="confirmPassword">
+            Confirm Password
+          </label>
+          <input
+            aria-describedby={
+              getFieldError('confirmPassword')
+                ? 'confirm-password-error'
+                : undefined
+            }
+            aria-invalid={Boolean(getFieldError('confirmPassword'))}
+            className={getInputClass('confirmPassword')}
+            id="confirmPassword"
+            name="confirmPassword"
+            type="password"
+            autoComplete="new-password"
+            onChange={handleFieldChange}
+            placeholder="Re-enter your password"
+            required
+            value={formValues.confirmPassword}
+          />
+          {getFieldError('confirmPassword') && (
+            <p
+              className="text-[0.9rem] text-danger"
+              id="confirm-password-error"
+            >
+              {getFieldError('confirmPassword')}
+            </p>
+          )}
+        </div>
+      )}
 
       {state.message && !dismissServerMessage && (
         <p className="text-[0.9rem] text-danger">{state.message}</p>

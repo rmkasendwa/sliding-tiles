@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { Sparkles } from 'lucide-react';
 
 import { AuthForm } from '@/components/AuthForm';
 import { routes } from '@/lib/routes';
@@ -38,7 +37,7 @@ export default async function SignupPage() {
               <p className="inline-flex w-fit items-center rounded-full border border-accent/20 bg-accent/10 px-3 py-1 text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-accent-strong">
                 New challenger
               </p>
-              <h1 className="max-w-[16ch] text-[clamp(2.05rem,5vw,3.45rem)] leading-[0.92] tracking-[-0.02em] text-foreground">
+              <h1 className="auth-display-heading max-w-[16ch] text-foreground">
                 Start your first streak in the pond.
               </h1>
               <p className="max-w-[34ch] text-[1rem] leading-7 text-foreground/72">
@@ -81,10 +80,6 @@ export default async function SignupPage() {
               className="absolute -inset-2 rounded-[20px] bg-linear-to-b from-accent/18 to-transparent blur-lg"
             />
             <div className="relative">
-              <p className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-line/80 bg-white/76 px-2.5 py-1 text-[0.74rem] font-bold uppercase tracking-[0.08em] text-foreground/75">
-                <Sparkles className="h-3.5 w-3.5 text-accent-strong" />
-                Account creation
-              </p>
               <AuthForm mode="signup" />
               <p className="mt-4 text-center leading-normal text-muted">
                 Already have an account?{' '}

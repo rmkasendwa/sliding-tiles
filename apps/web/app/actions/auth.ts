@@ -11,20 +11,17 @@ import {
 } from '@/lib/api';
 import { routes } from '@/lib/routes';
 import { destroySession, setSessionToken } from '@/lib/session';
-import {
-  AuthFormState,
-  loginSchema,
-  signupSchema,
-} from '@/lib/validation';
+import { AuthFormState, loginSchema, signupSchema } from '@/lib/validation';
 
 export async function signup(
   _state: AuthFormState,
-  formData: FormData
+  formData: FormData,
 ): Promise<AuthFormState> {
   const validatedFields = signupSchema.safeParse({
     name: formData.get('name'),
     email: formData.get('email'),
     password: formData.get('password'),
+    confirmPassword: formData.get('confirmPassword'),
   });
 
   if (!validatedFields.success) {
@@ -65,7 +62,7 @@ export async function signup(
 
 export async function login(
   _state: AuthFormState,
-  formData: FormData
+  formData: FormData,
 ): Promise<AuthFormState> {
   const validatedFields = loginSchema.safeParse({
     email: formData.get('email'),
