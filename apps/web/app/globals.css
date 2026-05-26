@@ -138,6 +138,16 @@
     animation: profile-rise 520ms ease-out both;
   }
 
+  .scroll-reveal {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+    will-change: opacity, transform;
+  }
+
+  .scroll-reveal.is-visible {
+    animation: profile-rise 520ms ease-out both;
+  }
+
   .profile-trend-bar {
     transform-origin: left center;
     transform: scaleX(var(--bar-scale, 1));
@@ -238,7 +248,14 @@
 
 @media (prefers-reduced-motion: reduce) {
   .profile-reveal,
+  .scroll-reveal,
+  .scroll-reveal.is-visible,
   .profile-trend-bar {
     animation: none !important;
+  }
+
+  .scroll-reveal {
+    opacity: 1;
+    transform: none;
   }
 }

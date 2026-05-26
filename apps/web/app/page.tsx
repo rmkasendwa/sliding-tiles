@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 import { FrogLogo } from '@/components/FrogLogo';
+import { ScrollRevealObserver } from '@/components/ScrollRevealObserver';
 import { routes } from '@/lib/routes';
 
 const heroTiles = [2, 0, 5, 3, 8, 1, 6, 4, null] as const;
@@ -89,9 +90,13 @@ function HomePuzzlePreview() {
 
 export default function HomePage() {
   return (
-    <div className="grid gap-0 overflow-x-clip">
+    <div className="grid gap-0 overflow-x-clip" id="home-page">
+      <ScrollRevealObserver targetId="home-page" />
       <section className="page-rail mx-auto grid min-h-svh grid-cols-[minmax(0,0.92fr)_minmax(360px,1.08fr)] items-center gap-20 py-10 max-[900px]:grid-cols-1">
-        <div className="grid gap-6">
+        <div
+          className="scroll-reveal grid gap-6"
+          style={{ animationDelay: '40ms' }}
+        >
           <FrogLogo className="w-14" />
           <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
             Sliding Tiles
@@ -127,11 +132,16 @@ export default function HomePage() {
             ))}
           </ul>
         </div>
-        <HomePuzzlePreview />
+        <div className="scroll-reveal" style={{ animationDelay: '80ms' }}>
+          <HomePuzzlePreview />
+        </div>
       </section>
 
       <section className="bg-[#17231f] py-16 text-white">
-        <div className="page-rail mx-auto grid gap-8">
+        <div
+          className="page-rail scroll-reveal mx-auto grid gap-8"
+          style={{ animationDelay: '120ms' }}
+        >
           <div className="grid max-w-215 gap-4">
             <p className="text-[0.78rem] font-extrabold uppercase text-[#aee686]">
               Your next board
@@ -146,10 +156,11 @@ export default function HomePage() {
             </p>
           </div>
           <div className="grid grid-cols-3 gap-4 max-[900px]:grid-cols-1">
-            {highlights.map((item) => (
+            {highlights.map((item, index) => (
               <article
-                className="rounded-lg border border-white/12 bg-white/8 p-5"
+                className="scroll-reveal rounded-lg border border-white/12 bg-white/8 p-5"
                 key={item.title}
+                style={{ animationDelay: `${160 + index * 30}ms` }}
               >
                 <h3 className="text-xl">{item.title}</h3>
                 <p className="mt-3 leading-7 text-white/68">{item.text}</p>
@@ -160,7 +171,10 @@ export default function HomePage() {
       </section>
 
       <section className="bg-[#dfeccf] py-16">
-        <div className="page-rail mx-auto grid gap-8">
+        <div
+          className="page-rail scroll-reveal mx-auto grid gap-8"
+          style={{ animationDelay: '200ms' }}
+        >
           <div className="grid max-w-240 gap-3">
             <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
               From shuffle to splash
@@ -175,10 +189,11 @@ export default function HomePage() {
             </p>
           </div>
           <ol className="grid grid-cols-3 gap-4 [counter-reset:step] max-[900px]:grid-cols-1">
-            {flow.map((item) => (
+            {flow.map((item, index) => (
               <li
-                className="grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-3 rounded-[7px] border border-accent/16 bg-white/55 p-3 [counter-increment:step] before:grid before:aspect-square before:place-items-center before:rounded-full before:bg-accent before:text-sm before:font-bold before:text-white before:content-[counter(step)]"
+                className="scroll-reveal grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-3 rounded-[7px] border border-accent/16 bg-white/55 p-3 [counter-increment:step] before:grid before:aspect-square before:place-items-center before:rounded-full before:bg-accent before:text-sm before:font-bold before:text-white before:content-[counter(step)]"
                 key={item}
+                style={{ animationDelay: `${240 + index * 30}ms` }}
               >
                 <span className="leading-6 text-muted">{item}</span>
               </li>
@@ -187,8 +202,14 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="page-rail mx-auto grid grid-cols-[minmax(560px,0.78fr)_minmax(0,1.22fr)] items-center gap-8 py-16 max-[1180px]:grid-cols-1">
-        <div className="grid gap-4">
+      <section
+        className="page-rail scroll-reveal mx-auto grid grid-cols-[minmax(560px,0.78fr)_minmax(0,1.22fr)] items-center gap-8 py-16 max-[1180px]:grid-cols-1"
+        style={{ animationDelay: '280ms' }}
+      >
+        <div
+          className="scroll-reveal grid gap-4"
+          style={{ animationDelay: '300ms' }}
+        >
           <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
             Ready when you are
           </p>
@@ -215,10 +236,11 @@ export default function HomePage() {
           </div>
         </div>
         <div className="grid grid-cols-3 gap-4 max-[760px]:grid-cols-1">
-          {playModes.map((item) => (
+          {playModes.map((item, index) => (
             <div
-              className="grid gap-2.5 rounded-lg border border-line bg-panel p-4 shadow-[0_12px_34px_rgba(35,35,28,0.07)] max-[760px]:grid-cols-[2.8rem_minmax(0,1fr)] max-[760px]:items-center max-[760px]:p-3"
+              className="scroll-reveal grid gap-2.5 rounded-lg border border-line bg-panel p-4 shadow-[0_12px_34px_rgba(35,35,28,0.07)] max-[760px]:grid-cols-[2.8rem_minmax(0,1fr)] max-[760px]:items-center max-[760px]:p-3"
               key={item.title}
+              style={{ animationDelay: `${330 + index * 30}ms` }}
             >
               <span className="grid aspect-square w-9 place-items-center rounded-full bg-accent/10 text-xs font-extrabold text-accent-strong max-[760px]:w-auto">
                 {item.label.slice(0, 1)}
