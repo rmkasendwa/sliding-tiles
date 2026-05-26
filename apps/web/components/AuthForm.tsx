@@ -17,6 +17,13 @@ type AuthFormProps = {
 export function AuthForm({ mode }: AuthFormProps) {
   const isSignup = mode === 'signup';
   const [clientErrors, setClientErrors] = useState<Record<string, string>>({});
+  const [editedFields, setEditedFields] = useState<Record<string, boolean>>({});
+  const [dismissServerMessage, setDismissServerMessage] = useState(false);
+  const [formValues, setFormValues] = useState({
+    email: '',
+    name: '',
+    password: '',
+  });
   const fieldLabelClass = isSignup
     ? 'font-bold'
     : 'text-[0.76rem] font-extrabold uppercase tracking-[0.07em] text-foreground/72';
@@ -75,7 +82,15 @@ export function AuthForm({ mode }: AuthFormProps) {
   };
 
   const getFieldError = (fieldName: string) => {
-    return clientErrors[fieldName] ?? state.errors?.[fieldName]?.[0];
+    if (clientErrors[fieldName]) {
+      return clientErrors[fieldName];
+    }
+
+    if (editedFields[fieldName]) {
+      return undefined;
+    }
+
+    return state.errors?.[fieldName]?.[0];
   };
 
   const getInputClass = (fieldName: string) => {
@@ -106,10 +121,21 @@ export function AuthForm({ mode }: AuthFormProps) {
   };
 
   const handleFieldChange = (event: ChangeEvent<HTMLInputElement>) => {
-    updateClientValidation(event.target.name, event.target.value);
+    const { name, value } = event.target;
+
+    setFormValues((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
+    setEditedFields((previous) => ({ ...previous, [name]: true }));
+    setDismissServerMessage(true);
+    updateClientValidation(name, value);
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    setEditedFields({});
+    setDismissServerMessage(false);
+
     const formData = new FormData(event.currentTarget);
     const fieldsToValidate = isSignup
       ? ['name', 'email', 'password']
@@ -184,6 +210,7 @@ export function AuthForm({ mode }: AuthFormProps) {
             onChange={handleFieldChange}
             placeholder="Ada Lovelace"
             required
+            value={formValues.name}
           />
           {getFieldError('name') && (
             <p className="text-[0.9rem] text-danger" id="name-error">
@@ -208,6 +235,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           onChange={handleFieldChange}
           placeholder="you@example.com"
           required
+          value={formValues.email}
         />
         {getFieldError('email') && (
           <p className="text-[0.9rem] text-danger" id="email-error">
@@ -236,6 +264,7 @@ export function AuthForm({ mode }: AuthFormProps) {
             isSignup ? 'At least 8 chars, letters + numbers' : 'Your password'
           }
           required
+          value={formValues.password}
         />
         {getFieldError('password') && (
           <p className="text-[0.9rem] text-danger" id="password-error">
@@ -244,7 +273,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         )}
       </div>
 
-      {state.message && (
+      {state.message && !dismissServerMessage && (
         <p className="text-[0.9rem] text-danger">{state.message}</p>
       )}
 
