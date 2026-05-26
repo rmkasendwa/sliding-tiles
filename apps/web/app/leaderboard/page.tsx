@@ -31,6 +31,20 @@ function perLevel(value: number, level: number, precision = 2) {
   return (value / safeLevel).toFixed(precision);
 }
 
+function getInitials(name: string) {
+  const parts = name
+    .split(' ')
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .slice(0, 2);
+
+  if (parts.length === 0) {
+    return 'PL';
+  }
+
+  return parts.map((part) => part[0]?.toUpperCase() ?? '').join('');
+}
+
 function getRankTone(rank: number) {
   if (rank === 1) {
     return 'bg-[#f6edd0] border-[#ecd387] text-[#8a6d21]';
@@ -80,8 +94,8 @@ export default async function LeaderboardPage() {
         )
       : 0;
   const topPlayers = Array.from(
-    scores.reduce(
-      (acc, score) => {
+    scores
+      .reduce((acc, score) => {
         const existing = acc.get(score.userId);
         if (existing) {
           existing.runs += 1;
@@ -96,12 +110,8 @@ export default async function LeaderboardPage() {
           userId: score.userId,
         });
         return acc;
-      },
-      new Map<
-        string,
-        { bestLevel: number; name: string; runs: number; userId: string }
-      >(),
-    ).values(),
+      }, new Map<string, { bestLevel: number; name: string; runs: number; userId: string }>())
+      .values(),
   )
     .sort((a, b) => b.bestLevel - a.bestLevel || b.runs - a.runs)
     .slice(0, 8);
@@ -111,28 +121,120 @@ export default async function LeaderboardPage() {
         new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime(),
     )
     .slice(0, 8);
+  const podium = scores.slice(0, 3);
+  const currentUserRank = session?.id
+    ? scores.findIndex((score) => score.userId === session.id) + 1
+    : 0;
 
   return (
     <section className="page-rail mx-auto grid gap-6 py-11 pb-14">
-      <div className="flex flex-wrap items-end justify-between gap-[18px]">
+      <div className="grid gap-4 rounded-xl border border-accent/20 bg-[radial-gradient(circle_at_top_right,rgba(128,196,78,0.2),transparent_48%),linear-gradient(140deg,rgba(24,58,43,0.08),rgba(255,255,255,0.35))] p-5 shadow-panel min-[1060px]:grid-cols-[minmax(0,1fr)_320px]">
         <div>
-          <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
+          <p className="text-[0.78rem] font-extrabold uppercase tracking-[0.08em] text-accent-strong">
             Pond hall of fame
           </p>
-          <h1 className="text-[clamp(2.4rem,7vw,5.7rem)] leading-[0.94]">
+          <h1 className="mt-1 text-[clamp(2.5rem,7vw,5.9rem)] leading-[0.92]">
             Fast frogs. Clean runs.
           </h1>
-          <p className="mt-2 max-w-[62ch] text-muted">
-            Every posted run is a claim to the crown. Climb by pushing deeper
-            levels, shaving seconds, and keeping your moves razor tight.
+          <p className="mt-3 max-w-[66ch] text-muted">
+            This board rewards range and discipline. Hit deeper levels, cut dead
+            moves, and keep your clock brutal. The top lane changes fast.
           </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <span className="rounded-full border border-accent/22 bg-white/70 px-3 py-1 text-xs font-bold uppercase text-accent-strong">
+              Live top 50
+            </span>
+            <span className="rounded-full border border-accent/22 bg-white/70 px-3 py-1 text-xs font-bold uppercase text-accent-strong">
+              Best level, then time
+            </span>
+            {currentUserRank > 0 ? (
+              <span className="rounded-full border border-accent/22 bg-white/70 px-3 py-1 text-xs font-bold uppercase text-accent-strong">
+                Your best rank: #{currentUserRank}
+              </span>
+            ) : null}
+          </div>
         </div>
-        <Link
-          className="inline-flex min-h-10 items-center justify-center rounded-[7px] border border-accent bg-accent px-3.5 font-bold text-white"
-          href={routes.play}
-        >
-          Play a run
-        </Link>
+        <div className="grid gap-3 rounded-lg border border-line bg-panel/90 p-3.5">
+          <p className="text-[0.74rem] font-extrabold uppercase text-muted">
+            Featured run
+          </p>
+          {scores[0] ? (
+            <>
+              <p className="text-lg font-bold text-foreground">
+                {scores[0].user?.name ?? 'Player'}
+              </p>
+              <p className="text-sm text-muted">
+                Level {scores[0].level} · {scores[0].moves} moves ·{' '}
+                {formatDuration(scores[0].timeSeconds)}
+              </p>
+              <p className="text-xs text-muted">
+                Completed {formatCompletedAt(scores[0].completedAt)}
+              </p>
+            </>
+          ) : (
+            <p className="text-sm text-muted">Post a run to claim this spot.</p>
+          )}
+          <Link
+            className="mt-1 inline-flex min-h-10 items-center justify-center rounded-[7px] border border-accent bg-accent px-3.5 font-bold text-white"
+            href={routes.play}
+          >
+            Play a run
+          </Link>
+        </div>
+      </div>
+
+      <div className="grid gap-3 min-[780px]:grid-cols-3">
+        {podium.map((score, index) => {
+          const rank = index + 1;
+          const playerName = score.user?.name ?? 'Player';
+          return (
+            <article
+              className={[
+                'rounded-lg border p-4 shadow-panel',
+                rank === 1
+                  ? 'border-[#e2c066] bg-[linear-gradient(180deg,#fff8e2,#fff1cb)]'
+                  : rank === 2
+                    ? 'border-[#bfd0dd] bg-[linear-gradient(180deg,#f8fbff,#eef3f8)]'
+                    : 'border-[#ddb18a] bg-[linear-gradient(180deg,#fff5ed,#f6e2d0)]',
+              ].join(' ')}
+              key={score.id}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[0.8rem] font-extrabold uppercase text-muted">
+                  #{rank}
+                </span>
+                <span className="text-xs font-bold uppercase text-muted">
+                  {formatCompletedAt(score.completedAt)}
+                </span>
+              </div>
+              <div className="mt-3 flex items-center gap-2.5">
+                <span className="grid h-10 w-10 place-items-center rounded-full border border-black/10 bg-white/70 text-sm font-extrabold text-accent-strong">
+                  {getInitials(playerName)}
+                </span>
+                <p className="text-lg font-bold text-foreground">
+                  {playerName}
+                  {session?.id === score.userId ? ' (You)' : ''}
+                </p>
+              </div>
+              <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
+                <p className="rounded-md border border-black/8 bg-white/60 px-2 py-1.5">
+                  L{score.level}
+                </p>
+                <p className="rounded-md border border-black/8 bg-white/60 px-2 py-1.5">
+                  {score.moves} mv
+                </p>
+                <p className="rounded-md border border-black/8 bg-white/60 px-2 py-1.5">
+                  {formatDuration(score.timeSeconds)}
+                </p>
+              </div>
+            </article>
+          );
+        })}
+        {podium.length === 0 ? (
+          <div className="rounded-lg border border-line bg-panel p-4 text-muted min-[780px]:col-span-3">
+            Top-3 podium will appear as soon as runs are posted.
+          </div>
+        ) : null}
       </div>
 
       <div className="grid grid-cols-4 gap-3 max-[980px]:grid-cols-2 max-[620px]:grid-cols-1">
@@ -187,7 +289,9 @@ export default async function LeaderboardPage() {
                 className="grid grid-cols-[46px_minmax(0,1fr)_auto_auto] items-center gap-2 border-b border-line/80 px-4 py-2.5 last:border-b-0"
                 key={player.userId}
               >
-                <span className="text-sm font-bold text-muted">#{index + 1}</span>
+                <span className="text-sm font-bold text-muted">
+                  #{index + 1}
+                </span>
                 <span className="font-semibold text-foreground">
                   {player.name}
                   {session?.id === player.userId ? ' (You)' : ''}
@@ -225,7 +329,9 @@ export default async function LeaderboardPage() {
               </li>
             ))}
             {recentRuns.length === 0 ? (
-              <li className="px-4 py-3 text-sm text-muted">No recent completions.</li>
+              <li className="px-4 py-3 text-sm text-muted">
+                No recent completions.
+              </li>
             ) : null}
           </ul>
         </article>
