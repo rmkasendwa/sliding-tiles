@@ -51,13 +51,22 @@ const heroSignals = [
   'Climb the leaderboard with cleaner runs.',
 ];
 
+const heroStats = [
+  { label: 'Puzzle size', value: '3x3' },
+  { label: 'Entry time', value: '< 10 sec' },
+  { label: 'Best for', value: 'Quick focus' },
+];
+
 function HomePuzzlePreview() {
   return (
     <div
       aria-label="Scrambled frog puzzle preview"
-      className="rounded-lg border border-line bg-panel p-4.5 shadow-panel"
+      className="relative overflow-hidden rounded-[18px] border border-accent/20 bg-[radial-gradient(circle_at_top,rgba(132,200,88,0.22),transparent_52%),linear-gradient(155deg,rgba(255,255,255,0.92),rgba(236,228,211,0.9))] p-4.5 shadow-panel"
       role="img"
     >
+      <div className="pointer-events-none absolute right-3 top-3 rounded-full border border-accent/18 bg-white/75 px-2.5 py-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-accent-strong">
+        Demo board
+      </div>
       <div className="grid aspect-square grid-cols-3 gap-2 overflow-hidden rounded-[7px]">
         {heroTiles.map((homeIndex, index) => {
           const row = homeIndex === null ? 0 : Math.floor(homeIndex / 3);
@@ -84,24 +93,38 @@ function HomePuzzlePreview() {
           );
         })}
       </div>
+      <p className="mt-3 text-xs font-bold uppercase tracking-[0.08em] text-accent-strong/85">
+        One empty slot. Infinite retries.
+      </p>
     </div>
   );
 }
 
 export default function HomePage() {
   return (
-    <div className="grid gap-0 overflow-x-clip" id="home-page">
+    <div className="relative grid gap-0 overflow-x-clip" id="home-page">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[30rem] bg-[radial-gradient(circle_at_18%_28%,rgba(102,168,78,0.23),transparent_42%),radial-gradient(circle_at_86%_12%,rgba(37,111,90,0.16),transparent_38%)]"
+      />
       <ScrollRevealObserver targetId="home-page" />
       <section className="page-rail mx-auto grid min-h-svh grid-cols-[minmax(0,0.92fr)_minmax(360px,1.08fr)] items-center gap-20 py-10 max-[900px]:grid-cols-1">
         <div
-          className="scroll-reveal grid gap-6"
+          className="scroll-reveal grid gap-6 rounded-[20px] border border-accent/18 bg-white/62 p-6 shadow-[0_22px_56px_rgba(24,58,43,0.12)] backdrop-blur-[2px]"
           style={{ animationDelay: '40ms' }}
         >
-          <FrogLogo className="w-14" />
-          <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
-            Sliding Tiles
-          </p>
-          <h1 className="text-[clamp(3rem,6.6vw,6.1rem)] leading-[0.9]">
+          <div className="flex items-center justify-between gap-4 max-[540px]:grid">
+            <div className="flex items-center gap-3">
+              <FrogLogo className="w-14" />
+              <p className="text-[0.78rem] font-extrabold uppercase tracking-[0.08em] text-accent-strong">
+                Sliding Tiles
+              </p>
+            </div>
+            <span className="inline-flex h-8 items-center rounded-full border border-accent/20 bg-white/72 px-3 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-accent-strong">
+              Calm speedrun puzzle
+            </span>
+          </div>
+          <h1 className="text-[clamp(1.9rem,3.6vw,3.4rem)] leading-[0.92]">
             Solve the pond
           </h1>
           <p className="max-w-[58ch] text-[1.12rem] leading-[1.7] text-muted">
@@ -111,7 +134,7 @@ export default function HomePage() {
           </p>
           <div className="flex flex-wrap gap-3">
             <Link
-              className="inline-flex min-h-10 items-center justify-center rounded-[7px] border border-accent bg-accent px-3.5 font-bold text-white"
+              className="inline-flex min-h-10 items-center justify-center rounded-[7px] border border-accent bg-accent px-3.5 font-bold text-white shadow-[0_10px_22px_rgba(37,111,90,0.28)]"
               href={routes.play}
             >
               Start playing
@@ -122,6 +145,21 @@ export default function HomePage() {
             >
               View leaderboard
             </Link>
+          </div>
+          <div className="grid grid-cols-3 gap-2.5 max-[560px]:grid-cols-1">
+            {heroStats.map((stat) => (
+              <article
+                className="rounded-[10px] border border-accent/15 bg-white/72 px-3 py-2"
+                key={stat.label}
+              >
+                <p className="text-[0.66rem] font-extrabold uppercase tracking-[0.08em] text-muted">
+                  {stat.label}
+                </p>
+                <p className="mt-1 text-sm font-bold text-accent-strong">
+                  {stat.value}
+                </p>
+              </article>
+            ))}
           </div>
           <ul className="grid max-w-[58ch] gap-2.5 pt-2 text-sm font-bold text-accent-strong">
             {heroSignals.map((signal) => (
@@ -146,7 +184,7 @@ export default function HomePage() {
             <p className="text-[0.78rem] font-extrabold uppercase text-[#aee686]">
               Your next board
             </p>
-            <h2 className="text-[clamp(2.4rem,5vw,5rem)] leading-[0.94]">
+            <h2 className="text-[clamp(1.9rem,3.6vw,3.4rem)] leading-[0.94]">
               Slide into the pond
             </h2>
             <p className="max-w-[66ch] text-lg leading-8 text-white/72">
@@ -158,10 +196,13 @@ export default function HomePage() {
           <div className="grid grid-cols-3 gap-4 max-[900px]:grid-cols-1">
             {highlights.map((item, index) => (
               <article
-                className="scroll-reveal rounded-lg border border-white/12 bg-white/8 p-5"
+                className="scroll-reveal rounded-xl border border-white/12 bg-[linear-gradient(170deg,rgba(255,255,255,0.13),rgba(255,255,255,0.05))] p-5 shadow-[0_16px_34px_rgba(0,0,0,0.22)]"
                 key={item.title}
                 style={{ animationDelay: `${160 + index * 30}ms` }}
               >
+                <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-[#aee686]">
+                  0{index + 1}
+                </p>
                 <h3 className="text-xl">{item.title}</h3>
                 <p className="mt-3 leading-7 text-white/68">{item.text}</p>
               </article>
@@ -179,7 +220,7 @@ export default function HomePage() {
             <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
               From shuffle to splash
             </p>
-            <h2 className="whitespace-nowrap text-[clamp(2.4rem,5vw,5.2rem)] leading-none max-[700px]:whitespace-normal">
+            <h2 className="text-[clamp(1.9rem,3.6vw,3.4rem)] leading-none">
               Built for one more try
             </h2>
             <p className="max-w-[68ch] leading-7 text-muted">
@@ -191,7 +232,7 @@ export default function HomePage() {
           <ol className="grid grid-cols-3 gap-4 [counter-reset:step] max-[900px]:grid-cols-1">
             {flow.map((item, index) => (
               <li
-                className="scroll-reveal grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-3 rounded-[7px] border border-accent/16 bg-white/55 p-3 [counter-increment:step] before:grid before:aspect-square before:place-items-center before:rounded-full before:bg-accent before:text-sm before:font-bold before:text-white before:content-[counter(step)]"
+                className="scroll-reveal grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-3 rounded-[11px] border border-accent/16 bg-[linear-gradient(165deg,rgba(255,255,255,0.86),rgba(255,255,255,0.58))] p-3 [counter-increment:step] shadow-[0_12px_26px_rgba(24,58,43,0.1)] before:grid before:aspect-square before:place-items-center before:rounded-full before:bg-accent before:text-sm before:font-bold before:text-white before:content-[counter(step)]"
                 key={item}
                 style={{ animationDelay: `${240 + index * 30}ms` }}
               >
@@ -213,7 +254,7 @@ export default function HomePage() {
           <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
             Ready when you are
           </p>
-          <h2 className="whitespace-nowrap text-[clamp(2rem,3.5vw,3.5rem)] leading-none max-[640px]:whitespace-normal">
+          <h2 className="text-[clamp(1.9rem,3.6vw,3.4rem)] leading-none">
             Start with a quick board
           </h2>
           <p className="max-w-[60ch] leading-7 text-muted">
@@ -238,7 +279,7 @@ export default function HomePage() {
         <div className="grid grid-cols-3 gap-4 max-[760px]:grid-cols-1">
           {playModes.map((item, index) => (
             <div
-              className="scroll-reveal grid gap-2.5 rounded-lg border border-line bg-panel p-4 shadow-[0_12px_34px_rgba(35,35,28,0.07)] max-[760px]:grid-cols-[2.8rem_minmax(0,1fr)] max-[760px]:items-center max-[760px]:p-3"
+              className="scroll-reveal grid gap-2.5 rounded-xl border border-accent/14 bg-[linear-gradient(168deg,rgba(255,255,255,0.96),rgba(244,238,224,0.9))] p-4 shadow-[0_14px_30px_rgba(24,58,43,0.1)] max-[760px]:grid-cols-[2.8rem_minmax(0,1fr)] max-[760px]:items-center max-[760px]:p-3"
               key={item.title}
               style={{ animationDelay: `${330 + index * 30}ms` }}
             >
