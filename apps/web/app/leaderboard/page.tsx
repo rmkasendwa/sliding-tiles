@@ -127,7 +127,7 @@ export default async function LeaderboardPage() {
     : 0;
 
   return (
-    <section className="page-rail mx-auto grid max-w-[1200px] gap-6 pt-5 pb-10">
+    <section className="page-rail mx-auto grid max-w-300 gap-6 pt-5 pb-10">
       <div
         className="profile-reveal grid gap-4 rounded-xl border border-accent/20 bg-[radial-gradient(circle_at_top_right,rgba(128,196,78,0.2),transparent_48%),linear-gradient(140deg,rgba(24,58,43,0.08),rgba(255,255,255,0.35))] p-5 shadow-panel min-[1060px]:grid-cols-[minmax(0,1fr)_320px]"
         style={{ animationDelay: '40ms' }}

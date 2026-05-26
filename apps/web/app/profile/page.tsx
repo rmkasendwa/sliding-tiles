@@ -146,7 +146,7 @@ export default async function ProfilePage() {
   ];
 
   return (
-    <section className="page-rail mx-auto grid max-w-[1200px] gap-6 pt-5 pb-10">
+    <section className="page-rail mx-auto grid max-w-300 gap-6 pt-5 pb-10">
       <div className="grid gap-4 rounded-xl border border-accent/20 bg-[radial-gradient(circle_at_top_right,rgba(116,191,77,0.18),transparent_54%),linear-gradient(140deg,rgba(24,58,43,0.08),rgba(255,255,255,0.36))] p-5 shadow-panel min-[980px]:grid-cols-[minmax(0,1fr)_340px]">
         <div>
           <p className="text-[0.78rem] font-extrabold uppercase tracking-[0.08em] text-accent-strong">
@@ -244,11 +244,11 @@ export default async function ProfilePage() {
         <div className="mt-3 grid grid-cols-4 gap-3 max-[980px]:grid-cols-2 max-[620px]:grid-cols-1">
           {milestoneItems.map((item, index) => (
             <article
-              className="relative rounded-[8px] border border-line bg-white/65 p-3"
+              className="relative rounded-lg border border-line bg-white/65 p-3"
               key={item.label}
             >
               {index < milestoneItems.length - 1 ? (
-                <span className="absolute right-[-9px] top-1/2 hidden h-[2px] w-[14px] -translate-y-1/2 bg-accent/25 min-[981px]:block" />
+                <span className="absolute -right-2.25 top-1/2 hidden h-0.5 w-3.5 -translate-y-1/2 bg-accent/25 min-[981px]:block" />
               ) : null}
               <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-muted">
                 {item.label}
@@ -462,7 +462,7 @@ export default async function ProfilePage() {
               </span>
             </div>
             <div className="grid gap-2.5">
-              <article className="rounded-[8px] border border-line bg-white/60 p-3">
+              <article className="rounded-lg border border-line bg-white/60 p-3">
                 <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-muted">
                   Fastest clear
                 </p>
@@ -472,7 +472,7 @@ export default async function ProfilePage() {
                     : 'No record yet'}
                 </p>
               </article>
-              <article className="rounded-[8px] border border-line bg-white/60 p-3">
+              <article className="rounded-lg border border-line bg-white/60 p-3">
                 <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-muted">
                   Best pace run
                 </p>
@@ -482,7 +482,7 @@ export default async function ProfilePage() {
                     : 'No record yet'}
                 </p>
               </article>
-              <article className="rounded-[8px] border border-line bg-white/60 p-3">
+              <article className="rounded-lg border border-line bg-white/60 p-3">
                 <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-muted">
                   Cleanest run
                 </p>
@@ -514,14 +514,14 @@ export default async function ProfilePage() {
                   <span
                     aria-hidden="true"
                     className={[
-                      'absolute left-0 top-5 h-[calc(100%-8px)] w-[2px]',
+                      'absolute left-0 top-5 h-[calc(100%-8px)] w-0.5',
                       index === scores.length - 1 ? 'hidden' : 'bg-line/70',
                     ].join(' ')}
                   />
                   <span
                     aria-hidden="true"
                     className={[
-                      'absolute left-[-4px] top-2 h-2.5 w-2.5 rounded-full border',
+                      'absolute -left-1 top-2 h-2.5 w-2.5 rounded-full border',
                       index === 0
                         ? 'border-accent bg-accent'
                         : 'border-line bg-panel',
@@ -529,7 +529,7 @@ export default async function ProfilePage() {
                   />
                   <div
                     className={[
-                      'grid gap-2 rounded-[8px] border bg-white/60 p-3',
+                      'grid gap-2 rounded-lg border bg-white/60 p-3',
                       index === 0
                         ? 'border-accent/45 shadow-[0_8px_20px_rgba(90,133,63,0.16)]'
                         : 'border-line',
