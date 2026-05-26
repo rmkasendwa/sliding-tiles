@@ -691,7 +691,7 @@ function GameBoardContent({ initialBoard, isSignedIn }: GameBoardProps) {
             'relative aspect-square overflow-hidden rounded-lg',
             isBoardFullscreen
               ? 'fullscreen-board-shell'
-              : 'w-[min(100%,calc(100svh-128px))]',
+              : 'w-[min(100%,calc(100svh-64px))]',
           ].join(' ')}
           onPointerDown={startBoardHint}
           onPointerLeave={clearBoardHintFromPointer}
