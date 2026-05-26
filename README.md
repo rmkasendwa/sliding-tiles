@@ -85,6 +85,10 @@ npm run typecheck    # typecheck apps/web and apps/api
 npm run build        # generate Prisma, build API, then build web
 ```
 
+## Contributing Rules
+
+Project conventions and contribution rules are documented in [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ### Shared API
 
 The NestJS API lives in `apps/api` and currently exposes the backend surfaces

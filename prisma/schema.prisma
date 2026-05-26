@@ -9,34 +9,39 @@ datasource db {
 model User {
   id           String        @id @default(cuid())
   name         String
-  email        String        @unique
-  passwordHash String
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  email        String        @unique(map: "users_email_key")
+  passwordHash String        @map("password_hash")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
   gameState    GameState?
   scores       Leaderboard[]
+
+  @@map("users")
 }
 
 model GameState {
   id        String   @id @default(cuid())
-  userId    String   @unique
+  userId    String   @unique(map: "game_states_user_id_key") @map("user_id")
   level     Int
   board     Json
   moves     Int
-  startedAt DateTime
-  updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startedAt DateTime @map("started_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "game_states_user_id_fkey")
+
+  @@map("game_states")
 }
 
 model Leaderboard {
   id              String   @id @default(cuid())
-  userId          String
+  userId          String   @map("user_id")
   level           Int
   moves           Int
-  timeSeconds     Int
-  completedAt     DateTime @default(now())
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  timeSeconds     Int      @map("time_seconds")
+  completedAt     DateTime @default(now()) @map("completed_at")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "leaderboards_user_id_fkey")
 
-  @@index([level, timeSeconds, moves])
-  @@index([userId, completedAt])
+  @@index([level, timeSeconds, moves], map: "leaderboards_level_time_seconds_moves_idx")
+  @@index([userId, completedAt], map: "leaderboards_user_id_completed_at_idx")
+  @@map("leaderboards")
 }
