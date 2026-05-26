@@ -94,6 +94,7 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
   const resetTimeoutRef = useRef<number | null>(null);
   const boardHintMouseUpRef = useRef<(() => void) | null>(null);
   const suppressNextClickRef = useRef(false);
+  const hasPlayedInitialEntrySoundRef = useRef(false);
 
   useEffect(() => {
     startAmbience();
@@ -169,6 +170,20 @@ export function GameBoard({ initialBoard, isSignedIn }: GameBoardProps) {
     },
     [playSound],
   );
+
+  useEffect(() => {
+    if (boardEntryAnimationKey !== 0) {
+      return;
+    }
+
+    if (hasPlayedInitialEntrySoundRef.current || isMuted) {
+      return;
+    }
+
+    playSound('shuffle');
+    scheduleLockInSound();
+    hasPlayedInitialEntrySoundRef.current = true;
+  }, [boardEntryAnimationKey, isMuted, playSound, scheduleLockInSound]);
 
   const resetClock = useCallback(() => {
     const levelStart = Date.now();

@@ -48,6 +48,9 @@ type SoundContextValue = {
 
 const SoundContext = createContext<SoundContextValue | null>(null);
 const SOUND_STORAGE_KEY = 'sliding-tiles:sound-muted';
+const STARTUP_BLUR_IGNORE_MS = 1800;
+const AUTOSTART_RETRY_DELAY_MS = 300;
+const AUTOSTART_MAX_RETRIES = 12;
 const SOUND_PACKS = {
   pond: {
     ambience: {
@@ -122,7 +125,12 @@ export function SoundProvider({ children }: { children: ReactNode }) {
   const frogSoundRef = useRef<HTMLAudioElement>(null);
   const hasStartedAmbienceRef = useRef(false);
   const canPersistMutedPreferenceRef = useRef(false);
+  const shouldAutostartAmbienceRef = useRef(false);
+  const ignoreBlurUntilRef = useRef(0);
+  const autostartRetryTimeoutRef = useRef<number | null>(null);
+  const autostartRetryCountRef = useRef(0);
   const [isMuted, setIsMuted] = useState(true);
+  const [needsAudioUnlock, setNeedsAudioUnlock] = useState(false);
   const isMutedRef = useRef(isMuted);
 
   const getAllAudioElements = useCallback(
@@ -147,10 +155,19 @@ export function SoundProvider({ children }: { children: ReactNode }) {
 
   const pauseAmbience = useCallback(() => {
     clearAccentTimers();
-    [...ambientBedRefs.current.values(), ...ambientAccentRefs.current.values()].forEach(
-      (audioElement) => audioElement.pause(),
-    );
+    [
+      ...ambientBedRefs.current.values(),
+      ...ambientAccentRefs.current.values(),
+    ].forEach((audioElement) => audioElement.pause());
   }, [clearAccentTimers]);
+
+  const clearAutostartRetry = useCallback(() => {
+    if (autostartRetryTimeoutRef.current !== null) {
+      window.clearTimeout(autostartRetryTimeoutRef.current);
+      autostartRetryTimeoutRef.current = null;
+    }
+    autostartRetryCountRef.current = 0;
+  }, []);
 
   const scheduleAccentTrack = useCallback((track: AmbientAccentTrack) => {
     window.clearTimeout(accentTimeoutRefs.current.get(track.id));
@@ -174,7 +191,10 @@ export function SoundProvider({ children }: { children: ReactNode }) {
       audioElement.volume = randomBetween(track.volume);
       void audioElement.play().catch(() => undefined);
 
-      const nextTimeout = window.setTimeout(playAccent, randomBetween(track.gapMs));
+      const nextTimeout = window.setTimeout(
+        playAccent,
+        randomBetween(track.gapMs),
+      );
       accentTimeoutRefs.current.set(track.id, nextTimeout);
     };
 
@@ -210,7 +230,7 @@ export function SoundProvider({ children }: { children: ReactNode }) {
   const playAudio = useCallback(
     (
       audioElement: HTMLAudioElement | null,
-      { playbackRate = 1, volume = 0.45 } = {}
+      { playbackRate = 1, volume = 0.45 } = {},
     ) => {
       if (!audioElement || isMuted) {
         return;
@@ -222,12 +242,16 @@ export function SoundProvider({ children }: { children: ReactNode }) {
       audioElement.volume = volume;
       void audioElement.play().catch(() => undefined);
     },
-    [isMuted]
+    [isMuted],
   );
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
       const storedMutedPreference = getStoredMutedPreference();
+      shouldAutostartAmbienceRef.current = !storedMutedPreference;
+      ignoreBlurUntilRef.current = Date.now() + STARTUP_BLUR_IGNORE_MS;
+      autostartRetryCountRef.current = 0;
+      setNeedsAudioUnlock(!storedMutedPreference);
       canPersistMutedPreferenceRef.current = true;
       applyMutedState(storedMutedPreference);
       setIsMuted(storedMutedPreference);
@@ -236,42 +260,106 @@ export function SoundProvider({ children }: { children: ReactNode }) {
     return () => window.clearTimeout(timeout);
   }, [applyMutedState]);
 
-  const playAmbience = useCallback((force = false) => {
-    hasStartedAmbienceRef.current = true;
+  const playAmbience = useCallback(
+    (force = false) => {
+      hasStartedAmbienceRef.current = true;
 
-    if (isMutedRef.current && !force) {
-      pauseAmbience();
-      return;
-    }
-
-    ACTIVE_SOUND_PACK.ambience.beds.forEach((track) => {
-      const audioElement = ambientBedRefs.current.get(track.id);
-      if (!audioElement) {
+      if (isMutedRef.current && !force) {
+        pauseAmbience();
         return;
       }
 
-      audioElement.muted = false;
-      audioElement.volume = track.volume;
-      void audioElement.play().catch(() => undefined);
-    });
+      let hasPlayableBed = false;
 
-    ACTIVE_SOUND_PACK.ambience.accents.forEach(scheduleAccentTrack);
-  }, [pauseAmbience, scheduleAccentTrack]);
+      ACTIVE_SOUND_PACK.ambience.beds.forEach((track) => {
+        const audioElement = ambientBedRefs.current.get(track.id);
+        if (!audioElement) {
+          return;
+        }
+
+        hasPlayableBed = true;
+        audioElement.muted = false;
+        audioElement.volume = track.volume;
+        void audioElement.play().catch((error: unknown) => {
+          const domError = error as DOMException | undefined;
+          if (domError?.name === 'NotAllowedError' && !isMutedRef.current) {
+            setNeedsAudioUnlock(true);
+          }
+        });
+      });
+
+      if (hasPlayableBed) {
+        setNeedsAudioUnlock(false);
+      }
+
+      ACTIVE_SOUND_PACK.ambience.accents.forEach(scheduleAccentTrack);
+    },
+    [pauseAmbience, scheduleAccentTrack],
+  );
+
+  const scheduleAutostartRetry = useCallback(() => {
+    const runRetry = () => {
+      if (autostartRetryCountRef.current >= AUTOSTART_MAX_RETRIES) {
+        autostartRetryTimeoutRef.current = null;
+        return;
+      }
+
+      if (
+        !isMutedRef.current &&
+        hasStartedAmbienceRef.current &&
+        !document.hidden
+      ) {
+        playAmbience(true);
+      }
+
+      autostartRetryCountRef.current += 1;
+      autostartRetryTimeoutRef.current = window.setTimeout(
+        runRetry,
+        AUTOSTART_RETRY_DELAY_MS,
+      );
+    };
+
+    if (autostartRetryTimeoutRef.current !== null) {
+      window.clearTimeout(autostartRetryTimeoutRef.current);
+    }
+
+    autostartRetryTimeoutRef.current = window.setTimeout(
+      runRetry,
+      AUTOSTART_RETRY_DELAY_MS,
+    );
+  }, [playAmbience]);
 
   useEffect(() => {
     if (isMuted) {
+      clearAutostartRetry();
       pauseAmbience();
       return;
     }
+
+    if (shouldAutostartAmbienceRef.current) {
+      shouldAutostartAmbienceRef.current = false;
+      playAmbience(true);
+      scheduleAutostartRetry();
+      return;
+    }
+
+    clearAutostartRetry();
 
     if (hasStartedAmbienceRef.current) {
       playAmbience();
     }
-  }, [isMuted, pauseAmbience, playAmbience]);
+  }, [
+    clearAutostartRetry,
+    isMuted,
+    pauseAmbience,
+    playAmbience,
+    scheduleAutostartRetry,
+  ]);
 
   useEffect(() => {
     const handleUserInteraction = () => {
-      playAmbience();
+      setNeedsAudioUnlock(false);
+      playAmbience(true);
     };
     const handleFocus = () => {
       if (hasStartedAmbienceRef.current) {
@@ -279,7 +367,9 @@ export function SoundProvider({ children }: { children: ReactNode }) {
       }
     };
     const handleBlur = () => {
-      pauseAmbience();
+      if (document.hidden && Date.now() >= ignoreBlurUntilRef.current) {
+        pauseAmbience();
+      }
     };
     const handleVisibilityChange = () => {
       if (document.hidden) {
@@ -296,6 +386,7 @@ export function SoundProvider({ children }: { children: ReactNode }) {
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
+      clearAutostartRetry();
       pauseAmbience();
       hasStartedAmbienceRef.current = false;
       window.removeEventListener('pointerdown', handleUserInteraction);
@@ -304,7 +395,7 @@ export function SoundProvider({ children }: { children: ReactNode }) {
       window.removeEventListener('blur', handleBlur);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [pauseAmbience, playAmbience]);
+  }, [clearAutostartRetry, pauseAmbience, playAmbience]);
 
   const playSound = useCallback(
     (cue: SoundCue) => {
@@ -357,7 +448,7 @@ export function SoundProvider({ children }: { children: ReactNode }) {
           break;
       }
     },
-    [isMuted, playAmbience, playAudio]
+    [isMuted, playAmbience, playAudio],
   );
 
   const toggleMuted = useCallback(() => {
@@ -404,12 +495,40 @@ export function SoundProvider({ children }: { children: ReactNode }) {
       stopAmbience: pauseAmbience,
       toggleMuted,
     }),
-    [isMuted, pauseAmbience, playAmbience, playSound, toggleMuted]
+    [isMuted, pauseAmbience, playAmbience, playSound, toggleMuted],
   );
 
   return (
     <SoundContext.Provider value={value}>
       {children}
+      {needsAudioUnlock && !isMuted ? (
+        <button
+          aria-label="Enable sound"
+          onClick={() => {
+            setNeedsAudioUnlock(false);
+            playAmbience(true);
+          }}
+          style={{
+            backdropFilter: 'blur(4px)',
+            background: 'rgba(15, 23, 42, 0.78)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: '999px',
+            bottom: '1rem',
+            color: '#fff',
+            cursor: 'pointer',
+            fontSize: '0.875rem',
+            fontWeight: 700,
+            left: '50%',
+            padding: '0.55rem 0.95rem',
+            position: 'fixed',
+            transform: 'translateX(-50%)',
+            zIndex: 80,
+          }}
+          type="button"
+        >
+          Tap to enable sound
+        </button>
+      ) : null}
       {ACTIVE_SOUND_PACK.ambience.beds.map((track) => (
         <audio
           key={track.id}
