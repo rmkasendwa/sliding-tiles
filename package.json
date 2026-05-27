@@ -21,7 +21,10 @@
     "typecheck": "npm run web:typecheck && tsc --noEmit -p apps/api/tsconfig.json",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "docker:build": "docker build -t sliding-tiles:latest .",
+    "docker:up": "docker compose --profile app up",
+    "docker:down": "docker compose --profile app down"
   },
   "overrides": {
     "@hono/node-server": "1.19.13",

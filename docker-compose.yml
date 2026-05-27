@@ -16,5 +16,28 @@ services:
       timeout: 5s
       retries: 10
 
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      API_BASE_URL: ${DOCKER_API_BASE_URL:-http://localhost:4001/api}
+      API_CORS_ORIGINS: ${API_CORS_ORIGINS:-http://localhost:3000}
+      API_PORT: 4001
+      DATABASE_URL: ${DOCKER_DATABASE_URL:-postgresql://sliding_tiles:sliding_tiles@postgres:5432/sliding_tiles?schema=public}
+      NODE_ENV: production
+      PORT: ${WEB_PORT:-3000}
+      RUN_MIGRATIONS: ${RUN_MIGRATIONS:-true}
+      SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET must be set}
+      WEB_BASE_URL: ${WEB_BASE_URL:-http://localhost:3000}
+    ports:
+      - '${WEB_PORT:-3000}:${WEB_PORT:-3000}'
+    profiles:
+      - app
+    restart: unless-stopped
+
 volumes:
   postgres-data:

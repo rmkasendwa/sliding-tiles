@@ -1,0 +1,13 @@
+.git
+.next
+apps/web/.next
+dist
+node_modules
+npm-debug.log
+Dockerfile*
+docker-compose*.yml
+.env
+.env.*
+!.env.example
+coverage
+tsconfig*.tsbuildinfo

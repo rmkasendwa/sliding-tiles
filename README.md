@@ -83,6 +83,7 @@ npm run web:dev      # start only the Next.js web app from apps/web
 npm run lint         # lint the full repository
 npm run typecheck    # typecheck apps/web and apps/api
 npm run build        # generate Prisma, build API, then build web
+npm run docker:up    # build and run Postgres, migrations, API, and web
 ```
 
 ## Contributing Rules
@@ -113,6 +114,76 @@ npm run api:dev
 By default it listens on `http://localhost:4001`. Browser clients can use the
 HTTP-only session cookie; mobile clients can use the `accessToken` returned by
 login/signup as a bearer token.
+
+## Docker Deployment
+
+The repository includes one production Docker image that runs both app
+processes and can migrate the database on startup:
+
+- `Dockerfile` builds the NestJS API and Next.js web app into one image.
+- `scripts/start-container.mjs` runs `prisma migrate deploy`, then starts both
+  the API and web server in that container.
+- `docker-compose.yml` is only a convenience for running the image with a local
+  PostgreSQL container.
+
+Build the portable image:
+
+```bash
+npm run docker:build
+```
+
+Run it against any PostgreSQL database, including a managed database:
+
+```bash
+docker run --rm \
+  -p 3000:3000 \
+  -e DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DB?schema=public" \
+  -e SESSION_SECRET="a-real-random-secret-with-at-least-32-characters" \
+  -e WEB_BASE_URL="https://your-web-domain.example" \
+  -e API_CORS_ORIGINS="https://your-web-domain.example" \
+  sliding-tiles:latest
+```
+
+By default the container runs database migrations before starting the app. Set
+`RUN_MIGRATIONS=false` if your host runs migrations separately.
+
+For a local production-style run with Docker Compose:
+
+```bash
+cp .env.example .env
+npm run docker:up
+```
+
+The `app` compose profile starts:
+
+- `postgres`
+- `app`, a single container that runs migrations, then starts the API on
+  internal port `4001` and web on `WEB_PORT`
+
+Use Docker-specific connection variables inside compose because the app
+container talks to Postgres by service name, while the web process talks to the
+API process through localhost inside the same container:
+
+```bash
+DOCKER_DATABASE_URL="postgresql://sliding_tiles:sliding_tiles@postgres:5432/sliding_tiles?schema=public"
+DOCKER_API_BASE_URL="http://localhost:4001/api"
+```
+
+For a real deployment, set at least:
+
+```bash
+SESSION_SECRET="a-real-random-secret-with-at-least-32-characters"
+WEB_PORT=3000
+API_CORS_ORIGINS="https://your-web-domain.example"
+WEB_BASE_URL="https://your-web-domain.example"
+RUN_MIGRATIONS=true
+```
+
+Stop the Docker stack with:
+
+```bash
+npm run docker:down
+```
 
 ### Testing on a phone
 
