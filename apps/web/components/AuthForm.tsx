@@ -691,7 +691,11 @@ export function AuthForm({ mode }: AuthFormProps) {
         </div>
       )}
 
-      <div className={isSignup ? 'grid gap-4 sm:grid-cols-2' : 'grid gap-2'}>
+      <div
+        className={
+          isSignup ? 'grid items-start gap-4 sm:grid-cols-2' : 'grid gap-2'
+        }
+      >
         <div className="grid gap-2">
           <label className={fieldLabelClass} htmlFor="password">
             Password{' '}
