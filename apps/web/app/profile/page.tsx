@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
+import { ChangePasswordForm } from '@/components/ChangePasswordForm';
 import { ApiGameState, ApiScore, apiRequest } from '@/lib/api';
 import { routes } from '@/lib/routes';
 import { getSession } from '@/lib/session';
@@ -232,342 +233,349 @@ export default async function ProfilePage() {
       </div>
 
       <section
-        className="profile-reveal rounded-lg border border-line bg-panel p-4 shadow-panel"
+        className="profile-reveal grid gap-4 rounded-xl border border-line bg-panel/95 p-4 shadow-panel"
         style={{ animationDelay: '40ms' }}
       >
-        <div className="flex items-end justify-between gap-3">
-          <h2 className="text-[1.12rem] font-bold">Milestone journey</h2>
+        <div className="flex items-end justify-between gap-3 border-b border-line/60 pb-2">
+          <h2 className="text-[1.12rem] font-bold">Account and Security</h2>
           <span className="text-xs font-bold uppercase tracking-[0.08em] text-muted">
-            Progress map
+            Identity
           </span>
         </div>
-        <div className="mt-3 grid grid-cols-4 gap-3 max-[980px]:grid-cols-2 max-[620px]:grid-cols-1">
-          {milestoneItems.map((item, index) => (
-            <article
-              className="relative rounded-lg border border-line bg-white/65 p-3"
-              key={item.label}
-            >
-              {index < milestoneItems.length - 1 ? (
-                <span className="absolute -right-2.25 top-1/2 hidden h-0.5 w-3.5 -translate-y-1/2 bg-accent/25 min-[981px]:block" />
-              ) : null}
-              <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-muted">
-                {item.label}
-              </p>
-              <p className="mt-1 text-sm font-bold text-foreground">
-                {item.value}
-              </p>
-            </article>
-          ))}
-        </div>
-      </section>
 
-      <div className="grid gap-3 min-[880px]:grid-cols-3">
-        <article
-          className="profile-reveal rounded-lg border border-line bg-panel p-4 shadow-panel"
-          style={{ animationDelay: '70ms' }}
-        >
-          <p className="text-[0.75rem] font-extrabold uppercase text-muted">
-            Latest run
-          </p>
-          <p className="mt-1 text-lg font-bold text-foreground">
-            {latestRun ? `Level ${latestRun.level}` : '-'}
-          </p>
-          <p className="mt-1 text-sm text-muted">
-            {latestRun
-              ? `${formatDuration(latestRun.timeSeconds)} · ${latestRun.moves} moves`
-              : 'No completed runs yet'}
-          </p>
-        </article>
-        <article
-          className="profile-reveal rounded-lg border border-line bg-panel p-4 shadow-panel"
-          style={{ animationDelay: '100ms' }}
-        >
-          <p className="text-[0.75rem] font-extrabold uppercase text-muted">
-            Best pace
-          </p>
-          <p className="mt-1 text-lg font-bold text-foreground">
-            {bestPaceRun
-              ? formatPace(bestPaceRun.timeSeconds, bestPaceRun.level)
-              : '-'}
-          </p>
-          <p className="mt-1 text-sm text-muted">
-            {bestPaceRun
-              ? `Set on level ${bestPaceRun.level}`
-              : 'Complete runs to measure pace'}
-          </p>
-        </article>
-        <article
-          className="profile-reveal rounded-lg border border-line bg-panel p-4 shadow-panel"
-          style={{ animationDelay: '130ms' }}
-        >
-          <p className="text-[0.75rem] font-extrabold uppercase text-muted">
-            Recent average
-          </p>
-          <p className="mt-1 text-lg font-bold text-foreground">
-            {recentAverageTime ? formatDuration(recentAverageTime) : '-'}
-          </p>
-          <p className="mt-1 text-sm text-muted">
-            Last {Math.min(scores.length, 3)} runs
-          </p>
-        </article>
-      </div>
-
-      <div className="grid grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] items-start gap-5 max-[980px]:grid-cols-1">
-        <div className="grid gap-5">
-          <section
-            className="profile-reveal grid gap-4 rounded-lg border border-line bg-panel p-4 shadow-panel"
-            style={{ animationDelay: '160ms' }}
-          >
+        <div className="grid items-start gap-4 min-[980px]:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
+          <section className="grid gap-3 rounded-lg border border-line bg-white/55 p-4">
             <div className="flex items-end justify-between gap-3">
-              <h2 className="text-[clamp(1.6rem,3vw,2.2rem)]">Saved board</h2>
+              <h3 className="text-[1.03rem] font-bold">Milestone journey</h3>
               <span className="text-xs font-bold uppercase tracking-[0.08em] text-muted">
-                Resume point
+                Progress map
               </span>
             </div>
-            {gameState ? (
-              <>
-                <div className="grid grid-cols-3 gap-2.5 max-[620px]:grid-cols-1">
-                  <div className="rounded-[7px] border border-line bg-white/60 p-3">
-                    <span className="block text-[0.78rem] text-muted">
-                      Level
-                    </span>
-                    <strong className="mt-1 block text-[1.4rem]">
-                      {gameState.level}
-                    </strong>
-                  </div>
-                  <div className="rounded-[7px] border border-line bg-white/60 p-3">
-                    <span className="block text-[0.78rem] text-muted">
-                      Moves
-                    </span>
-                    <strong className="mt-1 block text-[1.4rem]">
-                      {gameState.moves}
-                    </strong>
-                  </div>
-                  <div className="rounded-[7px] border border-line bg-white/60 p-3">
-                    <span className="block text-[0.78rem] text-muted">
-                      Last save
-                    </span>
-                    <strong className="mt-1 block text-[1.08rem]">
-                      {formatDateTime(gameState.updatedAt)}
-                    </strong>
-                  </div>
-                </div>
-                <p className="text-sm text-muted">
-                  Your signed-in progress is active and ready to continue.
-                </p>
-              </>
-            ) : (
-              <div className="rounded-[7px] border border-dashed border-line bg-white/45 p-4">
-                <p className="leading-normal text-muted">
-                  No saved board yet. Start a signed-in run and your progress
-                  will appear here automatically.
-                </p>
-              </div>
-            )}
-          </section>
-
-          <div className="grid grid-cols-3 gap-3 max-[620px]:grid-cols-1">
-            <article
-              className="profile-reveal rounded-lg border border-line bg-panel p-4 shadow-panel"
-              style={{ animationDelay: '190ms' }}
-            >
-              <p className="text-[0.75rem] font-extrabold uppercase text-muted">
-                Completed runs
-              </p>
-              <p className="mt-1 text-2xl font-bold">{completedRuns}</p>
-            </article>
-            <article
-              className="profile-reveal rounded-lg border border-line bg-panel p-4 shadow-panel"
-              style={{ animationDelay: '220ms' }}
-            >
-              <p className="text-[0.75rem] font-extrabold uppercase text-muted">
-                Best level
-              </p>
-              <p className="mt-1 text-2xl font-bold">
-                {highestCompletedLevel > 0 ? highestCompletedLevel : '-'}
-              </p>
-            </article>
-            <article
-              className="profile-reveal rounded-lg border border-line bg-panel p-4 shadow-panel"
-              style={{ animationDelay: '250ms' }}
-            >
-              <p className="text-[0.75rem] font-extrabold uppercase text-muted">
-                Fastest clear
-              </p>
-              <p className="mt-1 text-2xl font-bold">
-                {bestRun ? formatDuration(bestRun.timeSeconds) : '-'}
-              </p>
-            </article>
-          </div>
-
-          <section
-            className="profile-reveal grid gap-3 rounded-lg border border-line bg-panel p-4 shadow-panel"
-            style={{ animationDelay: '280ms' }}
-          >
-            <div className="flex items-end justify-between gap-2">
-              <h3 className="text-[1.12rem] font-bold">Performance trend</h3>
-              <span className="text-xs font-bold uppercase tracking-[0.08em] text-muted">
-                Last {trendRuns.length}
-              </span>
-            </div>
-            {trendRuns.length > 0 ? (
-              <div className="grid gap-2.5">
-                {trendRuns.map((run) => {
-                  const normalized = 1 - (run.pace - minTrendPace) / trendRange;
-                  const widthPercent = Math.round(38 + normalized * 62);
-
-                  return (
-                    <article className="grid gap-1" key={run.id}>
-                      <div className="flex items-center justify-between gap-2 text-sm">
-                        <p className="font-semibold text-foreground">
-                          Level {run.level}
-                        </p>
-                        <p className="text-muted">
-                          {formatDateTime(run.timestamp)}
-                        </p>
-                      </div>
-                      <div className="h-2.5 w-full overflow-hidden rounded-full bg-white/70">
-                        <div
-                          className="profile-trend-bar h-full rounded-full bg-[linear-gradient(90deg,#6cb34d,#2f7f61)]"
-                          style={
-                            {
-                              '--bar-scale': `${widthPercent / 100}`,
-                              animationDelay: `${(trendRuns.length - 1) * 40}ms`,
-                            } as React.CSSProperties
-                          }
-                        />
-                      </div>
-                      <p className="text-xs text-muted">
-                        Pace {run.pace.toFixed(1)}s/lvl
-                      </p>
-                    </article>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className="text-sm text-muted">
-                Complete a few runs to see your recent pace trend.
-              </p>
-            )}
-          </section>
-
-          <section
-            className="profile-reveal grid gap-3 rounded-lg border border-line bg-panel p-4 shadow-panel"
-            style={{ animationDelay: '310ms' }}
-          >
-            <div className="flex items-end justify-between gap-2">
-              <h3 className="text-[1.12rem] font-bold">Personal records</h3>
-              <span className="text-xs font-bold uppercase tracking-[0.08em] text-muted">
-                Snapshot
-              </span>
-            </div>
-            <div className="grid gap-2.5">
-              <article className="rounded-lg border border-line bg-white/60 p-3">
-                <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-muted">
-                  Fastest clear
-                </p>
-                <p className="mt-1 text-sm font-bold text-foreground">
-                  {bestRun
-                    ? `${formatDuration(bestRun.timeSeconds)} on level ${bestRun.level}`
-                    : 'No record yet'}
-                </p>
-              </article>
-              <article className="rounded-lg border border-line bg-white/60 p-3">
-                <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-muted">
-                  Best pace run
-                </p>
-                <p className="mt-1 text-sm font-bold text-foreground">
-                  {bestPaceRun
-                    ? `${formatPace(bestPaceRun.timeSeconds, bestPaceRun.level)} at level ${bestPaceRun.level}`
-                    : 'No record yet'}
-                </p>
-              </article>
-              <article className="rounded-lg border border-line bg-white/60 p-3">
-                <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-muted">
-                  Cleanest run
-                </p>
-                <p className="mt-1 text-sm font-bold text-foreground">
-                  {cleanestRun
-                    ? `${cleanestRun.moves} moves on level ${cleanestRun.level}`
-                    : 'No record yet'}
-                </p>
-              </article>
-            </div>
-          </section>
-        </div>
-
-        <section
-          className="profile-reveal grid gap-4 rounded-lg border border-line bg-panel p-4 shadow-panel"
-          style={{ animationDelay: '190ms' }}
-        >
-          <div className="flex items-end justify-between gap-3">
-            <h2 className="text-[clamp(1.6rem,3vw,2.2rem)]">Recent runs</h2>
-            <span className="text-xs font-bold uppercase tracking-[0.08em] text-muted">
-              Last {scores.length > 10 ? 10 : scores.length}
-            </span>
-          </div>
-
-          {scores.length > 0 ? (
-            <div className="grid gap-2.5">
-              {scores.map((score, index) => (
-                <article className="relative pl-4" key={score.id}>
-                  <span
-                    aria-hidden="true"
-                    className={[
-                      'absolute left-0 top-5 h-[calc(100%-8px)] w-0.5',
-                      index === scores.length - 1 ? 'hidden' : 'bg-line/70',
-                    ].join(' ')}
-                  />
-                  <span
-                    aria-hidden="true"
-                    className={[
-                      'absolute -left-1 top-2 h-2.5 w-2.5 rounded-full border',
-                      index === 0
-                        ? 'border-accent bg-accent'
-                        : 'border-line bg-panel',
-                    ].join(' ')}
-                  />
-                  <div
-                    className={[
-                      'grid gap-2 rounded-lg border bg-white/60 p-3',
-                      index === 0
-                        ? 'border-accent/45 shadow-[0_8px_20px_rgba(90,133,63,0.16)]'
-                        : 'border-line',
-                    ].join(' ')}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-bold text-foreground">
-                        Level {score.level}
-                      </p>
-                      <p className="text-xs font-semibold uppercase text-muted">
-                        {formatDateTime(score.completedAt)}
-                      </p>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2 text-sm max-[620px]:grid-cols-1">
-                      <p className="rounded-md border border-line bg-white/80 px-2 py-1.5">
-                        Time: {formatDuration(score.timeSeconds)}
-                      </p>
-                      <p className="rounded-md border border-line bg-white/80 px-2 py-1.5">
-                        Moves: {score.moves}
-                      </p>
-                      <p className="rounded-md border border-line bg-white/80 px-2 py-1.5">
-                        Pace: {formatPace(score.timeSeconds, score.level)}
-                      </p>
-                    </div>
-                  </div>
+            <div className="grid grid-cols-4 gap-3 max-[980px]:grid-cols-2 max-[620px]:grid-cols-1">
+              {milestoneItems.map((item, index) => (
+                <article
+                  className="relative rounded-lg border border-line bg-white/65 p-3"
+                  key={item.label}
+                >
+                  {index < milestoneItems.length - 1 ? (
+                    <span className="absolute -right-2.25 top-1/2 hidden h-0.5 w-3.5 -translate-y-1/2 bg-accent/25 min-[981px]:block" />
+                  ) : null}
+                  <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-muted">
+                    {item.label}
+                  </p>
+                  <p className="mt-1 text-sm font-bold text-foreground">
+                    {item.value}
+                  </p>
                 </article>
               ))}
             </div>
-          ) : (
-            <div className="rounded-[7px] border border-dashed border-line bg-white/45 p-4">
-              <p className="leading-normal text-muted">
-                Completed levels will show up here after your first finished
-                run.
-              </p>
+          </section>
+
+          <section className="grid gap-4 rounded-lg border border-line bg-white/55 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h3 className="text-[1.03rem] font-bold">Account security</h3>
+                <p className="mt-0.5 text-sm text-muted">Update password</p>
+              </div>
+              <span className="text-xs font-bold uppercase tracking-[0.08em] text-muted">
+                Protected
+              </span>
             </div>
-          )}
-        </section>
-      </div>
+            <ChangePasswordForm compact />
+          </section>
+        </div>
+      </section>
+
+      <section
+        className="profile-reveal grid gap-5 rounded-xl border border-line bg-panel/95 p-4 shadow-panel"
+        style={{ animationDelay: '70ms' }}
+      >
+        <div className="flex items-end justify-between gap-3 border-b border-line/60 pb-2">
+          <h2 className="text-[1.12rem] font-bold">Performance and Activity</h2>
+          <span className="text-xs font-bold uppercase tracking-[0.08em] text-muted">
+            Analytics
+          </span>
+        </div>
+
+        <div className="grid gap-3 min-[880px]:grid-cols-3">
+          <article className="rounded-lg border border-line bg-white/55 p-4">
+            <p className="text-[0.75rem] font-extrabold uppercase text-muted">
+              Latest run
+            </p>
+            <p className="mt-1 text-lg font-bold text-foreground">
+              {latestRun ? `Level ${latestRun.level}` : '-'}
+            </p>
+            <p className="mt-1 text-sm text-muted">
+              {latestRun
+                ? `${formatDuration(latestRun.timeSeconds)} · ${latestRun.moves} moves`
+                : 'No completed runs yet'}
+            </p>
+          </article>
+          <article className="rounded-lg border border-line bg-white/55 p-4">
+            <p className="text-[0.75rem] font-extrabold uppercase text-muted">
+              Best pace
+            </p>
+            <p className="mt-1 text-lg font-bold text-foreground">
+              {bestPaceRun
+                ? formatPace(bestPaceRun.timeSeconds, bestPaceRun.level)
+                : '-'}
+            </p>
+            <p className="mt-1 text-sm text-muted">
+              {bestPaceRun
+                ? `Set on level ${bestPaceRun.level}`
+                : 'Complete runs to measure pace'}
+            </p>
+          </article>
+          <article className="rounded-lg border border-line bg-white/55 p-4">
+            <p className="text-[0.75rem] font-extrabold uppercase text-muted">
+              Recent average
+            </p>
+            <p className="mt-1 text-lg font-bold text-foreground">
+              {recentAverageTime ? formatDuration(recentAverageTime) : '-'}
+            </p>
+            <p className="mt-1 text-sm text-muted">
+              Last {Math.min(scores.length, 3)} runs
+            </p>
+          </article>
+        </div>
+
+        <div className="grid grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] items-start gap-5 max-[980px]:grid-cols-1">
+          <div className="grid gap-5">
+            <section className="grid gap-4 rounded-lg border border-line bg-white/55 p-4">
+              <div className="flex items-end justify-between gap-3">
+                <h2 className="text-[clamp(1.6rem,3vw,2.2rem)]">Saved board</h2>
+                <span className="text-xs font-bold uppercase tracking-[0.08em] text-muted">
+                  Resume point
+                </span>
+              </div>
+              {gameState ? (
+                <>
+                  <div className="grid grid-cols-3 gap-2.5 max-[620px]:grid-cols-1">
+                    <div className="rounded-[7px] border border-line bg-white/60 p-3">
+                      <span className="block text-[0.78rem] text-muted">
+                        Level
+                      </span>
+                      <strong className="mt-1 block text-[1.4rem]">
+                        {gameState.level}
+                      </strong>
+                    </div>
+                    <div className="rounded-[7px] border border-line bg-white/60 p-3">
+                      <span className="block text-[0.78rem] text-muted">
+                        Moves
+                      </span>
+                      <strong className="mt-1 block text-[1.4rem]">
+                        {gameState.moves}
+                      </strong>
+                    </div>
+                    <div className="rounded-[7px] border border-line bg-white/60 p-3">
+                      <span className="block text-[0.78rem] text-muted">
+                        Last save
+                      </span>
+                      <strong className="mt-1 block text-[1.08rem]">
+                        {formatDateTime(gameState.updatedAt)}
+                      </strong>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted">
+                    Your signed-in progress is active and ready to continue.
+                  </p>
+                </>
+              ) : (
+                <div className="rounded-[7px] border border-dashed border-line bg-white/45 p-4">
+                  <p className="leading-normal text-muted">
+                    No saved board yet. Start a signed-in run and your progress
+                    will appear here automatically.
+                  </p>
+                </div>
+              )}
+            </section>
+
+            <div className="grid grid-cols-3 gap-3 max-[620px]:grid-cols-1">
+              <article className="rounded-lg border border-line bg-white/55 p-4">
+                <p className="text-[0.75rem] font-extrabold uppercase text-muted">
+                  Completed runs
+                </p>
+                <p className="mt-1 text-2xl font-bold">{completedRuns}</p>
+              </article>
+              <article className="rounded-lg border border-line bg-white/55 p-4">
+                <p className="text-[0.75rem] font-extrabold uppercase text-muted">
+                  Best level
+                </p>
+                <p className="mt-1 text-2xl font-bold">
+                  {highestCompletedLevel > 0 ? highestCompletedLevel : '-'}
+                </p>
+              </article>
+              <article className="rounded-lg border border-line bg-white/55 p-4">
+                <p className="text-[0.75rem] font-extrabold uppercase text-muted">
+                  Fastest clear
+                </p>
+                <p className="mt-1 text-2xl font-bold">
+                  {bestRun ? formatDuration(bestRun.timeSeconds) : '-'}
+                </p>
+              </article>
+            </div>
+
+            <section className="grid gap-3 rounded-lg border border-line bg-white/55 p-4">
+              <div className="flex items-end justify-between gap-2">
+                <h3 className="text-[1.12rem] font-bold">Performance trend</h3>
+                <span className="text-xs font-bold uppercase tracking-[0.08em] text-muted">
+                  Last {trendRuns.length}
+                </span>
+              </div>
+              {trendRuns.length > 0 ? (
+                <div className="grid gap-2.5">
+                  {trendRuns.map((run) => {
+                    const normalized =
+                      1 - (run.pace - minTrendPace) / trendRange;
+                    const widthPercent = Math.round(38 + normalized * 62);
+
+                    return (
+                      <article className="grid gap-1" key={run.id}>
+                        <div className="flex items-center justify-between gap-2 text-sm">
+                          <p className="font-semibold text-foreground">
+                            Level {run.level}
+                          </p>
+                          <p className="text-muted">
+                            {formatDateTime(run.timestamp)}
+                          </p>
+                        </div>
+                        <div className="h-2.5 w-full overflow-hidden rounded-full bg-white/70">
+                          <div
+                            className="profile-trend-bar h-full rounded-full bg-[linear-gradient(90deg,#6cb34d,#2f7f61)]"
+                            style={
+                              {
+                                '--bar-scale': `${widthPercent / 100}`,
+                                animationDelay: `${(trendRuns.length - 1) * 40}ms`,
+                              } as React.CSSProperties
+                            }
+                          />
+                        </div>
+                        <p className="text-xs text-muted">
+                          Pace {run.pace.toFixed(1)}s/lvl
+                        </p>
+                      </article>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-sm text-muted">
+                  Complete a few runs to see your recent pace trend.
+                </p>
+              )}
+            </section>
+
+            <section className="grid gap-3 rounded-lg border border-line bg-white/55 p-4">
+              <div className="flex items-end justify-between gap-2">
+                <h3 className="text-[1.12rem] font-bold">Personal records</h3>
+                <span className="text-xs font-bold uppercase tracking-[0.08em] text-muted">
+                  Snapshot
+                </span>
+              </div>
+              <div className="grid gap-2.5">
+                <article className="rounded-lg border border-line bg-white/60 p-3">
+                  <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-muted">
+                    Fastest clear
+                  </p>
+                  <p className="mt-1 text-sm font-bold text-foreground">
+                    {bestRun
+                      ? `${formatDuration(bestRun.timeSeconds)} on level ${bestRun.level}`
+                      : 'No record yet'}
+                  </p>
+                </article>
+                <article className="rounded-lg border border-line bg-white/60 p-3">
+                  <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-muted">
+                    Best pace run
+                  </p>
+                  <p className="mt-1 text-sm font-bold text-foreground">
+                    {bestPaceRun
+                      ? `${formatPace(bestPaceRun.timeSeconds, bestPaceRun.level)} at level ${bestPaceRun.level}`
+                      : 'No record yet'}
+                  </p>
+                </article>
+                <article className="rounded-lg border border-line bg-white/60 p-3">
+                  <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-muted">
+                    Cleanest run
+                  </p>
+                  <p className="mt-1 text-sm font-bold text-foreground">
+                    {cleanestRun
+                      ? `${cleanestRun.moves} moves on level ${cleanestRun.level}`
+                      : 'No record yet'}
+                  </p>
+                </article>
+              </div>
+            </section>
+          </div>
+
+          <section className="grid gap-4 rounded-lg border border-line bg-white/55 p-4">
+            <div className="flex items-end justify-between gap-3">
+              <h2 className="text-[clamp(1.6rem,3vw,2.2rem)]">Recent runs</h2>
+              <span className="text-xs font-bold uppercase tracking-[0.08em] text-muted">
+                Last {scores.length > 10 ? 10 : scores.length}
+              </span>
+            </div>
+
+            {scores.length > 0 ? (
+              <div className="grid gap-2.5">
+                {scores.map((score, index) => (
+                  <article className="relative pl-4" key={score.id}>
+                    <span
+                      aria-hidden="true"
+                      className={[
+                        'absolute left-0 top-5 h-[calc(100%-8px)] w-0.5',
+                        index === scores.length - 1 ? 'hidden' : 'bg-line/70',
+                      ].join(' ')}
+                    />
+                    <span
+                      aria-hidden="true"
+                      className={[
+                        'absolute -left-1 top-2 h-2.5 w-2.5 rounded-full border',
+                        index === 0
+                          ? 'border-accent bg-accent'
+                          : 'border-line bg-panel',
+                      ].join(' ')}
+                    />
+                    <div
+                      className={[
+                        'grid gap-2 rounded-lg border bg-white/60 p-3',
+                        index === 0
+                          ? 'border-accent/45 shadow-[0_8px_20px_rgba(90,133,63,0.16)]'
+                          : 'border-line',
+                      ].join(' ')}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-sm font-bold text-foreground">
+                          Level {score.level}
+                        </p>
+                        <p className="text-xs font-semibold uppercase text-muted">
+                          {formatDateTime(score.completedAt)}
+                        </p>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-sm max-[620px]:grid-cols-1">
+                        <p className="rounded-md border border-line bg-white/80 px-2 py-1.5">
+                          Time: {formatDuration(score.timeSeconds)}
+                        </p>
+                        <p className="rounded-md border border-line bg-white/80 px-2 py-1.5">
+                          Moves: {score.moves}
+                        </p>
+                        <p className="rounded-md border border-line bg-white/80 px-2 py-1.5">
+                          Pace: {formatPace(score.timeSeconds, score.level)}
+                        </p>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-[7px] border border-dashed border-line bg-white/45 p-4">
+                <p className="leading-normal text-muted">
+                  Completed levels will show up here after your first finished
+                  run.
+                </p>
+              </div>
+            )}
+          </section>
+        </div>
+      </section>
     </section>
   );
 }

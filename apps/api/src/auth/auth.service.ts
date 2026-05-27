@@ -15,6 +15,54 @@ import { hashPassword, verifyPassword } from './password';
 export class AuthService {
   constructor(private readonly prisma: PrismaService) {}
 
+  async changePassword(
+    userId: string,
+    {
+      currentPassword,
+      newPassword,
+    }: {
+      currentPassword: string;
+      newPassword: string;
+    },
+  ) {
+    const user = await this.prisma.user.findUnique({
+      select: {
+        id: true,
+        passwordHash: true,
+      },
+      where: { id: userId },
+    });
+
+    if (!user || !(await verifyPassword(currentPassword, user.passwordHash))) {
+      throw new BadRequestException({
+        errors: {
+          currentPassword: ['Current password is incorrect.'],
+        },
+        message: 'Request validation failed.',
+      });
+    }
+
+    if (await verifyPassword(newPassword, user.passwordHash)) {
+      throw new BadRequestException({
+        errors: {
+          newPassword: [
+            'New password must be different from current password.',
+          ],
+        },
+        message: 'Request validation failed.',
+      });
+    }
+
+    await this.prisma.user.update({
+      data: {
+        passwordHash: await hashPassword(newPassword),
+        resetPasswordTokenExpiresAt: null,
+        resetPasswordTokenHash: null,
+      },
+      where: { id: userId },
+    });
+  }
+
   async forgotPassword({ identifier }: { identifier: string }) {
     const normalizedIdentifier = identifier.trim().toLowerCase();
     const user = await this.prisma.user.findFirst({

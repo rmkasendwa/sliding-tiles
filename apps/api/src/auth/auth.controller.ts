@@ -15,6 +15,7 @@ import { AuthGuard } from '../session/auth.guard';
 import { SessionService } from '../session/session.service';
 import type { AuthenticatedRequest } from '../session/session.types';
 import {
+  changePasswordSchema,
   forgotPasswordSchema,
   loginSchema,
   parseBody,
@@ -80,6 +81,24 @@ export class AuthController {
   @Post('reset-password')
   async resetPassword(@Body() body: unknown) {
     await this.authService.resetPassword(parseBody(resetPasswordSchema, body));
+    return { ok: true };
+  }
+
+  @Post('change-password')
+  @UseGuards(AuthGuard)
+  async changePassword(
+    @Req() request: AuthenticatedRequest,
+    @Body() body: unknown,
+  ) {
+    const { currentPassword, newPassword } = parseBody(
+      changePasswordSchema,
+      body,
+    );
+
+    await this.authService.changePassword(request.user!.id, {
+      currentPassword,
+      newPassword,
+    });
     return { ok: true };
   }
 

@@ -13,6 +13,7 @@ import { routes } from '@/lib/routes';
 import { destroySession, setSessionToken } from '@/lib/session';
 import {
   AuthFormState,
+  changePasswordSchema,
   forgotPasswordSchema,
   loginSchema,
   resetPasswordSchema,
@@ -180,6 +181,45 @@ export async function resetPassword(
 
   return {
     message: 'Password updated. You can log in with your new password now.',
+    success: true,
+  };
+}
+
+export async function changePassword(
+  _state: AuthFormState,
+  formData: FormData,
+): Promise<AuthFormState> {
+  const validatedFields = changePasswordSchema.safeParse({
+    confirmPassword: formData.get('confirmPassword'),
+    currentPassword: formData.get('currentPassword'),
+    newPassword: formData.get('newPassword'),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      success: false,
+    };
+  }
+
+  const { currentPassword, newPassword } = validatedFields.data;
+  try {
+    await apiRequest<{ ok: true }>('/auth/change-password', {
+      body: { currentPassword, newPassword },
+      method: 'POST',
+    });
+  } catch (error) {
+    return {
+      errors: getApiFieldErrors(error),
+      message:
+        getApiMessage(error) ??
+        'Could not update your password right now. Try again shortly.',
+      success: false,
+    };
+  }
+
+  return {
+    message: 'Password changed successfully.',
     success: true,
   };
 }

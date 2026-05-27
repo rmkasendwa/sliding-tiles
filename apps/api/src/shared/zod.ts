@@ -75,6 +75,21 @@ export const resetPasswordSchema = z.object({
   token: z.string().trim().min(1, 'Reset token is required.'),
 });
 
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'Enter your current password.'),
+    newPassword: z
+      .string()
+      .min(8, 'Password must be at least 8 characters.')
+      .regex(/[a-zA-Z]/, 'Password needs at least one letter.')
+      .regex(/[0-9]/, 'Password needs at least one number.'),
+    confirmPassword: z.string().min(1, 'Confirm your new password.'),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'Passwords do not match.',
+    path: ['confirmPassword'],
+  });
+
 export const saveGameStateSchema = z.object({
   board: boardStateSchema,
 });
