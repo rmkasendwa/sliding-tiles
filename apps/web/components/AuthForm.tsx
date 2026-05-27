@@ -269,7 +269,7 @@ export function AuthForm({ mode }: AuthFormProps) {
   const getInputClass = (fieldName: string) => {
     const hasError = Boolean(getFieldError(fieldName));
     return [
-      'min-h-11 w-full rounded-[9px] border bg-white px-3 text-foreground outline-none transition-[border-color,box-shadow,background-color]',
+      'min-h-11 w-full rounded-[9px] border bg-white px-3 text-foreground placeholder:text-[0.85rem] outline-none transition-[border-color,box-shadow,background-color]',
       hasError
         ? 'border-danger/65 focus:border-danger/75 focus:shadow-[0_0_0_3px_rgba(154,46,46,0.16)]'
         : 'border-line focus:border-accent/60 focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,111,90,0.14)]',
@@ -576,7 +576,7 @@ export function AuthForm({ mode }: AuthFormProps) {
               maxLength={20}
               minLength={3}
               onChange={handleFieldChange}
-              placeholder="frog_runner"
+              placeholder="frogrunner"
               required
               value={formValues.username}
             />
@@ -679,7 +679,7 @@ export function AuthForm({ mode }: AuthFormProps) {
             autoCapitalize="none"
             autoComplete="username"
             onChange={handleFieldChange}
-            placeholder="you@example.com or frog_runner"
+            placeholder="you@example.com or frogrunner"
             required
             value={formValues.identifier}
           />
@@ -717,9 +717,7 @@ export function AuthForm({ mode }: AuthFormProps) {
               minLength={isSignup ? 8 : 1}
               onChange={handleFieldChange}
               placeholder={
-                isSignup
-                  ? 'At least 8 chars, letters + numbers'
-                  : 'Your password'
+                isSignup ? '8+ chars, letters & numbers' : 'Your password'
               }
               required
               value={formValues.password}
