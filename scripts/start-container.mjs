@@ -59,5 +59,5 @@ if (process.env.RUN_MIGRATIONS !== 'false') {
   await runOnce('database migrations', 'npx', ['prisma', 'migrate', 'deploy']);
 }
 
-run('api', 'node', ['dist/apps/api/main.js']);
+run('api', 'node', ['dist/api/main.js']);
 run('web', 'npm', ['run', 'web:start']);
