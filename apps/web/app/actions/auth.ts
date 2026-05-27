@@ -71,7 +71,7 @@ export async function login(
   formData: FormData,
 ): Promise<AuthFormState> {
   const validatedFields = loginSchema.safeParse({
-    email: formData.get('email'),
+    identifier: formData.get('identifier'),
     password: formData.get('password'),
   });
 
@@ -81,10 +81,10 @@ export async function login(
     };
   }
 
-  const { email, password } = validatedFields.data;
+  const { identifier, password } = validatedFields.data;
   try {
     const response = await apiRequest<AuthResponse>('/auth/login', {
-      body: { email, password },
+      body: { identifier, password },
       method: 'POST',
       token: null,
     });

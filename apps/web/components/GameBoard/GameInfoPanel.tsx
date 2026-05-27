@@ -46,14 +46,16 @@ export function GameInfoPanel({
             {gameModeLabel}
           </p>
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/20 bg-accent/10 py-0.5 pl-0.5 pr-2 text-sm font-bold text-accent-strong">
-              <span className="grid h-6 w-6 place-items-center rounded-full bg-accent-strong text-[0.65rem] font-extrabold tracking-[0.08em] text-white">
-                {getInitials(playerName ?? 'Guest')}
+            {isSignedIn && playerName && (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/20 bg-accent/10 py-0.5 pl-0.5 pr-2 text-sm font-bold text-accent-strong">
+                <span className="grid h-6 w-6 place-items-center rounded-full bg-accent-strong text-[0.65rem] font-extrabold tracking-[0.08em] text-white">
+                  {getInitials(playerName)}
+                </span>
+                <span className="max-w-44 text-[0.85rem] truncate">
+                  {playerName}
+                </span>
               </span>
-              <span className="max-w-44 text-[0.85rem] truncate">
-                {playerName ?? 'Guest'}
-              </span>
-            </span>
+            )}
             {onClose && (
               <button
                 aria-label="Close run details"

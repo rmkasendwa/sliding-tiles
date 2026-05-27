@@ -26,7 +26,17 @@ export const signupSchema = z
   });
 
 export const loginSchema = z.object({
-  email: z.string().trim().email('Enter a valid email address.'),
+  identifier: z
+    .string()
+    .trim()
+    .min(1, 'Enter your email or username.')
+    .refine((value) => {
+      if (value.includes('@')) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+      }
+
+      return /^[a-zA-Z0-9_]{3,20}$/.test(value);
+    }, 'Enter a valid email or username.'),
   password: z.string().min(1, 'Enter your password.'),
 });
 

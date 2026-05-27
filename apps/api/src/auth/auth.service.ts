@@ -153,13 +153,14 @@ export class AuthService {
   }
 
   async login({
-    email,
+    identifier,
     password,
   }: {
-    email: string;
+    identifier: string;
     password: string;
   }): Promise<SessionUser> {
-    const user = await this.prisma.user.findUnique({
+    const normalizedIdentifier = identifier.trim().toLowerCase();
+    const user = await this.prisma.user.findFirst({
       select: {
         email: true,
         id: true,
@@ -167,7 +168,12 @@ export class AuthService {
         passwordHash: true,
         username: true,
       },
-      where: { email: email.toLowerCase() },
+      where: {
+        OR: [
+          { email: normalizedIdentifier },
+          { username: normalizedIdentifier },
+        ],
+      },
     });
 
     if (!user || !(await verifyPassword(password, user.passwordHash))) {
