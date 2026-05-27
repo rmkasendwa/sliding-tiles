@@ -2,7 +2,9 @@ import Link from 'next/link';
 
 import { FrogLogo } from '@/components/FrogLogo';
 import { ScrollRevealObserver } from '@/components/ScrollRevealObserver';
+import { ApiGameState, apiRequest } from '@/lib/api';
 import { routes } from '@/lib/routes';
+import { getSession } from '@/lib/session';
 
 const heroTiles = [2, 0, 5, 3, 8, 1, 6, 4, null] as const;
 
@@ -100,7 +102,19 @@ function HomePuzzlePreview() {
   );
 }
 
-export default function HomePage() {
+export default async function HomePage() {
+  const session = await getSession();
+  let hasSavedBoard = false;
+
+  if (session) {
+    const savedState = await apiRequest<{ gameState: ApiGameState | null }>(
+      '/game-state',
+    );
+    hasSavedBoard = Boolean(savedState.gameState);
+  }
+
+  const playCtaLabel = hasSavedBoard ? 'Continue playing' : 'Start playing';
+
   return (
     <div className="relative grid gap-0 overflow-x-clip" id="home-page">
       <div
@@ -137,7 +151,7 @@ export default function HomePage() {
               className="inline-flex min-h-10 items-center justify-center rounded-[7px] border border-accent bg-accent px-3.5 font-bold text-white shadow-[0_10px_22px_rgba(37,111,90,0.28)]"
               href={routes.play}
             >
-              Start playing
+              {playCtaLabel}
             </Link>
             <Link
               className="inline-flex min-h-10 items-center justify-center rounded-[7px] border border-accent/30 px-3.5 font-bold text-accent-strong"
@@ -266,7 +280,7 @@ export default function HomePage() {
               className="inline-flex min-h-10 items-center justify-center rounded-[7px] border border-accent bg-accent px-3.5 font-bold text-white"
               href={routes.play}
             >
-              Play now
+              {playCtaLabel}
             </Link>
             <Link
               className="inline-flex min-h-10 items-center justify-center rounded-[7px] border border-accent/30 px-3.5 font-bold text-accent-strong"
