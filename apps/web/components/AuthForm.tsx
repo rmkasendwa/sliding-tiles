@@ -330,64 +330,65 @@ export function AuthForm({ mode }: AuthFormProps) {
       </div>
 
       {isSignup && (
-        <div className="grid gap-2">
-          <label className={fieldLabelClass} htmlFor="name">
-            Name{' '}
-            <span aria-hidden="true" className="text-danger">
-              *
-            </span>
-          </label>
-          <input
-            aria-describedby={getFieldError('name') ? 'name-error' : undefined}
-            aria-invalid={Boolean(getFieldError('name'))}
-            className={getInputClass('name')}
-            id="name"
-            name="name"
-            autoComplete="name"
-            minLength={2}
-            onChange={handleFieldChange}
-            placeholder="Ada Lovelace"
-            required
-            value={formValues.name}
-          />
-          {getFieldError('name') && (
-            <p className="text-[0.9rem] text-danger" id="name-error">
-              {getFieldError('name')}
-            </p>
-          )}
-        </div>
-      )}
-
-      {isSignup && (
-        <div className="grid gap-2">
-          <label className={fieldLabelClass} htmlFor="username">
-            Username{' '}
-            <span aria-hidden="true" className="text-danger">
-              *
-            </span>
-          </label>
-          <input
-            aria-describedby={
-              getFieldError('username') ? 'username-error' : undefined
-            }
-            aria-invalid={Boolean(getFieldError('username'))}
-            className={getInputClass('username')}
-            id="username"
-            name="username"
-            autoCapitalize="none"
-            autoComplete="username"
-            maxLength={20}
-            minLength={3}
-            onChange={handleFieldChange}
-            placeholder="frog_runner"
-            required
-            value={formValues.username}
-          />
-          {getFieldError('username') && (
-            <p className="text-[0.9rem] text-danger" id="username-error">
-              {getFieldError('username')}
-            </p>
-          )}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-2">
+            <label className={fieldLabelClass} htmlFor="name">
+              Name{' '}
+              <span aria-hidden="true" className="text-danger">
+                *
+              </span>
+            </label>
+            <input
+              aria-describedby={
+                getFieldError('name') ? 'name-error' : undefined
+              }
+              aria-invalid={Boolean(getFieldError('name'))}
+              className={getInputClass('name')}
+              id="name"
+              name="name"
+              autoComplete="name"
+              minLength={2}
+              onChange={handleFieldChange}
+              placeholder="Ada Lovelace"
+              required
+              value={formValues.name}
+            />
+            {getFieldError('name') && (
+              <p className="text-[0.9rem] text-danger" id="name-error">
+                {getFieldError('name')}
+              </p>
+            )}
+          </div>
+          <div className="grid gap-2">
+            <label className={fieldLabelClass} htmlFor="username">
+              Username{' '}
+              <span aria-hidden="true" className="text-danger">
+                *
+              </span>
+            </label>
+            <input
+              aria-describedby={
+                getFieldError('username') ? 'username-error' : undefined
+              }
+              aria-invalid={Boolean(getFieldError('username'))}
+              className={getInputClass('username')}
+              id="username"
+              name="username"
+              autoCapitalize="none"
+              autoComplete="username"
+              maxLength={20}
+              minLength={3}
+              onChange={handleFieldChange}
+              placeholder="frog_runner"
+              required
+              value={formValues.username}
+            />
+            {getFieldError('username') && (
+              <p className="text-[0.9rem] text-danger" id="username-error">
+                {getFieldError('username')}
+              </p>
+            )}
+          </div>
         </div>
       )}
 
@@ -418,85 +419,10 @@ export function AuthForm({ mode }: AuthFormProps) {
         )}
       </div>
 
-      <div className="grid gap-2">
-        <label className={fieldLabelClass} htmlFor="password">
-          Password{' '}
-          <span aria-hidden="true" className="text-danger">
-            *
-          </span>
-        </label>
-        <div className="relative">
-          <input
-            aria-describedby={
-              getFieldError('password') ? 'password-error' : undefined
-            }
-            aria-invalid={Boolean(getFieldError('password'))}
-            className={`${getInputClass('password')} pr-11`}
-            id="password"
-            name="password"
-            type={visiblePasswords.password ? 'text' : 'password'}
-            autoComplete={isSignup ? 'new-password' : 'current-password'}
-            minLength={isSignup ? 8 : 1}
-            onChange={handleFieldChange}
-            placeholder={
-              isSignup ? 'At least 8 chars, letters + numbers' : 'Your password'
-            }
-            required
-            value={formValues.password}
-          />
-          <button
-            aria-label={
-              visiblePasswords.password ? 'Hide password' : 'Show password'
-            }
-            className="absolute inset-y-0 right-2 inline-flex w-8 items-center justify-center text-muted transition-colors hover:text-accent-strong"
-            onClick={() => togglePasswordVisibility('password')}
-            type="button"
-          >
-            {visiblePasswords.password ? (
-              <EyeOff className="h-4 w-4" aria-hidden="true" />
-            ) : (
-              <Eye className="h-4 w-4" aria-hidden="true" />
-            )}
-          </button>
-        </div>
-        {isSignup && formValues.password.length > 0 && (
-          <div className="mt-1 grid gap-1.5">
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-panel-strong/60">
-              <div
-                className={[
-                  'h-full rounded-full transition-all duration-200',
-                  passwordStrength <= 1
-                    ? 'bg-danger'
-                    : passwordStrength <= 2
-                      ? 'bg-[#b37a37]'
-                      : passwordStrength <= 3
-                        ? 'bg-accent-strong'
-                        : 'bg-accent',
-                ].join(' ')}
-                style={{ width: `${(passwordStrength / 4) * 100}%` }}
-              />
-            </div>
-            <p
-              className={[
-                'text-[0.78rem] font-bold',
-                passwordStrengthClass,
-              ].join(' ')}
-            >
-              Password strength: {passwordStrengthLabel}
-            </p>
-          </div>
-        )}
-        {getFieldError('password') && (
-          <p className="text-[0.9rem] text-danger" id="password-error">
-            {getFieldError('password')}
-          </p>
-        )}
-      </div>
-
-      {isSignup && (
+      <div className={isSignup ? 'grid gap-4 sm:grid-cols-2' : 'grid gap-2'}>
         <div className="grid gap-2">
-          <label className={fieldLabelClass} htmlFor="confirmPassword">
-            Confirm Password{' '}
+          <label className={fieldLabelClass} htmlFor="password">
+            Password{' '}
             <span aria-hidden="true" className="text-danger">
               *
             </span>
@@ -504,48 +430,126 @@ export function AuthForm({ mode }: AuthFormProps) {
           <div className="relative">
             <input
               aria-describedby={
-                getFieldError('confirmPassword')
-                  ? 'confirm-password-error'
-                  : undefined
+                getFieldError('password') ? 'password-error' : undefined
               }
-              aria-invalid={Boolean(getFieldError('confirmPassword'))}
-              className={`${getInputClass('confirmPassword')} pr-11`}
-              id="confirmPassword"
-              name="confirmPassword"
-              type={visiblePasswords.confirmPassword ? 'text' : 'password'}
-              autoComplete="new-password"
+              aria-invalid={Boolean(getFieldError('password'))}
+              className={`${getInputClass('password')} pr-11`}
+              id="password"
+              name="password"
+              type={visiblePasswords.password ? 'text' : 'password'}
+              autoComplete={isSignup ? 'new-password' : 'current-password'}
+              minLength={isSignup ? 8 : 1}
               onChange={handleFieldChange}
-              placeholder="Re-enter your password"
+              placeholder={
+                isSignup
+                  ? 'At least 8 chars, letters + numbers'
+                  : 'Your password'
+              }
               required
-              value={formValues.confirmPassword}
+              value={formValues.password}
             />
             <button
               aria-label={
-                visiblePasswords.confirmPassword
-                  ? 'Hide confirm password'
-                  : 'Show confirm password'
+                visiblePasswords.password ? 'Hide password' : 'Show password'
               }
               className="absolute inset-y-0 right-2 inline-flex w-8 items-center justify-center text-muted transition-colors hover:text-accent-strong"
-              onClick={() => togglePasswordVisibility('confirmPassword')}
+              onClick={() => togglePasswordVisibility('password')}
               type="button"
             >
-              {visiblePasswords.confirmPassword ? (
+              {visiblePasswords.password ? (
                 <EyeOff className="h-4 w-4" aria-hidden="true" />
               ) : (
                 <Eye className="h-4 w-4" aria-hidden="true" />
               )}
             </button>
           </div>
-          {getFieldError('confirmPassword') && (
-            <p
-              className="text-[0.9rem] text-danger"
-              id="confirm-password-error"
-            >
-              {getFieldError('confirmPassword')}
+          {isSignup && formValues.password.length > 0 && (
+            <div className="mt-1 grid gap-1.5">
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-panel-strong/60">
+                <div
+                  className={[
+                    'h-full rounded-full transition-all duration-200',
+                    passwordStrength <= 1
+                      ? 'bg-danger'
+                      : passwordStrength <= 2
+                        ? 'bg-[#b37a37]'
+                        : passwordStrength <= 3
+                          ? 'bg-accent-strong'
+                          : 'bg-accent',
+                  ].join(' ')}
+                  style={{ width: `${(passwordStrength / 4) * 100}%` }}
+                />
+              </div>
+              <p
+                className={[
+                  'text-[0.78rem] font-bold',
+                  passwordStrengthClass,
+                ].join(' ')}
+              >
+                Password strength: {passwordStrengthLabel}
+              </p>
+            </div>
+          )}
+          {getFieldError('password') && (
+            <p className="text-[0.9rem] text-danger" id="password-error">
+              {getFieldError('password')}
             </p>
           )}
         </div>
-      )}
+        {isSignup && (
+          <div className="grid gap-2">
+            <label className={fieldLabelClass} htmlFor="confirmPassword">
+              Confirm Password{' '}
+              <span aria-hidden="true" className="text-danger">
+                *
+              </span>
+            </label>
+            <div className="relative">
+              <input
+                aria-describedby={
+                  getFieldError('confirmPassword')
+                    ? 'confirm-password-error'
+                    : undefined
+                }
+                aria-invalid={Boolean(getFieldError('confirmPassword'))}
+                className={`${getInputClass('confirmPassword')} pr-11`}
+                id="confirmPassword"
+                name="confirmPassword"
+                type={visiblePasswords.confirmPassword ? 'text' : 'password'}
+                autoComplete="new-password"
+                onChange={handleFieldChange}
+                placeholder="Re-enter your password"
+                required
+                value={formValues.confirmPassword}
+              />
+              <button
+                aria-label={
+                  visiblePasswords.confirmPassword
+                    ? 'Hide confirm password'
+                    : 'Show confirm password'
+                }
+                className="absolute inset-y-0 right-2 inline-flex w-8 items-center justify-center text-muted transition-colors hover:text-accent-strong"
+                onClick={() => togglePasswordVisibility('confirmPassword')}
+                type="button"
+              >
+                {visiblePasswords.confirmPassword ? (
+                  <EyeOff className="h-4 w-4" aria-hidden="true" />
+                ) : (
+                  <Eye className="h-4 w-4" aria-hidden="true" />
+                )}
+              </button>
+            </div>
+            {getFieldError('confirmPassword') && (
+              <p
+                className="text-[0.9rem] text-danger"
+                id="confirm-password-error"
+              >
+                {getFieldError('confirmPassword')}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
 
       {state.message && !dismissServerMessage && (
         <p className="text-[0.9rem] text-danger">{state.message}</p>
