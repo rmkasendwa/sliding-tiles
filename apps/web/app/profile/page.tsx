@@ -258,7 +258,7 @@ export default async function ProfilePage() {
                   key={item.label}
                 >
                   {index < milestoneItems.length - 1 ? (
-                    <span className="absolute -right-2.25 top-1/2 hidden h-0.5 w-3.5 -translate-y-1/2 bg-accent/25 min-[981px]:block" />
+                    <span className="absolute right-0 top-1/2 hidden h-px w-3.5 -translate-y-1/2 translate-x-full bg-accent/30 min-[981px]:block" />
                   ) : null}
                   <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-muted">
                     {item.label}

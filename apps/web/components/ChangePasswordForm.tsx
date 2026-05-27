@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect, useState } from 'react';
+import { useActionState, useEffect, useRef, useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 
 import { changePassword } from '@/app/actions/auth';
@@ -21,15 +21,11 @@ type ChangePasswordFormProps = {
 export function ChangePasswordForm({
   compact = false,
 }: ChangePasswordFormProps) {
+  const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction, pending] = useActionState<AuthFormState, FormData>(
     changePassword,
     initialState,
   );
-  const [formValues, setFormValues] = useState<FormValues>({
-    confirmPassword: '',
-    currentPassword: '',
-    newPassword: '',
-  });
   const [visible, setVisible] = useState({
     confirmPassword: false,
     currentPassword: false,
@@ -41,11 +37,7 @@ export function ChangePasswordForm({
       return;
     }
 
-    setFormValues({
-      confirmPassword: '',
-      currentPassword: '',
-      newPassword: '',
-    });
+    formRef.current?.reset();
   }, [state.success]);
 
   const getInputClass = (fieldName: keyof FormValues) => {
@@ -56,10 +48,6 @@ export function ChangePasswordForm({
         ? 'border-danger/65 focus:border-danger/75 focus:shadow-[0_0_0_3px_rgba(154,46,46,0.16)]'
         : 'border-line focus:border-accent/60 focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,111,90,0.14)]',
     ].join(' ');
-  };
-
-  const handleChange = (fieldName: keyof FormValues, value: string) => {
-    setFormValues((previous) => ({ ...previous, [fieldName]: value }));
   };
 
   const renderPasswordField = (
@@ -86,11 +74,9 @@ export function ChangePasswordForm({
           id={fieldName}
           minLength={fieldName === 'currentPassword' ? 1 : 8}
           name={fieldName}
-          onChange={(event) => handleChange(fieldName, event.target.value)}
           placeholder={placeholder}
           required
           type={visible[fieldName] ? 'text' : 'password'}
-          value={formValues[fieldName]}
         />
         <button
           aria-label={visible[fieldName] ? `Hide ${label}` : `Show ${label}`}
@@ -167,7 +153,7 @@ export function ChangePasswordForm({
   if (compact) {
     return (
       <details
-        className="group w-full max-w-[560px] rounded-[10px] border border-line bg-white/62"
+        className="group w-full max-w-140 rounded-[10px] border border-line bg-white/62"
         open={Boolean(state.errors)}
       >
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2 text-sm font-bold text-foreground marker:content-none">
@@ -188,6 +174,7 @@ export function ChangePasswordForm({
           action={formAction}
           className="grid gap-4 border-t border-line/70 p-3"
           noValidate
+          ref={formRef}
         >
           {formFields}
         </form>
@@ -196,7 +183,7 @@ export function ChangePasswordForm({
   }
 
   return (
-    <form action={formAction} className="grid gap-4" noValidate>
+    <form action={formAction} className="grid gap-4" noValidate ref={formRef}>
       {formFields}
     </form>
   );
