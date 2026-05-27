@@ -2,6 +2,8 @@
 
 import {
   useActionState,
+  useEffect,
+  useRef,
   useState,
   type ChangeEvent,
   type FormEvent,
@@ -21,6 +23,24 @@ type FormValues = {
   name: string;
   password: string;
   username: string;
+};
+
+type UsernameAvailabilityStatus =
+  | 'idle'
+  | 'checking'
+  | 'available'
+  | 'taken'
+  | 'error';
+
+type UsernameAvailabilityState = {
+  checkedUsername: string;
+  status: UsernameAvailabilityStatus;
+  suggestions: string[];
+};
+
+type UsernameAvailabilityResponse = {
+  available: boolean;
+  suggestions: string[];
 };
 
 function getPasswordStrength(password: string) {
@@ -70,6 +90,7 @@ export function AuthForm({ mode }: AuthFormProps) {
     confirmPassword: false,
     password: false,
   });
+  const usernameRequestIdRef = useRef(0);
   const [formValues, setFormValues] = useState<FormValues>({
     confirmPassword: '',
     email: '',
@@ -77,6 +98,12 @@ export function AuthForm({ mode }: AuthFormProps) {
     password: '',
     username: '',
   });
+  const [usernameAvailability, setUsernameAvailability] =
+    useState<UsernameAvailabilityState>({
+      checkedUsername: '',
+      status: 'idle',
+      suggestions: [],
+    });
   const passwordStrength = getPasswordStrength(formValues.password);
   const passwordStrengthLabel = getPasswordStrengthLabel(passwordStrength);
   const passwordStrengthClass =
@@ -257,6 +284,20 @@ export function AuthForm({ mode }: AuthFormProps) {
     setDismissServerMessage(true);
     updateClientValidation(fieldName, value, nextValues);
 
+    if (isSignup && fieldName === 'username') {
+      const candidate = value.trim();
+      const isUsernameFormatValid =
+        candidate.length >= 3 &&
+        candidate.length <= 20 &&
+        /^[a-zA-Z0-9_]+$/.test(candidate);
+
+      setUsernameAvailability({
+        checkedUsername: isUsernameFormatValid ? candidate.toLowerCase() : '',
+        status: isUsernameFormatValid ? 'checking' : 'idle',
+        suggestions: [],
+      });
+    }
+
     if (isSignup && fieldName === 'password' && nextValues.confirmPassword) {
       updateClientValidation(
         'confirmPassword',
@@ -291,6 +332,23 @@ export function AuthForm({ mode }: AuthFormProps) {
       }
     }
 
+    if (isSignup) {
+      const normalizedUsername = submitValues.username.trim().toLowerCase();
+      if (
+        usernameAvailability.checkedUsername === normalizedUsername &&
+        usernameAvailability.status === 'taken'
+      ) {
+        nextErrors.username = 'This username is already taken.';
+      }
+
+      if (
+        usernameAvailability.checkedUsername === normalizedUsername &&
+        usernameAvailability.status === 'checking'
+      ) {
+        nextErrors.username = 'Checking username availability...';
+      }
+    }
+
     setClientErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) {
       event.preventDefault();
@@ -302,6 +360,109 @@ export function AuthForm({ mode }: AuthFormProps) {
     action,
     {},
   );
+
+  useEffect(() => {
+    if (!isSignup) {
+      return;
+    }
+
+    const candidate = formValues.username.trim();
+    const normalizedUsername = candidate.toLowerCase();
+    const isUsernameFormatValid =
+      candidate.length >= 3 &&
+      candidate.length <= 20 &&
+      /^[a-zA-Z0-9_]+$/.test(candidate);
+
+    if (!isUsernameFormatValid) {
+      usernameRequestIdRef.current += 1;
+      return;
+    }
+
+    const requestId = usernameRequestIdRef.current + 1;
+    usernameRequestIdRef.current = requestId;
+
+    const timeoutId = window.setTimeout(async () => {
+      try {
+        const response = await fetch(
+          `/api/auth/username-availability?username=${encodeURIComponent(normalizedUsername)}`,
+          {
+            cache: 'no-store',
+          },
+        );
+        const result =
+          (await response.json()) as Partial<UsernameAvailabilityResponse>;
+
+        if (usernameRequestIdRef.current !== requestId) {
+          return;
+        }
+
+        if (!response.ok) {
+          setUsernameAvailability({
+            checkedUsername: normalizedUsername,
+            status: 'error',
+            suggestions: [],
+          });
+          return;
+        }
+
+        if (result.available) {
+          setUsernameAvailability({
+            checkedUsername: normalizedUsername,
+            status: 'available',
+            suggestions: [],
+          });
+          setClientErrors((previous) => {
+            if (previous.username !== 'This username is already taken.') {
+              return previous;
+            }
+
+            const remaining = { ...previous };
+            delete remaining.username;
+            return remaining;
+          });
+          return;
+        }
+
+        setUsernameAvailability({
+          checkedUsername: normalizedUsername,
+          status: 'taken',
+          suggestions: Array.isArray(result.suggestions)
+            ? result.suggestions
+            : [],
+        });
+        setClientErrors((previous) => ({
+          ...previous,
+          username: 'This username is already taken.',
+        }));
+      } catch {
+        if (usernameRequestIdRef.current !== requestId) {
+          return;
+        }
+
+        setUsernameAvailability({
+          checkedUsername: normalizedUsername,
+          status: 'error',
+          suggestions: [],
+        });
+      }
+    }, 300);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [formValues.username, isSignup]);
+
+  const applySuggestedUsername = (suggestedUsername: string) => {
+    const nextValues = {
+      ...formValues,
+      username: suggestedUsername,
+    };
+
+    setFormValues(nextValues);
+    setEditedFields((previous) => ({ ...previous, username: true }));
+    setDismissServerMessage(true);
+    updateClientValidation('username', suggestedUsername, nextValues);
+  };
 
   return (
     <form
@@ -330,7 +491,7 @@ export function AuthForm({ mode }: AuthFormProps) {
       </div>
 
       {isSignup && (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid items-start gap-4 sm:grid-cols-2">
           <div className="grid gap-2">
             <label className={fieldLabelClass} htmlFor="name">
               Name{' '}
@@ -388,6 +549,47 @@ export function AuthForm({ mode }: AuthFormProps) {
                 {getFieldError('username')}
               </p>
             )}
+            {!getFieldError('username') &&
+              formValues.username.trim().length >= 3 &&
+              usernameAvailability.status === 'checking' && (
+                <p className="text-[0.8rem] text-muted">
+                  Checking username availability...
+                </p>
+              )}
+            {!getFieldError('username') &&
+              usernameAvailability.status === 'available' && (
+                <p className="text-[0.8rem] font-medium text-accent-strong">
+                  Username is available.
+                </p>
+              )}
+            {!getFieldError('username') &&
+              usernameAvailability.status === 'taken' && (
+                <div className="grid gap-2">
+                  <p className="text-[0.8rem] text-danger">
+                    That username is taken. Try one of these:
+                  </p>
+                  {usernameAvailability.suggestions.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {usernameAvailability.suggestions.map((suggestion) => (
+                        <button
+                          key={suggestion}
+                          className="rounded-full border border-line bg-white px-2.5 py-1 text-[0.75rem] font-medium text-foreground/78 transition-colors hover:border-accent/45 hover:text-accent-strong"
+                          onClick={() => applySuggestedUsername(suggestion)}
+                          type="button"
+                        >
+                          {suggestion}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            {!getFieldError('username') &&
+              usernameAvailability.status === 'error' && (
+                <p className="text-[0.8rem] text-muted">
+                  Could not check username availability right now.
+                </p>
+              )}
           </div>
         </div>
       )}

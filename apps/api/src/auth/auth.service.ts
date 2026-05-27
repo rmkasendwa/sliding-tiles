@@ -13,6 +13,77 @@ import { hashPassword, verifyPassword } from './password';
 export class AuthService {
   constructor(private readonly prisma: PrismaService) {}
 
+  async getUsernameAvailability(username: string) {
+    const normalizedUsername = username.trim().toLowerCase();
+    const existingUser = await this.prisma.user.findUnique({
+      select: { id: true },
+      where: { username: normalizedUsername },
+    });
+
+    if (!existingUser) {
+      return {
+        available: true,
+        suggestions: [] as string[],
+      };
+    }
+
+    const suggestions =
+      await this.generateUsernameSuggestions(normalizedUsername);
+
+    return {
+      available: false,
+      suggestions,
+    };
+  }
+
+  private async generateUsernameSuggestions(username: string) {
+    const sanitizedBase = this.sanitizeUsernameBase(username);
+    const existingUsers = await this.prisma.user.findMany({
+      select: { username: true },
+      where: {
+        username: {
+          startsWith: sanitizedBase,
+        },
+      },
+    });
+
+    const takenUsernames = new Set(
+      existingUsers.map((user) => user.username.toLowerCase()),
+    );
+    const suggestions: string[] = [];
+    let suffix = 2;
+
+    while (suggestions.length < 4 && suffix < 10000) {
+      const suffixText = `_${suffix}`;
+      const baseLength = Math.max(1, 20 - suffixText.length);
+      const base = sanitizedBase.slice(0, baseLength).replace(/_+$/g, '');
+      const candidate = `${base || 'user'}${suffixText}`;
+
+      if (!takenUsernames.has(candidate)) {
+        takenUsernames.add(candidate);
+        suggestions.push(candidate);
+      }
+
+      suffix += 1;
+    }
+
+    return suggestions;
+  }
+
+  private sanitizeUsernameBase(username: string) {
+    const sanitized = username
+      .toLowerCase()
+      .replace(/[^a-z0-9_]+/g, '_')
+      .replace(/^_+|_+$/g, '');
+
+    const bounded = sanitized.slice(0, 20);
+    if (bounded.length >= 3) {
+      return bounded;
+    }
+
+    return 'player';
+  }
+
   async signup({
     email,
     name,

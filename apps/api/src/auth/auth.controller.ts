@@ -1,8 +1,10 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
   Post,
+  Query,
   Req,
   Res,
   UseGuards,
@@ -12,7 +14,12 @@ import type { Response } from 'express';
 import { AuthGuard } from '../session/auth.guard';
 import { SessionService } from '../session/session.service';
 import type { AuthenticatedRequest } from '../session/session.types';
-import { loginSchema, parseBody, signupSchema } from '../shared/zod';
+import {
+  loginSchema,
+  parseBody,
+  signupSchema,
+  usernameAvailabilityQuerySchema,
+} from '../shared/zod';
 import { AuthService } from './auth.service';
 
 @Controller('auth')
@@ -58,6 +65,19 @@ export class AuthController {
       accessToken: session.token,
       user,
     };
+  }
+
+  @Get('username-availability')
+  async usernameAvailability(@Query() query: unknown) {
+    const result = usernameAvailabilityQuerySchema.safeParse(query);
+    if (!result.success) {
+      throw new BadRequestException({
+        errors: result.error.flatten().fieldErrors,
+        message: 'Request validation failed.',
+      });
+    }
+
+    return this.authService.getUsernameAvailability(result.data.username);
   }
 
   @Post('logout')
