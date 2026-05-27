@@ -12,6 +12,8 @@ model User {
   username     String        @unique(map: "users_username_key")
   email        String        @unique(map: "users_email_key")
   passwordHash String        @map("password_hash")
+  resetPasswordTokenHash      String?       @map("reset_password_token_hash")
+  resetPasswordTokenExpiresAt DateTime?     @map("reset_password_token_expires_at")
   createdAt    DateTime      @default(now()) @map("created_at")
   updatedAt    DateTime      @updatedAt @map("updated_at")
   gameState    GameState?

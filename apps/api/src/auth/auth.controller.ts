@@ -15,8 +15,10 @@ import { AuthGuard } from '../session/auth.guard';
 import { SessionService } from '../session/session.service';
 import type { AuthenticatedRequest } from '../session/session.types';
 import {
+  forgotPasswordSchema,
   loginSchema,
   parseBody,
+  resetPasswordSchema,
   signupSchema,
   usernameAvailabilityQuerySchema,
 } from '../shared/zod';
@@ -65,6 +67,20 @@ export class AuthController {
       accessToken: session.token,
       user,
     };
+  }
+
+  @Post('forgot-password')
+  async forgotPassword(@Body() body: unknown) {
+    await this.authService.forgotPassword(
+      parseBody(forgotPasswordSchema, body),
+    );
+    return { ok: true };
+  }
+
+  @Post('reset-password')
+  async resetPassword(@Body() body: unknown) {
+    await this.authService.resetPassword(parseBody(resetPasswordSchema, body));
+    return { ok: true };
   }
 
   @Get('username-availability')

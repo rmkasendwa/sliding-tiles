@@ -11,7 +11,13 @@ import {
 } from '@/lib/api';
 import { routes } from '@/lib/routes';
 import { destroySession, setSessionToken } from '@/lib/session';
-import { AuthFormState, loginSchema, signupSchema } from '@/lib/validation';
+import {
+  AuthFormState,
+  forgotPasswordSchema,
+  loginSchema,
+  resetPasswordSchema,
+  signupSchema,
+} from '@/lib/validation';
 
 export async function signup(
   _state: AuthFormState,
@@ -98,6 +104,84 @@ export async function login(
   }
 
   redirect(routes.play);
+}
+
+export async function requestPasswordReset(
+  _state: AuthFormState,
+  formData: FormData,
+): Promise<AuthFormState> {
+  const validatedFields = forgotPasswordSchema.safeParse({
+    identifier: formData.get('identifier'),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+
+  const { identifier } = validatedFields.data;
+  try {
+    await apiRequest<{ ok: true }>('/auth/forgot-password', {
+      body: { identifier },
+      method: 'POST',
+      token: null,
+    });
+  } catch (error) {
+    return {
+      errors: getApiFieldErrors(error),
+      message:
+        getApiMessage(error) ??
+        'Could not send a reset link right now. Please try again shortly.',
+      success: false,
+    };
+  }
+
+  return {
+    message:
+      'If an account matches that email or username, a reset link is on its way.',
+    success: true,
+  };
+}
+
+export async function resetPassword(
+  _state: AuthFormState,
+  formData: FormData,
+): Promise<AuthFormState> {
+  const validatedFields = resetPasswordSchema.safeParse({
+    confirmPassword: formData.get('confirmPassword'),
+    password: formData.get('password'),
+    token: formData.get('token'),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      success: false,
+    };
+  }
+
+  const { password, token } = validatedFields.data;
+  try {
+    await apiRequest<{ ok: true }>('/auth/reset-password', {
+      body: { password, token },
+      method: 'POST',
+      token: null,
+    });
+  } catch (error) {
+    return {
+      errors: getApiFieldErrors(error),
+      message:
+        getApiMessage(error) ??
+        'That reset link is invalid or expired. Request a new one.',
+      success: false,
+    };
+  }
+
+  return {
+    message: 'Password updated. You can log in with your new password now.',
+    success: true,
+  };
 }
 
 export async function logout() {

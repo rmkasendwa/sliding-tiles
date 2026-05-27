@@ -37,6 +37,10 @@ export const loginSchema = z.object({
   password: z.string().min(1, 'Enter your password.'),
 });
 
+export const forgotPasswordSchema = z.object({
+  identifier: z.string().trim().min(1, 'Enter your email or username.'),
+});
+
 export const usernameSchema = z
   .string()
   .trim()
@@ -60,6 +64,15 @@ export const signupSchema = z.object({
 
 export const usernameAvailabilityQuerySchema = z.object({
   username: usernameSchema,
+});
+
+export const resetPasswordSchema = z.object({
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters.')
+    .regex(/[a-zA-Z]/, 'Password needs at least one letter.')
+    .regex(/[0-9]/, 'Password needs at least one number.'),
+  token: z.string().trim().min(1, 'Reset token is required.'),
 });
 
 export const saveGameStateSchema = z.object({

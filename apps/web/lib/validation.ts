@@ -40,7 +40,37 @@ export const loginSchema = z.object({
   password: z.string().min(1, 'Enter your password.'),
 });
 
+export const forgotPasswordSchema = z.object({
+  identifier: z
+    .string()
+    .trim()
+    .min(1, 'Enter your email or username.')
+    .refine((value) => {
+      if (value.includes('@')) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+      }
+
+      return /^[a-zA-Z0-9_]{3,20}$/.test(value);
+    }, 'Enter a valid email or username.'),
+});
+
+export const resetPasswordSchema = z
+  .object({
+    token: z.string().trim().min(1, 'Reset token is required.'),
+    password: z
+      .string()
+      .min(8, 'Password must be at least 8 characters.')
+      .regex(/[a-zA-Z]/, 'Password needs at least one letter.')
+      .regex(/[0-9]/, 'Password needs at least one number.'),
+    confirmPassword: z.string().min(1, 'Confirm your password.'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Passwords do not match.',
+    path: ['confirmPassword'],
+  });
+
 export type AuthFormState = {
   errors?: Record<string, string[]>;
   message?: string;
+  success?: boolean;
 };

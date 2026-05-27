@@ -3,6 +3,8 @@ export const routes = {
   play: '/play',
   leaderboard: '/leaderboard',
   login: '/login',
+  forgotPassword: '/forgot-password',
+  resetPassword: '/reset-password',
   signup: '/signup',
   profile: '/profile',
 } as const;

@@ -1,8 +1,10 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import { createHash, randomBytes } from 'crypto';
 
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
@@ -12,6 +14,84 @@ import { hashPassword, verifyPassword } from './password';
 @Injectable()
 export class AuthService {
   constructor(private readonly prisma: PrismaService) {}
+
+  async forgotPassword({ identifier }: { identifier: string }) {
+    const normalizedIdentifier = identifier.trim().toLowerCase();
+    const user = await this.prisma.user.findFirst({
+      select: {
+        email: true,
+        id: true,
+      },
+      where: {
+        OR: [
+          { email: normalizedIdentifier },
+          { username: normalizedIdentifier },
+        ],
+      },
+    });
+
+    if (!user) {
+      return;
+    }
+
+    const resetToken = randomBytes(32).toString('hex');
+    const resetTokenHash = this.hashResetToken(resetToken);
+    const resetTokenExpiresAt = new Date(Date.now() + 1000 * 60 * 30);
+
+    await this.prisma.user.update({
+      data: {
+        resetPasswordTokenExpiresAt: resetTokenExpiresAt,
+        resetPasswordTokenHash: resetTokenHash,
+      },
+      where: { id: user.id },
+    });
+
+    const webBaseUrl = (process.env.WEB_BASE_URL ?? 'http://localhost:3000')
+      .trim()
+      .replace(/\/$/, '');
+    const resetLink = `${webBaseUrl}/reset-password?token=${resetToken}`;
+
+    console.info(`[auth] Password reset link for ${user.email}: ${resetLink}`);
+  }
+
+  async resetPassword({
+    password,
+    token,
+  }: {
+    password: string;
+    token: string;
+  }) {
+    const now = new Date();
+    const resetTokenHash = this.hashResetToken(token);
+
+    const user = await this.prisma.user.findFirst({
+      select: { id: true },
+      where: {
+        resetPasswordTokenExpiresAt: {
+          gt: now,
+        },
+        resetPasswordTokenHash: resetTokenHash,
+      },
+    });
+
+    if (!user) {
+      throw new BadRequestException({
+        errors: {
+          token: ['This password reset link is invalid or expired.'],
+        },
+        message: 'Request validation failed.',
+      });
+    }
+
+    await this.prisma.user.update({
+      data: {
+        passwordHash: await hashPassword(password),
+        resetPasswordTokenExpiresAt: null,
+        resetPasswordTokenHash: null,
+      },
+      where: { id: user.id },
+    });
+  }
 
   async getUsernameAvailability(username: string) {
     const normalizedUsername = username.trim().toLowerCase();
@@ -82,6 +162,10 @@ export class AuthService {
     }
 
     return 'player';
+  }
+
+  private hashResetToken(token: string) {
+    return createHash('sha256').update(token).digest('hex');
   }
 
   async signup({

@@ -1,17 +1,10 @@
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import { Lock } from 'lucide-react';
+import { ArrowRight, Mail, ShieldCheck } from 'lucide-react';
 
-import { AuthForm } from '@/components/AuthForm';
+import { ForgotPasswordForm } from '@/components/ForgotPasswordForm';
 import { routes } from '@/lib/routes';
-import { getSession } from '@/lib/session';
 
-export default async function LoginPage() {
-  const session = await getSession();
-  if (session) {
-    redirect(routes.play);
-  }
-
+export default function ForgotPasswordPage() {
   return (
     <section className="page-rail mx-auto my-7 px-4 pb-14 pt-10 sm:my-9 sm:px-6 sm:pt-11">
       <div className="relative overflow-hidden rounded-[26px] border border-line/90 bg-[#f3ead8] p-4 shadow-panel sm:p-6 lg:p-8">
@@ -24,53 +17,45 @@ export default async function LoginPage() {
             backgroundSize: '32px 32px',
           }}
         />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-accent/18 blur-2xl"
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -bottom-24 left-8 h-56 w-56 rounded-full bg-[#f6cf82]/30 blur-2xl"
-        />
 
         <div className="relative grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,460px)] lg:items-stretch">
           <div className="profile-reveal grid content-between gap-6 rounded-2xl border border-line/80 bg-linear-to-br from-white/88 via-panel/86 to-[#efe6d6]/88 p-5 sm:p-6">
             <div className="grid gap-4">
-              <p className="inline-flex w-fit items-center rounded-full border border-accent/20 bg-accent/10 px-3 py-1 text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-accent-strong">
-                Pond access
-              </p>
               <h1 className="auth-display-heading max-w-[14ch] text-foreground">
-                Jump back into your best run.
+                Reset access in a single step.
               </h1>
               <p className="max-w-[34ch] text-[1rem] leading-7 text-foreground/72">
-                Sign in to keep your board synced, track faster clears, and see
-                where you rank when the tiles lock in.
+                Enter your email or username and we&apos;ll send a secure link
+                to create a fresh password before your next run.
               </p>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3">
               <div className="rounded-xl border border-line/85 bg-white/78 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
-                <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
-                  Save state
+                <p className="inline-flex items-center gap-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
+                  <ShieldCheck className="h-3.5 w-3.5 text-accent-strong" />
+                  Secure link
                 </p>
                 <p className="mt-1 text-sm font-bold text-foreground">
-                  Always on
+                  Time-limited and hashed
                 </p>
               </div>
               <div className="rounded-xl border border-line/85 bg-white/78 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
-                <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
-                  Leaderboards
+                <p className="inline-flex items-center gap-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
+                  <Mail className="h-3.5 w-3.5 text-accent-strong" />
+                  Fast reply
                 </p>
                 <p className="mt-1 text-sm font-bold text-foreground">
-                  Live stats
+                  Check inbox and spam
                 </p>
               </div>
               <div className="rounded-xl border border-line/85 bg-white/78 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
-                <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
-                  Progress
+                <p className="inline-flex items-center gap-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
+                  <ArrowRight className="h-3.5 w-3.5 text-accent-strong" />
+                  Return to login
                 </p>
                 <p className="mt-1 text-sm font-bold text-foreground">
-                  Personal best
+                  Rejoin once the reset is done
                 </p>
               </div>
             </div>
@@ -81,27 +66,31 @@ export default async function LoginPage() {
               aria-hidden="true"
               className="absolute -inset-2 rounded-[20px] bg-linear-to-b from-accent/18 to-transparent blur-lg"
             />
-            <div className="relative">
-              <p className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-line/80 bg-white/75 px-2.5 py-1 text-[0.74rem] font-bold uppercase tracking-[0.08em] text-foreground/75">
-                <Lock className="h-3.5 w-3.5 text-accent-strong" />
-                Secure sign-in
+            <div className="relative grid gap-4 rounded-2xl border border-line bg-panel p-6 shadow-panel">
+              <p className="inline-flex w-fit items-center gap-1.5 rounded-full border border-accent/20 bg-accent/10 px-2.5 py-1 text-[0.74rem] font-bold uppercase tracking-[0.08em] text-foreground/75">
+                <Mail className="h-3.5 w-3.5 text-accent-strong" />
+                Reset request
               </p>
-              <AuthForm mode="login" />
-              <p className="mt-4 text-center text-[0.9rem] leading-normal text-muted">
-                No account yet?{' '}
+              <div className="grid gap-2">
+                <h2 className="auth-display-heading text-foreground">
+                  Forgot password
+                </h2>
+                <p className="text-[0.96rem] leading-7 text-foreground/72">
+                  We&apos;ll send a one-time reset link if the account exists.
+                </p>
+              </div>
+
+              <ForgotPasswordForm />
+
+              <p className="text-center text-[0.9rem] text-muted">
+                Remembered it?{' '}
                 <Link
                   className="font-bold text-accent-strong transition-colors hover:text-accent"
-                  href={routes.signup}
+                  href={routes.login}
                 >
-                  Create one
-                </Link>{' '}
-                · Forgot your password?{' '}
-                <Link
-                  className="font-bold text-accent-strong transition-colors hover:text-accent"
-                  href={routes.forgotPassword}
-                >
-                  Reset it
+                  Back to login
                 </Link>
+                .
               </p>
             </div>
           </div>
