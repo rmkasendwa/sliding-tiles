@@ -279,6 +279,7 @@ export function AuthForm({ mode }: AuthFormProps) {
   return (
     <form
       action={formAction}
+      noValidate
       onSubmit={handleSubmit}
       className={[
         'grid gap-4 border shadow-panel',
