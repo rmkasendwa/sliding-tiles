@@ -18,7 +18,7 @@ export default function ResetPasswordPage() {
           }}
         />
 
-        <div className="relative mx-auto grid w-full max-w-xl gap-4 rounded-2xl border border-line bg-panel p-6 shadow-panel">
+        <div className="relative mx-auto grid w-full max-w-xl gap-4 rounded-2xl border border-line bg-[#f2f3ef] p-6 shadow-panel">
           <p className="inline-flex w-fit items-center gap-1.5 rounded-full border border-accent/20 bg-accent/10 px-2.5 py-1 text-[0.74rem] font-bold uppercase tracking-[0.08em] text-foreground/75">
             <KeyRound className="h-3.5 w-3.5 text-accent-strong" />
             Secure reset

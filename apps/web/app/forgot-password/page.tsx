@@ -7,19 +7,26 @@ import { routes } from '@/lib/routes';
 export default function ForgotPasswordPage() {
   return (
     <section className="page-rail mx-auto my-7 px-4 pb-14 pt-10 sm:my-9 sm:px-6 sm:pt-11">
-      <div className="relative overflow-hidden rounded-[26px] border border-line/90 bg-[#f3ead8] p-4 shadow-panel sm:p-6 lg:p-8">
+      <div className="relative overflow-hidden rounded-[26px] border border-line/90 bg-[#e8eef2] p-4 shadow-panel sm:p-6 lg:p-8">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 opacity-60"
+          className="pointer-events-none absolute inset-0 opacity-55"
           style={{
             backgroundImage:
-              'linear-gradient(rgba(30,37,34,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(30,37,34,0.03) 1px, transparent 1px)',
-            backgroundSize: '32px 32px',
+              'radial-gradient(circle at 18% 14%, rgba(23,79,67,0.09), transparent 34%), radial-gradient(circle at 86% 84%, rgba(113,157,186,0.28), transparent 38%)',
           }}
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-[#5f87a8]/28 blur-2xl"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -bottom-24 left-8 h-56 w-56 rounded-full bg-accent/15 blur-2xl"
         />
 
         <div className="relative grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,460px)] lg:items-stretch">
-          <div className="profile-reveal grid content-between gap-6 rounded-2xl border border-line/80 bg-linear-to-br from-white/88 via-panel/86 to-[#efe6d6]/88 p-5 sm:p-6">
+          <div className="profile-reveal grid content-between gap-6 rounded-2xl border border-line/80 bg-linear-to-br from-white/88 via-panel/86 to-[#dce8ef]/92 p-5 sm:p-6">
             <div className="grid gap-4">
               <h1 className="auth-display-heading max-w-[14ch] text-foreground">
                 Reset access in a single step.
@@ -64,9 +71,9 @@ export default function ForgotPasswordPage() {
           <div className="play-panel-reveal relative">
             <div
               aria-hidden="true"
-              className="absolute -inset-2 rounded-[20px] bg-linear-to-b from-accent/18 to-transparent blur-lg"
+              className="absolute -inset-2 rounded-[20px] bg-linear-to-b from-[#486b89]/24 to-transparent blur-lg"
             />
-            <div className="relative grid gap-4 rounded-2xl border border-line bg-panel p-6 shadow-panel">
+            <div className="relative grid gap-4 rounded-2xl border border-line bg-[#eef5fb] p-6 shadow-panel">
               <p className="inline-flex w-fit items-center gap-1.5 rounded-full border border-accent/20 bg-accent/10 px-2.5 py-1 text-[0.74rem] font-bold uppercase tracking-[0.08em] text-foreground/75">
                 <Mail className="h-3.5 w-3.5 text-accent-strong" />
                 Reset request

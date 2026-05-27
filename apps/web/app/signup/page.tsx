@@ -77,7 +77,7 @@ export default async function SignupPage() {
           <div className="play-panel-reveal relative">
             <div
               aria-hidden="true"
-              className="absolute -inset-2 rounded-[20px] bg-linear-to-b from-accent/18 to-transparent blur-lg"
+              className="absolute -inset-2 rounded-[20px] bg-linear-to-b from-[#b37a37]/22 to-transparent blur-lg"
             />
             <div className="relative">
               <AuthForm mode="signup" />
