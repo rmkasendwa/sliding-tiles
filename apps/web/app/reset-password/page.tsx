@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { KeyRound } from 'lucide-react';
 
 import { ResetPasswordForm } from '@/components/ResetPasswordForm';
@@ -31,7 +32,15 @@ export default function ResetPasswordPage() {
             run.
           </p>
 
-          <ResetPasswordForm />
+          <Suspense
+            fallback={
+              <div className="min-h-28 rounded-[9px] border border-line bg-white/55 p-3 text-[0.9rem] text-muted">
+                Loading reset form...
+              </div>
+            }
+          >
+            <ResetPasswordForm />
+          </Suspense>
 
           <p className="text-center text-[0.9rem] text-muted">
             Need a new link?{' '}
