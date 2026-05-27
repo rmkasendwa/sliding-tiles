@@ -1,6 +1,6 @@
 'use client';
 
-import { LogOut, Mail, Trophy, User } from 'lucide-react';
+import { LogOut, Trophy, User } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -162,20 +162,6 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isAccountMenuOpen]);
-
-  const handleCopyEmail = async () => {
-    if (!session) {
-      return;
-    }
-
-    try {
-      await navigator.clipboard.writeText(session.email);
-    } catch {
-      window.prompt('Copy your email address', session.email);
-    }
-
-    setIsAccountMenuOpen(false);
-  };
 
   const desktopNavigationLinks = (
     <>
@@ -416,14 +402,6 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
                       />
                       Leaderboard
                     </Link>
-                    <button
-                      className="flex min-h-11 items-center gap-2.5 rounded-[10px] px-3 text-left text-[0.95rem] transition-colors hover:bg-accent/8"
-                      onClick={handleCopyEmail}
-                      type="button"
-                    >
-                      <Mail className="h-4 w-4 text-muted" aria-hidden="true" />
-                      Copy email
-                    </button>
                     <form action={logout} onSubmit={closeAccountMenu}>
                       <button
                         className="flex min-h-11 w-full items-center gap-2.5 rounded-[10px] px-3 text-left text-[0.95rem] font-bold text-danger transition-colors hover:bg-danger/8"
