@@ -19,6 +19,7 @@ export async function signup(
 ): Promise<AuthFormState> {
   const validatedFields = signupSchema.safeParse({
     name: formData.get('name'),
+    username: formData.get('username'),
     email: formData.get('email'),
     password: formData.get('password'),
     confirmPassword: formData.get('confirmPassword'),
@@ -30,11 +31,11 @@ export async function signup(
     };
   }
 
-  const { name, email, password } = validatedFields.data;
+  const { name, username, email, password } = validatedFields.data;
 
   try {
     const response = await apiRequest<AuthResponse>('/auth/signup', {
-      body: { email, name, password },
+      body: { email, name, password, username },
       method: 'POST',
       token: null,
     });
@@ -42,6 +43,11 @@ export async function signup(
     await setSessionToken(response.accessToken);
   } catch (error) {
     if (error instanceof ApiRequestError && error.status === 409) {
+      const fieldErrors = getApiFieldErrors(error);
+      if (fieldErrors) {
+        return { errors: fieldErrors };
+      }
+
       return {
         errors: {
           email: ['An account with this email already exists.'],

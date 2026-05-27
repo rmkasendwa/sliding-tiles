@@ -9,6 +9,7 @@ datasource db {
 model User {
   id           String        @id @default(cuid())
   name         String
+  username     String        @unique(map: "users_username_key")
   email        String        @unique(map: "users_email_key")
   passwordHash String        @map("password_hash")
   createdAt    DateTime      @default(now()) @map("created_at")

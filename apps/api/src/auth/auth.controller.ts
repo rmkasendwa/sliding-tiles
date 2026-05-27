@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import type { Response } from 'express';
 
 import { AuthGuard } from '../session/auth.guard';
@@ -15,10 +23,17 @@ export class AuthController {
   ) {}
 
   @Post('signup')
-  async signup(@Body() body: unknown, @Res({ passthrough: true }) response: Response) {
+  async signup(
+    @Body() body: unknown,
+    @Res({ passthrough: true }) response: Response,
+  ) {
     const user = await this.authService.signup(parseBody(signupSchema, body));
     const session = await this.sessionService.createSession(user);
-    this.sessionService.setSessionCookie(response, session.token, session.expiresAt);
+    this.sessionService.setSessionCookie(
+      response,
+      session.token,
+      session.expiresAt,
+    );
 
     return {
       accessToken: session.token,
@@ -27,10 +42,17 @@ export class AuthController {
   }
 
   @Post('login')
-  async login(@Body() body: unknown, @Res({ passthrough: true }) response: Response) {
+  async login(
+    @Body() body: unknown,
+    @Res({ passthrough: true }) response: Response,
+  ) {
     const user = await this.authService.login(parseBody(loginSchema, body));
     const session = await this.sessionService.createSession(user);
-    this.sessionService.setSessionCookie(response, session.token, session.expiresAt);
+    this.sessionService.setSessionCookie(
+      response,
+      session.token,
+      session.expiresAt,
+    );
 
     return {
       accessToken: session.token,

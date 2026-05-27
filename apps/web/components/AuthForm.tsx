@@ -20,6 +20,7 @@ type FormValues = {
   email: string;
   name: string;
   password: string;
+  username: string;
 };
 
 function getPasswordStrength(password: string) {
@@ -74,6 +75,7 @@ export function AuthForm({ mode }: AuthFormProps) {
     email: '',
     name: '',
     password: '',
+    username: '',
   });
   const passwordStrength = getPasswordStrength(formValues.password);
   const passwordStrengthLabel = getPasswordStrengthLabel(passwordStrength);
@@ -120,6 +122,30 @@ export function AuthForm({ mode }: AuthFormProps) {
       const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailPattern.test(value)) {
         return 'Enter a valid email address.';
+      }
+
+      return undefined;
+    }
+
+    if (fieldName === 'username') {
+      if (!isSignup) {
+        return undefined;
+      }
+
+      if (!value) {
+        return 'Username is required.';
+      }
+
+      if (value.length < 3) {
+        return 'Username must be at least 3 characters.';
+      }
+
+      if (value.length > 20) {
+        return 'Username must be at most 20 characters.';
+      }
+
+      if (!/^[a-zA-Z0-9_]+$/.test(value)) {
+        return 'Username can only contain letters, numbers, and underscores.';
       }
 
       return undefined;
@@ -250,9 +276,10 @@ export function AuthForm({ mode }: AuthFormProps) {
       email: String(formData.get('email') ?? ''),
       name: String(formData.get('name') ?? ''),
       password: String(formData.get('password') ?? ''),
+      username: String(formData.get('username') ?? ''),
     };
     const fieldsToValidate: Array<keyof FormValues> = isSignup
-      ? ['name', 'email', 'password', 'confirmPassword']
+      ? ['name', 'username', 'email', 'password', 'confirmPassword']
       : ['email', 'password'];
     const nextErrors: Record<string, string> = {};
 
@@ -326,6 +353,39 @@ export function AuthForm({ mode }: AuthFormProps) {
           {getFieldError('name') && (
             <p className="text-[0.9rem] text-danger" id="name-error">
               {getFieldError('name')}
+            </p>
+          )}
+        </div>
+      )}
+
+      {isSignup && (
+        <div className="grid gap-2">
+          <label className={fieldLabelClass} htmlFor="username">
+            Username{' '}
+            <span aria-hidden="true" className="text-danger">
+              *
+            </span>
+          </label>
+          <input
+            aria-describedby={
+              getFieldError('username') ? 'username-error' : undefined
+            }
+            aria-invalid={Boolean(getFieldError('username'))}
+            className={getInputClass('username')}
+            id="username"
+            name="username"
+            autoCapitalize="none"
+            autoComplete="username"
+            maxLength={20}
+            minLength={3}
+            onChange={handleFieldChange}
+            placeholder="frog_runner"
+            required
+            value={formValues.username}
+          />
+          {getFieldError('username') && (
+            <p className="text-[0.9rem] text-danger" id="username-error">
+              {getFieldError('username')}
             </p>
           )}
         </div>

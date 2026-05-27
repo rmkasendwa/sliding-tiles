@@ -4,6 +4,7 @@ export type SessionUser = {
   email: string;
   id: string;
   name: string;
+  username: string;
 };
 
 export type SessionPayload = SessionUser & {

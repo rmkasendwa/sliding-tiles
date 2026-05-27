@@ -9,6 +9,7 @@ const SESSION_DURATION_SECONDS = 60 * 60 * 24 * 30;
 export type SessionUser = {
   id: string;
   name: string;
+  username: string;
   email: string;
 };
 
@@ -27,7 +28,10 @@ function getSessionSecret() {
 
 export async function createSession(user: SessionUser) {
   const expiresAt = new Date(Date.now() + SESSION_DURATION_SECONDS * 1000);
-  const token = await new SignJWT({ ...user, expiresAt: expiresAt.toISOString() })
+  const token = await new SignJWT({
+    ...user,
+    expiresAt: expiresAt.toISOString(),
+  })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime(`${SESSION_DURATION_SECONDS}s`)
@@ -72,6 +76,7 @@ export async function getSession(): Promise<SessionUser | null> {
     return {
       id: session.id,
       name: session.name,
+      username: session.username ?? session.name,
       email: session.email,
     };
   } catch {

@@ -57,6 +57,7 @@ export class SessionService {
         email: session.email,
         id: session.id,
         name: session.name,
+        username: session.username ?? session.name,
       };
     } catch {
       return null;

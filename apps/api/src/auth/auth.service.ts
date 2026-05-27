@@ -16,10 +16,12 @@ export class AuthService {
   async signup({
     email,
     name,
+    username,
     password,
   }: {
     email: string;
     name: string;
+    username: string;
     password: string;
   }): Promise<SessionUser> {
     try {
@@ -27,12 +29,14 @@ export class AuthService {
         data: {
           email: email.toLowerCase(),
           name,
+          username: username.toLowerCase(),
           passwordHash: await hashPassword(password),
         },
         select: {
           email: true,
           id: true,
           name: true,
+          username: true,
         },
       });
     } catch (error) {
@@ -40,7 +44,37 @@ export class AuthService {
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === 'P2002'
       ) {
-        throw new ConflictException('An account with this email already exists.');
+        const target = Array.isArray(error.meta?.target)
+          ? error.meta.target
+          : [];
+        const hasEmailConflict = target.some((value) =>
+          String(value).toLowerCase().includes('email'),
+        );
+        const hasUsernameConflict = target.some((value) =>
+          String(value).toLowerCase().includes('username'),
+        );
+
+        if (hasEmailConflict) {
+          throw new ConflictException({
+            errors: {
+              email: ['An account with this email already exists.'],
+            },
+            message: 'Request validation failed.',
+          });
+        }
+
+        if (hasUsernameConflict) {
+          throw new ConflictException({
+            errors: {
+              username: ['This username is already taken.'],
+            },
+            message: 'Request validation failed.',
+          });
+        }
+
+        throw new ConflictException(
+          'An account with these details already exists.',
+        );
       }
 
       throw error;
@@ -60,6 +94,7 @@ export class AuthService {
         id: true,
         name: true,
         passwordHash: true,
+        username: true,
       },
       where: { email: email.toLowerCase() },
     });
@@ -72,6 +107,7 @@ export class AuthService {
       email: user.email,
       id: user.id,
       name: user.name,
+      username: user.username,
     };
   }
 }

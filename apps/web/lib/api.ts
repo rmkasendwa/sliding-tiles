@@ -29,6 +29,7 @@ export type ApiUser = {
   email: string;
   id: string;
   name: string;
+  username: string;
 };
 
 export type AuthResponse = {
@@ -81,9 +82,9 @@ export async function apiRequest<T>(
   });
 
   if (!response.ok) {
-    const errorBody = (await response.json().catch(() => null)) as
-      | ApiErrorBody
-      | null;
+    const errorBody = (await response
+      .json()
+      .catch(() => null)) as ApiErrorBody | null;
     const message = Array.isArray(errorBody?.message)
       ? errorBody.message.join(' ')
       : errorBody?.message;
