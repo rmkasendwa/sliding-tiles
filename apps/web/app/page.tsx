@@ -69,7 +69,7 @@ function HomePuzzlePreview({ footerText, label }: HomePuzzlePreviewProps) {
   return (
     <div
       aria-label="Scrambled frog puzzle preview"
-      className="relative mx-auto w-full max-w-112 overflow-hidden rounded-[18px] border border-accent/18 bg-[radial-gradient(circle_at_top,rgba(132,200,88,0.2),transparent_52%),linear-gradient(155deg,rgba(255,255,255,0.9),rgba(236,228,211,0.86))] p-4 shadow-panel"
+      className="relative mx-auto w-full max-w-md overflow-hidden rounded-[18px] border border-accent/18 bg-[radial-gradient(circle_at_top,rgba(132,200,88,0.2),transparent_52%),linear-gradient(155deg,rgba(255,255,255,0.9),rgba(236,228,211,0.86))] p-4 shadow-panel"
       role="img"
     >
       <div className="pointer-events-none absolute right-3 top-3 rounded-full border border-accent/18 bg-white/75 px-2.5 py-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-accent-strong">
