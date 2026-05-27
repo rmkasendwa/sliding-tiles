@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 
 import { FrogLogo } from '@/components/FrogLogo';
 import { ScrollRevealObserver } from '@/components/ScrollRevealObserver';
@@ -59,15 +60,20 @@ const heroStats = [
   { label: 'Best for', value: 'Quick focus' },
 ];
 
-function HomePuzzlePreview() {
+type HomePuzzlePreviewProps = {
+  footerText: string;
+  label: string;
+};
+
+function HomePuzzlePreview({ footerText, label }: HomePuzzlePreviewProps) {
   return (
     <div
       aria-label="Scrambled frog puzzle preview"
-      className="relative overflow-hidden rounded-[18px] border border-accent/20 bg-[radial-gradient(circle_at_top,rgba(132,200,88,0.22),transparent_52%),linear-gradient(155deg,rgba(255,255,255,0.92),rgba(236,228,211,0.9))] p-4.5 shadow-panel"
+      className="relative mx-auto w-full max-w-112 overflow-hidden rounded-[18px] border border-accent/18 bg-[radial-gradient(circle_at_top,rgba(132,200,88,0.2),transparent_52%),linear-gradient(155deg,rgba(255,255,255,0.9),rgba(236,228,211,0.86))] p-4 shadow-panel"
       role="img"
     >
       <div className="pointer-events-none absolute right-3 top-3 rounded-full border border-accent/18 bg-white/75 px-2.5 py-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-accent-strong">
-        Demo board
+        {label}
       </div>
       <div className="grid aspect-square grid-cols-3 gap-2 overflow-hidden rounded-[7px]">
         {heroTiles.map((homeIndex, index) => {
@@ -96,7 +102,7 @@ function HomePuzzlePreview() {
         })}
       </div>
       <p className="mt-3 text-xs font-bold uppercase tracking-[0.08em] text-accent-strong/85">
-        One empty slot. Infinite retries.
+        {footerText}
       </p>
     </div>
   );
@@ -104,16 +110,26 @@ function HomePuzzlePreview() {
 
 export default async function HomePage() {
   const session = await getSession();
-  let hasSavedBoard = false;
+  let savedGameState: ApiGameState | null = null;
 
   if (session) {
     const savedState = await apiRequest<{ gameState: ApiGameState | null }>(
       '/game-state',
     );
-    hasSavedBoard = Boolean(savedState.gameState);
+    savedGameState = savedState.gameState;
   }
 
+  const hasSavedBoard = Boolean(savedGameState);
   const playCtaLabel = hasSavedBoard ? 'Continue playing' : 'Start playing';
+  const previewLabel = hasSavedBoard
+    ? `Saved board · Level ${savedGameState?.level}`
+    : 'Demo board';
+  const previewFooter = hasSavedBoard
+    ? `${savedGameState?.moves ?? 0} moves logged. The pond remembers.`
+    : 'One empty slot. Infinite retries.';
+  const progressLine = hasSavedBoard
+    ? `Your saved board is waiting at Level ${savedGameState?.level} with ${savedGameState?.moves} moves.`
+    : null;
 
   return (
     <div className="relative grid gap-0 overflow-x-clip" id="home-page">
@@ -122,9 +138,9 @@ export default async function HomePage() {
         className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-120 bg-[radial-gradient(circle_at_18%_28%,rgba(102,168,78,0.23),transparent_42%),radial-gradient(circle_at_86%_12%,rgba(37,111,90,0.16),transparent_38%)]"
       />
       <ScrollRevealObserver targetId="home-page" />
-      <section className="page-rail mx-auto grid min-h-svh grid-cols-[minmax(0,0.92fr)_minmax(360px,1.08fr)] items-center gap-20 py-10 max-[900px]:grid-cols-1">
+      <section className="page-rail mx-auto grid min-h-svh grid-cols-[minmax(0,1.08fr)_minmax(330px,0.92fr)] items-center gap-12 py-10 xl:gap-14 max-[900px]:grid-cols-1">
         <div
-          className="scroll-reveal grid gap-6 rounded-[20px] border border-accent/18 bg-white/62 p-6 shadow-[0_22px_56px_rgba(24,58,43,0.12)] backdrop-blur-[2px]"
+          className="scroll-reveal grid gap-6 rounded-[18px] border border-accent/10 bg-white/38 p-7 shadow-[0_18px_44px_rgba(24,58,43,0.08)] backdrop-blur-[2px] max-[620px]:p-5"
           style={{ animationDelay: '40ms' }}
         >
           <div className="flex items-center justify-between gap-4 max-[540px]:grid">
@@ -141,17 +157,28 @@ export default async function HomePage() {
           <h1 className="text-[clamp(1.9rem,3.6vw,3.4rem)] leading-[0.92]">
             Solve the pond
           </h1>
+          {session && (
+            <p className="text-[0.92rem] font-bold text-accent-strong">
+              Welcome back, {session.name}
+            </p>
+          )}
           <p className="max-w-[58ch] text-[1.12rem] leading-[1.7] text-muted">
             A calm little frog scene has been scrambled into sliding pieces.
             Move the tiles, find the picture, and see how few moves it takes to
             make the pond whole again.
           </p>
+          {progressLine && (
+            <p className="max-w-[52ch] rounded-[9px] border border-accent/16 bg-white/55 px-3 py-2 text-sm font-bold text-accent-strong">
+              {progressLine}
+            </p>
+          )}
           <div className="flex flex-wrap gap-3">
             <Link
-              className="inline-flex min-h-10 items-center justify-center rounded-[7px] border border-accent bg-accent px-3.5 font-bold text-white shadow-[0_10px_22px_rgba(37,111,90,0.28)]"
+              className="inline-flex min-h-11 min-w-42 items-center justify-center gap-2 rounded-[7px] border border-accent bg-accent px-4 font-bold text-white shadow-[0_10px_22px_rgba(37,111,90,0.28)] transition-[background-color,transform] hover:bg-accent-strong active:translate-y-px"
               href={routes.play}
             >
               {playCtaLabel}
+              <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </Link>
             <Link
               className="inline-flex min-h-10 items-center justify-center rounded-[7px] border border-accent/30 px-3.5 font-bold text-accent-strong"
@@ -160,16 +187,16 @@ export default async function HomePage() {
               View leaderboard
             </Link>
           </div>
-          <div className="grid grid-cols-3 gap-2.5 max-[560px]:grid-cols-1">
+          <div className="flex flex-wrap gap-x-4 gap-y-2 border-y border-accent/12 py-3">
             {heroStats.map((stat) => (
               <article
-                className="rounded-[10px] border border-accent/15 bg-white/72 px-3 py-2"
+                className="grid grid-cols-[auto_auto] items-baseline gap-1.5"
                 key={stat.label}
               >
                 <p className="text-[0.66rem] font-extrabold uppercase tracking-[0.08em] text-muted">
                   {stat.label}
                 </p>
-                <p className="mt-1 text-sm font-bold text-accent-strong">
+                <p className="text-sm font-bold text-accent-strong">
                   {stat.value}
                 </p>
               </article>
@@ -185,7 +212,7 @@ export default async function HomePage() {
           </ul>
         </div>
         <div className="scroll-reveal" style={{ animationDelay: '80ms' }}>
-          <HomePuzzlePreview />
+          <HomePuzzlePreview footerText={previewFooter} label={previewLabel} />
         </div>
       </section>
 
