@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 import { ChangePasswordForm } from '@/components/ChangePasswordForm';
+import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { ApiGameState, ApiScore, apiRequest } from '@/lib/api';
 import { routes } from '@/lib/routes';
 import { getSession } from '@/lib/session';
@@ -32,16 +33,6 @@ function formatDateTime(isoDate: string) {
 function formatPace(timeSeconds: number, level: number) {
   const safeLevel = Math.max(level, 1);
   return `${(timeSeconds / safeLevel).toFixed(1)}s/lvl`;
-}
-
-function getInitials(name: string) {
-  const trimmed = name.trim();
-  if (!trimmed) {
-    return 'ST';
-  }
-
-  const pieces = trimmed.split(/\s+/).slice(0, 2);
-  return pieces.map((piece) => piece[0]?.toUpperCase() ?? '').join('');
 }
 
 export default async function ProfilePage() {
@@ -198,9 +189,12 @@ export default async function ProfilePage() {
         </div>
         <div className="rounded-lg border border-[#d5a344]/35 bg-[linear-gradient(180deg,#fff9e8,#f6fbef)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.76),0_14px_34px_rgba(138,109,33,0.12)]">
           <div className="flex items-center gap-3">
-            <div className="grid h-12 w-12 place-items-center rounded-full border border-accent/25 bg-accent-strong text-sm font-extrabold text-white shadow-sm">
-              {getInitials(session.name)}
-            </div>
+            <ProfileAvatar
+              className="text-sm"
+              email={session.email}
+              name={session.name}
+              size={48}
+            />
             <div>
               <p className="text-sm text-muted">Profile summary</p>
               <p className="text-lg font-bold text-foreground">

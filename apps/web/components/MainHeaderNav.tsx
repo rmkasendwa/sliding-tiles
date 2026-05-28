@@ -9,6 +9,7 @@ import { createPortal } from 'react-dom';
 import { routes, type AppRoute } from '@/lib/routes';
 
 import { FrogLogo } from './FrogLogo';
+import { ProfileAvatar } from './ProfileAvatar';
 
 type MainHeaderNavProps = {
   logout: () => Promise<void>;
@@ -45,20 +46,6 @@ function isRouteActive(pathname: string, href: AppRoute) {
   }
 
   return pathname === href || pathname.startsWith(`${href}/`);
-}
-
-function getInitials(name: string) {
-  const words = name.trim().split(/\s+/).filter(Boolean);
-
-  if (words.length === 0) {
-    return 'U';
-  }
-
-  if (words.length === 1) {
-    return words[0].slice(0, 2).toUpperCase();
-  }
-
-  return `${words[0][0] ?? ''}${words[1][0] ?? ''}`.toUpperCase();
 }
 
 export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
@@ -342,9 +329,12 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
                 ref={accountButtonRef}
                 type="button"
               >
-                <span className="grid h-10 w-10 place-items-center rounded-full bg-accent-strong text-[0.95rem] font-bold uppercase text-white shadow-sm">
-                  {getInitials(session.name)}
-                </span>
+                <ProfileAvatar
+                  className="text-[0.95rem] font-bold"
+                  email={session.email}
+                  name={session.name}
+                  size={40}
+                />
                 <span className="grid pr-1">
                   <strong className="max-w-48 truncate text-[0.95rem] text-foreground">
                     {session.name}
@@ -367,9 +357,12 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
                 >
                   <div className="border-b border-line px-4 py-4">
                     <div className="flex items-center gap-3">
-                      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-accent-strong text-sm font-bold uppercase text-white">
-                        {getInitials(session.name)}
-                      </span>
+                      <ProfileAvatar
+                        className="text-sm font-bold"
+                        email={session.email}
+                        name={session.name}
+                        size={44}
+                      />
                       <div className="min-w-0 grid gap-0.5">
                         <strong className="truncate text-[0.98rem] text-foreground">
                           {session.name}

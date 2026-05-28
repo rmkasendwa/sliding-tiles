@@ -2,26 +2,14 @@ import Link from 'next/link';
 
 import { routes } from '@/lib/routes';
 
+import { ProfileAvatar } from '../ProfileAvatar';
 import { SolutionPreview } from './SolutionPreview';
-
-function getInitials(name: string) {
-  const words = name.trim().split(/\s+/).filter(Boolean);
-
-  if (words.length === 0) {
-    return 'U';
-  }
-
-  if (words.length === 1) {
-    return words[0].slice(0, 2).toUpperCase();
-  }
-
-  return `${words[0][0] ?? ''}${words[1][0] ?? ''}`.toUpperCase();
-}
 
 export type GameInfoPanelProps = {
   columns: number;
   gameModeLabel: string;
   isModal?: boolean;
+  playerEmail?: string;
   playerName?: string;
   isSignedIn: boolean;
   onClose?: () => void;
@@ -32,6 +20,7 @@ export function GameInfoPanel({
   columns,
   gameModeLabel,
   isModal = false,
+  playerEmail,
   playerName,
   isSignedIn,
   onClose,
@@ -52,9 +41,12 @@ export function GameInfoPanel({
           <div className="flex items-center gap-2">
             {isSignedIn && playerName && (
               <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/20 bg-accent/10 py-0.5 pl-0.5 pr-2 text-sm font-bold text-accent-strong">
-                <span className="grid h-6 w-6 place-items-center rounded-full bg-accent-strong text-[0.65rem] font-extrabold tracking-[0.08em] text-white">
-                  {getInitials(playerName)}
-                </span>
+                <ProfileAvatar
+                  className="text-[0.65rem] tracking-[0.08em]"
+                  email={playerEmail}
+                  name={playerName}
+                  size={24}
+                />
                 <span className="max-w-44 text-[0.85rem] truncate">
                   {playerName}
                 </span>

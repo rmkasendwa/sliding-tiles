@@ -18,6 +18,7 @@ export default async function PlayPage() {
       <GameBoard
         initialBoard={initialBoard}
         isSignedIn={Boolean(session)}
+        playerEmail={session?.email}
         playerName={session?.name}
       />
     </section>

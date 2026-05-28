@@ -1,5 +1,6 @@
 import Link from 'next/link';
 
+import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { ApiScore, apiRequest, getApiMessage } from '@/lib/api';
 import { routes } from '@/lib/routes';
 import { getSession } from '@/lib/session';
@@ -29,20 +30,6 @@ function formatCompletedAt(isoDate: string) {
 function perLevel(value: number, level: number, precision = 2) {
   const safeLevel = Math.max(1, level);
   return (value / safeLevel).toFixed(precision);
-}
-
-function getInitials(name: string) {
-  const parts = name
-    .split(' ')
-    .map((part) => part.trim())
-    .filter(Boolean)
-    .slice(0, 2);
-
-  if (parts.length === 0) {
-    return 'PL';
-  }
-
-  return parts.map((part) => part[0]?.toUpperCase() ?? '').join('');
 }
 
 function getRankTone(rank: number) {
@@ -223,9 +210,11 @@ export default async function LeaderboardPage() {
                 </span>
               </div>
               <div className="mt-3 flex items-center gap-2.5">
-                <span className="grid h-10 w-10 place-items-center rounded-full border border-black/10 bg-white/70 text-sm font-extrabold text-accent-strong">
-                  {getInitials(playerName)}
-                </span>
+                <ProfileAvatar
+                  className="border-black/10 bg-white/70 text-sm text-accent-strong"
+                  name={playerName}
+                  size={40}
+                />
                 <p className="text-lg font-bold text-foreground">
                   {playerName}
                   {session?.id === score.userId ? ' (You)' : ''}
