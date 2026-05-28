@@ -12,8 +12,8 @@ export default async function SignupPage() {
   }
 
   return (
-    <section className="page-rail mx-auto my-3 px-0 pb-10 pt-5 sm:my-7 sm:px-6 sm:pb-14 sm:pt-10 lg:my-9 lg:pt-11">
-      <div className="relative overflow-visible border-0 bg-transparent p-0 shadow-none lg:overflow-hidden lg:rounded-[26px] lg:border lg:border-line/90 lg:bg-[#efe3cd] lg:p-8 lg:shadow-panel">
+    <section className="page-rail mx-auto grid min-h-[calc(100svh-8.5rem)] place-items-center px-2 py-2 lg:my-9 lg:block lg:min-h-0 sm:my-7 sm:px-6 sm:pb-14 sm:pt-10 lg:pt-11">
+      <div className="relative w-full overflow-visible border-0 bg-transparent p-0 shadow-none lg:overflow-hidden lg:rounded-[26px] lg:border lg:border-line/90 lg:bg-[#efe3cd] lg:p-8 lg:shadow-panel">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 hidden opacity-55 lg:block"
@@ -46,7 +46,7 @@ export default async function SignupPage() {
               </p>
             </div>
 
-            <div className="hidden gap-3 sm:grid-cols-3 lg:grid">
+            <div className="hidden gap-3 lg:grid xl:grid-cols-3">
               <div className="rounded-xl border border-line/85 bg-white/78 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
                 <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
                   Instant setup
