@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Suspense } from 'react';
-import { KeyRound } from 'lucide-react';
+import { ArrowRight, KeyRound, LockKeyhole, ShieldCheck } from 'lucide-react';
 
 import { ResetPasswordForm } from '@/components/ResetPasswordForm';
 import { routes } from '@/lib/routes';
@@ -8,50 +8,109 @@ import { routes } from '@/lib/routes';
 export default function ResetPasswordPage() {
   return (
     <section className="page-rail mx-auto my-7 px-4 pb-14 pt-10 sm:my-9 sm:px-6 sm:pt-11">
-      <div className="relative overflow-hidden rounded-[26px] border border-line/90 bg-[#f3ead8] p-4 shadow-panel sm:p-6 lg:p-8">
+      <div className="relative overflow-hidden rounded-[26px] border border-line/90 bg-[#e8eef2] p-4 shadow-panel sm:p-6 lg:p-8">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 opacity-60"
+          className="pointer-events-none absolute inset-0 opacity-55"
           style={{
             backgroundImage:
-              'linear-gradient(rgba(30,37,34,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(30,37,34,0.03) 1px, transparent 1px)',
-            backgroundSize: '32px 32px',
+              'radial-gradient(circle at 18% 14%, rgba(23,79,67,0.09), transparent 34%), radial-gradient(circle at 86% 84%, rgba(113,157,186,0.28), transparent 38%)',
           }}
         />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-[#5f87a8]/28 blur-2xl"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -bottom-24 left-8 h-56 w-56 rounded-full bg-accent/15 blur-2xl"
+        />
 
-        <div className="relative mx-auto grid w-full max-w-xl gap-4 rounded-2xl border border-line bg-[#f2f3ef] p-6 shadow-panel">
-          <p className="inline-flex w-fit items-center gap-1.5 rounded-full border border-accent/20 bg-accent/10 px-2.5 py-1 text-[0.74rem] font-bold uppercase tracking-[0.08em] text-foreground/75">
-            <KeyRound className="h-3.5 w-3.5 text-accent-strong" />
-            Secure reset
-          </p>
-          <h1 className="auth-display-heading text-foreground">
-            Create a new password
-          </h1>
-          <p className="text-[0.96rem] leading-7 text-foreground/72">
-            Choose a strong password to secure your account before your next
-            run.
-          </p>
+        <div className="relative grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,460px)] lg:items-stretch">
+          <div className="profile-reveal grid content-between gap-6 rounded-2xl border border-line/80 bg-linear-to-br from-white/88 via-panel/86 to-[#dce8ef]/92 p-5 sm:p-6">
+            <div className="grid gap-4">
+              <h1 className="auth-display-heading max-w-[14ch] text-foreground">
+                Set a fresh key for the pond.
+              </h1>
+              <p className="max-w-[34ch] text-[1rem] leading-7 text-foreground/72">
+                Create a new password from your secure reset link, then jump
+                back in with your progress ready for the next run.
+              </p>
+            </div>
 
-          <Suspense
-            fallback={
-              <div className="min-h-28 rounded-[9px] border border-line bg-white/55 p-3 text-[0.9rem] text-muted">
-                Loading reset form...
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-xl border border-line/85 bg-white/78 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+                <p className="inline-flex items-center gap-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
+                  <ShieldCheck className="h-3.5 w-3.5 text-accent-strong" />
+                  Protected
+                </p>
+                <p className="mt-1 text-sm font-bold text-foreground">
+                  One-time reset link
+                </p>
               </div>
-            }
-          >
-            <ResetPasswordForm />
-          </Suspense>
+              <div className="rounded-xl border border-line/85 bg-white/78 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+                <p className="inline-flex items-center gap-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
+                  <LockKeyhole className="h-3.5 w-3.5 text-accent-strong" />
+                  Password
+                </p>
+                <p className="mt-1 text-sm font-bold text-foreground">
+                  Strong and private
+                </p>
+              </div>
+              <div className="rounded-xl border border-line/85 bg-white/78 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+                <p className="inline-flex items-center gap-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
+                  <ArrowRight className="h-3.5 w-3.5 text-accent-strong" />
+                  Next step
+                </p>
+                <p className="mt-1 text-sm font-bold text-foreground">
+                  Sign in and play
+                </p>
+              </div>
+            </div>
+          </div>
 
-          <p className="text-center text-[0.9rem] text-muted">
-            Need a new link?{' '}
-            <Link
-              className="font-bold text-accent-strong transition-colors hover:text-accent"
-              href={routes.forgotPassword}
-            >
-              Request reset email
-            </Link>
-            .
-          </p>
+          <div className="play-panel-reveal relative">
+            <div
+              aria-hidden="true"
+              className="absolute -inset-2 rounded-[20px] bg-linear-to-b from-[#486b89]/24 to-transparent blur-lg"
+            />
+            <div className="relative grid gap-4 rounded-2xl border border-line bg-[#eef5fb] p-6 shadow-panel">
+              <p className="inline-flex w-fit items-center gap-1.5 rounded-full border border-accent/20 bg-accent/10 px-2.5 py-1 text-[0.74rem] font-bold uppercase tracking-[0.08em] text-foreground/75">
+                <KeyRound className="h-3.5 w-3.5 text-accent-strong" />
+                Secure reset
+              </p>
+              <div className="grid gap-2">
+                <h2 className="auth-display-heading text-foreground">
+                  Create a new password
+                </h2>
+                <p className="text-[0.96rem] leading-7 text-foreground/72">
+                  Choose a strong password to secure your account before your
+                  next run.
+                </p>
+              </div>
+
+              <Suspense
+                fallback={
+                  <div className="min-h-28 rounded-[9px] border border-line bg-white/55 p-3 text-[0.9rem] text-muted">
+                    Loading reset form...
+                  </div>
+                }
+              >
+                <ResetPasswordForm />
+              </Suspense>
+
+              <p className="text-center text-[0.9rem] text-muted">
+                Need a new link?{' '}
+                <Link
+                  className="font-bold text-accent-strong transition-colors hover:text-accent"
+                  href={routes.forgotPassword}
+                >
+                  Request reset email
+                </Link>
+                .
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </section>
