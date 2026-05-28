@@ -1,3 +1,7 @@
+import Link from 'next/link';
+
+import { routes } from '@/lib/routes';
+
 import { SolutionPreview } from './SolutionPreview';
 
 function getInitials(name: string) {
@@ -55,6 +59,14 @@ export function GameInfoPanel({
                   {playerName}
                 </span>
               </span>
+            )}
+            {!isSignedIn && (
+              <Link
+                className="inline-flex min-h-8 items-center justify-center rounded-full bg-accent-strong px-3 text-sm font-bold text-white transition-colors hover:bg-accent"
+                href={routes.login}
+              >
+                Login
+              </Link>
             )}
             {onClose && (
               <button
