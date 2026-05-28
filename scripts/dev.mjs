@@ -8,7 +8,7 @@ const processes = new Set();
 function run(command, args, options = {}) {
   const child = spawn(command, args, {
     env: { ...process.env, ...options.env },
-    shell: false,
+    shell: true,
     stdio: 'inherit',
   });
 
@@ -16,7 +16,7 @@ function run(command, args, options = {}) {
   child.on('exit', (code, signal) => {
     processes.delete(child);
     if (signal || code) {
-      shutdown(signal ? 0 : code ?? 1);
+      shutdown(signal ? 0 : (code ?? 1));
     }
   });
 
