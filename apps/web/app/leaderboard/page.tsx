@@ -230,6 +230,16 @@ export default async function LeaderboardPage() {
             </article>
           );
         })}
+        {podium.length > 0 && podium.length < 3
+          ? Array.from({ length: 3 - podium.length }).map((_, index) => {
+              return (
+                <article
+                  className="rounded-lg border-2 border-dashed p-4 border-black/8 bg-black/1.5"
+                  key={index}
+                />
+              );
+            })
+          : null}
         {podium.length === 0 ? (
           <div className="rounded-lg border border-line bg-panel p-4 text-muted min-[780px]:col-span-3">
             Top-3 podium will appear as soon as runs are posted.
