@@ -129,7 +129,7 @@ export default async function LeaderboardPage() {
   return (
     <section className="page-rail mx-auto grid max-w-300 gap-6 pt-5 pb-10">
       <div
-        className="profile-reveal grid gap-4 rounded-xl border border-accent/20 bg-[radial-gradient(circle_at_top_right,rgba(128,196,78,0.2),transparent_48%),linear-gradient(140deg,rgba(24,58,43,0.08),rgba(255,255,255,0.35))] p-5 shadow-panel min-[1060px]:grid-cols-[minmax(0,1fr)_320px]"
+        className="profile-reveal grid gap-4 rounded-xl border border-accent/20 bg-[radial-gradient(circle_at_88%_12%,rgba(128,196,78,0.28),transparent_36%),radial-gradient(circle_at_12%_100%,rgba(246,207,130,0.34),transparent_34%),linear-gradient(135deg,rgba(23,79,67,0.12),rgba(255,255,255,0.52)_48%,rgba(91,132,175,0.18))] p-5 shadow-panel min-[1060px]:grid-cols-[minmax(0,1fr)_320px]"
         style={{ animationDelay: '40ms' }}
       >
         <div>
@@ -144,33 +144,42 @@ export default async function LeaderboardPage() {
             moves, and keep your clock brutal. The top lane changes fast.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
-            <span className="rounded-full border border-accent/22 bg-white/70 px-3 py-1 text-xs font-bold uppercase text-accent-strong">
+            <span className="rounded-full border border-accent/22 bg-white/76 px-3 py-1 text-xs font-bold uppercase text-accent-strong shadow-sm">
               Live top 50
             </span>
-            <span className="rounded-full border border-accent/22 bg-white/70 px-3 py-1 text-xs font-bold uppercase text-accent-strong">
+            <span className="rounded-full border border-[#d5a344]/35 bg-[#fff4d6]/78 px-3 py-1 text-xs font-bold uppercase text-[#8a621c] shadow-sm">
               Best level, then time
             </span>
             {currentUserRank > 0 ? (
-              <span className="rounded-full border border-accent/22 bg-white/70 px-3 py-1 text-xs font-bold uppercase text-accent-strong">
+              <span className="rounded-full border border-[#5f87a8]/28 bg-[#eef6ff]/78 px-3 py-1 text-xs font-bold uppercase text-[#486b89] shadow-sm">
                 Your best rank: #{currentUserRank}
               </span>
             ) : null}
           </div>
         </div>
-        <div className="grid gap-3 rounded-lg border border-line bg-panel/90 p-3.5">
-          <p className="text-[0.74rem] font-extrabold uppercase text-muted">
-            Featured run
-          </p>
+        <div className="grid gap-2 rounded-lg border border-[#d5a344]/35 bg-[linear-gradient(180deg,#fff9e8,#f6fbef)] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.76),0_14px_34px_rgba(138,109,33,0.12)] min-[1060px]:mt-8 min-[1060px]:self-start">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-[0.72rem] font-extrabold uppercase leading-none text-muted">
+              Featured run
+            </p>
+            {scores[0] ? (
+              <span className="rounded-full border border-accent/18 bg-accent/8 px-2 py-0.5 text-[0.68rem] font-extrabold uppercase text-accent-strong">
+                #{1}
+              </span>
+            ) : null}
+          </div>
           {scores[0] ? (
             <>
-              <p className="text-lg font-bold text-foreground">
-                {scores[0].user?.name ?? 'Player'}
-              </p>
-              <p className="text-sm text-muted">
-                Level {scores[0].level} · {scores[0].moves} moves ·{' '}
-                {formatDuration(scores[0].timeSeconds)}
-              </p>
-              <p className="text-xs text-muted">
+              <div className="grid gap-1">
+                <p className="text-lg font-bold leading-tight text-foreground">
+                  {scores[0].user?.name ?? 'Player'}
+                </p>
+                <p className="text-sm leading-snug text-muted">
+                  Level {scores[0].level} · {scores[0].moves} moves ·{' '}
+                  {formatDuration(scores[0].timeSeconds)}
+                </p>
+              </div>
+              <p className="text-xs leading-snug text-muted">
                 Completed {formatCompletedAt(scores[0].completedAt)}
               </p>
             </>
@@ -178,7 +187,7 @@ export default async function LeaderboardPage() {
             <p className="text-sm text-muted">Post a run to claim this spot.</p>
           )}
           <Link
-            className="mt-1 inline-flex min-h-10 items-center justify-center rounded-[7px] border border-accent bg-accent px-3.5 font-bold text-white"
+            className="mt-0.5 inline-flex min-h-9 w-fit items-center justify-center rounded-[7px] border border-accent bg-accent px-3.5 text-sm font-bold text-white"
             href={routes.play}
           >
             Play a run
@@ -247,20 +256,20 @@ export default async function LeaderboardPage() {
         className="profile-reveal grid grid-cols-4 gap-3 max-[980px]:grid-cols-2 max-[620px]:grid-cols-1"
         style={{ animationDelay: '100ms' }}
       >
-        <article className="rounded-lg border border-line bg-panel p-4 shadow-panel">
-          <p className="text-[0.75rem] font-extrabold uppercase text-muted">
+        <article className="rounded-lg border border-accent/22 bg-[linear-gradient(160deg,#f5fbef,#ffffff)] p-4 shadow-panel">
+          <p className="text-[0.75rem] font-extrabold uppercase text-accent-strong">
             Posted runs
           </p>
           <p className="mt-1 text-2xl font-bold">{scores.length}</p>
         </article>
-        <article className="rounded-lg border border-line bg-panel p-4 shadow-panel">
-          <p className="text-[0.75rem] font-extrabold uppercase text-muted">
+        <article className="rounded-lg border border-[#5f87a8]/24 bg-[linear-gradient(160deg,#eef6ff,#ffffff)] p-4 shadow-panel">
+          <p className="text-[0.75rem] font-extrabold uppercase text-[#486b89]">
             Players
           </p>
           <p className="mt-1 text-2xl font-bold">{uniquePlayers}</p>
         </article>
-        <article className="rounded-lg border border-line bg-panel p-4 shadow-panel">
-          <p className="text-[0.75rem] font-extrabold uppercase text-muted">
+        <article className="rounded-lg border border-[#d5a344]/30 bg-[linear-gradient(160deg,#fff5d8,#ffffff)] p-4 shadow-panel">
+          <p className="text-[0.75rem] font-extrabold uppercase text-[#8a621c]">
             Best run
           </p>
           <p className="mt-1 text-2xl font-bold">
@@ -268,8 +277,8 @@ export default async function LeaderboardPage() {
           </p>
           <p className="mt-1 text-sm text-muted">Highest level: {bestLevel}</p>
         </article>
-        <article className="rounded-lg border border-line bg-panel p-4 shadow-panel">
-          <p className="text-[0.75rem] font-extrabold uppercase text-muted">
+        <article className="rounded-lg border border-[#c77d56]/24 bg-[linear-gradient(160deg,#fff1e8,#ffffff)] p-4 shadow-panel">
+          <p className="text-[0.75rem] font-extrabold uppercase text-[#875936]">
             Avg moves
           </p>
           <p className="mt-1 text-2xl font-bold">
@@ -289,16 +298,16 @@ export default async function LeaderboardPage() {
         className="profile-reveal hidden gap-4 min-[1120px]:grid min-[1120px]:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]"
         style={{ animationDelay: '130ms' }}
       >
-        <article className="overflow-hidden rounded-lg border border-line bg-panel shadow-panel">
-          <header className="border-b border-line px-4 py-3">
-            <p className="text-[0.74rem] font-extrabold uppercase text-muted">
+        <article className="overflow-hidden rounded-lg border border-accent/18 bg-panel shadow-panel">
+          <header className="border-b border-accent/16 bg-[linear-gradient(90deg,rgba(128,196,78,0.16),rgba(255,255,255,0.45))] px-4 py-3">
+            <p className="text-[0.74rem] font-extrabold uppercase text-accent-strong">
               Top players in this slice
             </p>
           </header>
           <ol className="grid">
             {topPlayers.map((player, index) => (
               <li
-                className="grid grid-cols-[46px_minmax(0,1fr)_auto_auto] items-center gap-2 border-b border-line/80 px-4 py-2.5 last:border-b-0"
+                className="grid grid-cols-[46px_minmax(0,1fr)_auto_auto] items-center gap-2 border-b border-line/80 px-4 py-2.5 odd:bg-accent/4 last:border-b-0"
                 key={player.userId}
               >
                 <span className="text-sm font-bold text-muted">
@@ -320,16 +329,16 @@ export default async function LeaderboardPage() {
           </ol>
         </article>
 
-        <article className="overflow-hidden rounded-lg border border-line bg-panel shadow-panel">
-          <header className="border-b border-line px-4 py-3">
-            <p className="text-[0.74rem] font-extrabold uppercase text-muted">
+        <article className="overflow-hidden rounded-lg border border-[#5f87a8]/18 bg-panel shadow-panel">
+          <header className="border-b border-[#5f87a8]/16 bg-[linear-gradient(90deg,rgba(91,132,175,0.18),rgba(255,255,255,0.45))] px-4 py-3">
+            <p className="text-[0.74rem] font-extrabold uppercase text-[#486b89]">
               Recent completions
             </p>
           </header>
           <ul className="grid">
             {recentRuns.map((score) => (
               <li
-                className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-line/80 px-4 py-2.5 last:border-b-0"
+                className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-line/80 px-4 py-2.5 odd:bg-[#5f87a8]/5 last:border-b-0"
                 key={score.id}
               >
                 <span className="truncate text-sm text-foreground">
@@ -364,7 +373,11 @@ export default async function LeaderboardPage() {
                 'rounded-lg border p-4 shadow-panel',
                 isCurrentUser
                   ? 'border-accent bg-[#f2f8eb]'
-                  : 'border-line bg-panel',
+                  : rank % 3 === 1
+                    ? 'border-accent/18 bg-[#f8fcf2]'
+                    : rank % 3 === 2
+                      ? 'border-[#5f87a8]/18 bg-[#f4f9ff]'
+                      : 'border-[#d5a344]/22 bg-[#fff9eb]',
               ].join(' ')}
               key={score.id}
             >
@@ -400,11 +413,11 @@ export default async function LeaderboardPage() {
       </div>
 
       <div
-        className="profile-reveal overflow-hidden rounded-lg border border-line bg-panel shadow-panel"
+        className="profile-reveal overflow-hidden rounded-lg border border-accent/16 bg-panel shadow-panel"
         style={{ animationDelay: '160ms' }}
       >
         <table className="hidden w-full border-collapse min-[901px]:table">
-          <thead>
+          <thead className="bg-[linear-gradient(90deg,rgba(128,196,78,0.14),rgba(91,132,175,0.12),rgba(246,207,130,0.16))]">
             <tr>
               <th className="border-b border-line p-3.5 text-left text-[0.84rem] uppercase text-muted">
                 Rank
@@ -437,8 +450,10 @@ export default async function LeaderboardPage() {
               <tr
                 className={
                   session?.id === score.userId
-                    ? 'bg-[linear-gradient(90deg,rgba(112,173,71,0.14),rgba(112,173,71,0.04))]'
-                    : ''
+                    ? 'bg-[linear-gradient(90deg,rgba(112,173,71,0.16),rgba(112,173,71,0.06))]'
+                    : index % 2 === 0
+                      ? 'bg-white/34'
+                      : 'bg-[#f7fbf3]/70'
                 }
                 key={score.id}
               >
