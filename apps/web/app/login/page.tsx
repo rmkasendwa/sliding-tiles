@@ -13,11 +13,11 @@ export default async function LoginPage() {
   }
 
   return (
-    <section className="page-rail mx-auto my-7 px-4 pb-14 pt-10 sm:my-9 sm:px-6 sm:pt-11">
-      <div className="relative overflow-hidden rounded-[26px] border border-line/90 bg-[#f3ead8] p-4 shadow-panel sm:p-6 lg:p-8">
+    <section className="page-rail mx-auto my-3 px-0 pb-10 pt-5 sm:my-7 sm:px-6 sm:pb-14 sm:pt-10 lg:my-9 lg:pt-11">
+      <div className="relative overflow-visible border-0 bg-transparent p-0 shadow-none lg:overflow-hidden lg:rounded-[26px] lg:border lg:border-line/90 lg:bg-[#f3ead8] lg:p-8 lg:shadow-panel">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 opacity-60"
+          className="pointer-events-none absolute inset-0 hidden opacity-60 lg:block"
           style={{
             backgroundImage:
               'linear-gradient(rgba(30,37,34,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(30,37,34,0.03) 1px, transparent 1px)',
@@ -26,15 +26,15 @@ export default async function LoginPage() {
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-accent/18 blur-2xl"
+          className="pointer-events-none absolute -right-20 -top-20 hidden h-64 w-64 rounded-full bg-accent/18 blur-2xl lg:block"
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -bottom-24 left-8 h-56 w-56 rounded-full bg-[#f6cf82]/30 blur-2xl"
+          className="pointer-events-none absolute -bottom-24 left-8 hidden h-56 w-56 rounded-full bg-[#f6cf82]/30 blur-2xl lg:block"
         />
 
-        <div className="relative grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,460px)] lg:items-stretch">
-          <div className="profile-reveal grid content-between gap-6 rounded-2xl border border-line/80 bg-linear-to-br from-white/88 via-panel/86 to-[#efe6d6]/88 p-5 sm:p-6">
+        <div className="relative grid gap-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,460px)] lg:items-stretch lg:gap-6">
+          <div className="profile-reveal order-2 hidden content-between gap-4 rounded-2xl border border-line/80 bg-linear-to-br from-white/88 via-panel/86 to-[#efe6d6]/88 p-4 sm:p-5 lg:order-1 lg:grid lg:gap-6 lg:p-6">
             <div className="grid gap-4">
               <p className="inline-flex w-fit items-center rounded-full border border-accent/20 bg-accent/10 px-3 py-1 text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-accent-strong">
                 Pond access
@@ -48,7 +48,7 @@ export default async function LoginPage() {
               </p>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="hidden gap-3 sm:grid-cols-3 lg:grid">
               <div className="rounded-xl border border-line/85 bg-white/78 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
                 <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
                   Save state
@@ -76,13 +76,13 @@ export default async function LoginPage() {
             </div>
           </div>
 
-          <div className="play-panel-reveal relative">
+          <div className="play-panel-reveal relative order-1 mx-auto w-full max-w-[500px] lg:order-2 lg:max-w-none">
             <div
               aria-hidden="true"
-              className="absolute -inset-2 rounded-[20px] bg-linear-to-b from-accent/18 to-transparent blur-lg"
+              className="absolute -inset-2 hidden rounded-[20px] bg-linear-to-b from-accent/18 to-transparent blur-lg lg:block"
             />
             <div className="relative">
-              <p className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-line/80 bg-white/75 px-2.5 py-1 text-[0.74rem] font-bold uppercase tracking-[0.08em] text-foreground/75">
+              <p className="mb-3 hidden items-center gap-1.5 rounded-full border border-line/80 bg-white/75 px-2.5 py-1 text-[0.74rem] font-bold uppercase tracking-[0.08em] text-foreground/75 lg:inline-flex">
                 <Lock className="h-3.5 w-3.5 text-accent-strong" />
                 Secure sign-in
               </p>

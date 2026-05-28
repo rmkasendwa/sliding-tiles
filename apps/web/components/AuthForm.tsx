@@ -508,8 +508,8 @@ export function AuthForm({ mode }: AuthFormProps) {
       className={[
         'grid gap-4 border shadow-panel',
         isSignup
-          ? 'rounded-lg border-line bg-[#fff4e3] p-6'
-          : 'rounded-2xl border-line bg-[#f4fbf7] p-5 shadow-[0_24px_64px_rgba(35,35,28,0.2)] backdrop-blur-[2px] sm:p-6',
+          ? 'rounded-lg border-line bg-[#fff4e3] p-4 sm:p-6'
+          : 'rounded-2xl border-line bg-[#f4fbf7] p-4 shadow-[0_24px_64px_rgba(35,35,28,0.2)] backdrop-blur-[2px] sm:p-6',
       ].join(' ')}
     >
       <div className="grid gap-1.5">
