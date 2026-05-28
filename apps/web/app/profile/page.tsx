@@ -144,7 +144,7 @@ export default async function ProfilePage() {
           <p className="text-[0.78rem] font-extrabold uppercase tracking-[0.08em] text-accent-strong">
             Account cockpit
           </p>
-          <h1 className="mt-1 text-[clamp(2.4rem,7vw,5.8rem)] leading-[0.92]">
+          <h1 className="mt-1 text-[clamp(2.4rem,7vw,5rem)] leading-[0.92]">
             {session.name}
           </h1>
           <p className="mt-3 max-w-[64ch] text-muted">

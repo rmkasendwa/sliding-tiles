@@ -431,7 +431,10 @@ export function SoundProvider({
       }
 
       setNeedsAudioUnlock(false);
-      playAmbience(true);
+
+      if (enabled && !isMutedRef.current) {
+        playAmbience(true);
+      }
     };
     const handleFocus = () => {
       if (isAmbienceEnabledRef.current && hasStartedAmbienceRef.current) {
