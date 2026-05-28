@@ -123,7 +123,7 @@ export default async function LeaderboardPage() {
           <p className="text-[0.78rem] font-extrabold uppercase tracking-[0.08em] text-accent-strong">
             Pond hall of fame
           </p>
-          <h1 className="mt-1 text-[clamp(2.5rem,7vw,5.9rem)] leading-[0.92]">
+          <h1 className="mt-1 text-[clamp(2.5rem,6vw,5rem)] leading-[0.92]">
             Fast frogs. Clean runs.
           </h1>
           <p className="mt-3 max-w-[66ch] text-muted">
@@ -210,11 +210,7 @@ export default async function LeaderboardPage() {
                 </span>
               </div>
               <div className="mt-3 flex items-center gap-2.5">
-                <ProfileAvatar
-                  className="border-black/10 bg-white/70 text-sm text-accent-strong"
-                  name={playerName}
-                  size={40}
-                />
+                <ProfileAvatar name={playerName} size={40} />
                 <p className="text-lg font-bold text-foreground">
                   {playerName}
                   {session?.id === score.userId ? ' (You)' : ''}
