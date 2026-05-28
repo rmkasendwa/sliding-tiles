@@ -172,16 +172,16 @@ export default async function HomePage() {
               {progressLine}
             </p>
           )}
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-3 max-[560px]:grid">
             <Link
-              className="inline-flex min-h-11 min-w-42 items-center justify-center gap-2 rounded-[7px] border border-accent bg-accent px-4 font-bold text-white shadow-[0_10px_22px_rgba(37,111,90,0.28)] transition-[background-color,transform] hover:bg-accent-strong active:translate-y-px"
+              className="inline-flex min-h-11 min-w-42 items-center justify-center gap-2 rounded-[7px] border border-accent bg-accent px-4 font-bold text-white shadow-[0_10px_22px_rgba(37,111,90,0.28)] transition-[background-color,transform] hover:bg-accent-strong active:translate-y-px max-[560px]:w-full"
               href={routes.play}
             >
               {playCtaLabel}
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </Link>
             <Link
-              className="inline-flex min-h-10 items-center justify-center rounded-[7px] border border-accent/30 px-3.5 font-bold text-accent-strong"
+              className="inline-flex min-h-10 items-center justify-center rounded-[7px] border border-accent/30 px-3.5 font-bold text-accent-strong max-[560px]:w-full"
               href={routes.leaderboard}
             >
               View leaderboard
@@ -302,15 +302,15 @@ export default async function HomePage() {
             No account is required to play. Sign up later when you want saved
             progress and leaderboard entries attached to your name.
           </p>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-3 max-[560px]:grid">
             <Link
-              className="inline-flex min-h-10 items-center justify-center rounded-[7px] border border-accent bg-accent px-3.5 font-bold text-white"
+              className="inline-flex min-h-10 items-center justify-center rounded-[7px] border border-accent bg-accent px-3.5 font-bold text-white max-[560px]:w-full"
               href={routes.play}
             >
               {playCtaLabel}
             </Link>
             <Link
-              className="inline-flex min-h-10 items-center justify-center rounded-[7px] border border-accent/30 px-3.5 font-bold text-accent-strong"
+              className="inline-flex min-h-10 items-center justify-center rounded-[7px] border border-accent/30 px-3.5 font-bold text-accent-strong max-[560px]:w-full"
               href={routes.signup}
             >
               Create account
