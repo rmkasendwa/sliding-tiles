@@ -13,7 +13,7 @@ export default async function LoginPage() {
   }
 
   return (
-    <section className="page-rail mx-auto flex-1 grid place-items-center py-5 lg:py-8 lg:block lg:min-h-0">
+    <section className="page-rail mx-auto flex-1 grid place-items-center py-5 lg:py-8">
       <div className="relative w-full overflow-visible border-0 bg-transparent p-0 shadow-none lg:overflow-hidden lg:rounded-[26px] lg:border lg:border-line/90 lg:bg-[#f3ead8] lg:p-8 lg:shadow-panel">
         <div
           aria-hidden="true"
