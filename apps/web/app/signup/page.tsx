@@ -12,7 +12,7 @@ export default async function SignupPage() {
   }
 
   return (
-    <section className="page-rail mx-auto grid min-h-[calc(100svh-8.5rem)] place-items-center lg:my-9 lg:block lg:min-h-0 lg:pt-11">
+    <section className="page-rail mx-auto flex-1 grid place-items-center py-5 lg:py-8 lg:block lg:min-h-0">
       <div className="relative w-full overflow-visible border-0 bg-transparent p-0 shadow-none lg:overflow-hidden lg:rounded-[26px] lg:border lg:border-line/90 lg:bg-[#efe3cd] lg:p-8 lg:shadow-panel">
         <div
           aria-hidden="true"
