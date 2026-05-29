@@ -132,7 +132,7 @@ export default async function HomePage() {
     : null;
 
   return (
-    <div className="relative grid gap-0 overflow-x-clip" id="home-page">
+    <div className="w-full relative grid gap-0 overflow-x-clip" id="home-page">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-120 bg-[radial-gradient(circle_at_18%_28%,rgba(102,168,78,0.23),transparent_42%),radial-gradient(circle_at_86%_12%,rgba(37,111,90,0.16),transparent_38%)]"
