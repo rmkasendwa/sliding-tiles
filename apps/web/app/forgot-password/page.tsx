@@ -1,12 +1,12 @@
-import Link from 'next/link';
 import { ArrowRight, Mail, ShieldCheck } from 'lucide-react';
+import Link from 'next/link';
 
 import { ForgotPasswordForm } from '@/components/ForgotPasswordForm';
 import { routes } from '@/lib/routes';
 
 export default function ForgotPasswordPage() {
   return (
-    <section className="page-rail mx-auto grid min-h-[calc(100svh-8.5rem)] place-items-center px-2 py-2 lg:my-9 lg:block lg:min-h-0 sm:my-7 sm:px-6 sm:pb-14 sm:pt-10 lg:pt-11">
+    <section className="page-rail mx-auto grid min-h-[calc(100svh-8.5rem)] place-items-center lg:my-9 lg:block lg:min-h-0">
       <div className="relative w-full overflow-visible border-0 bg-transparent p-0 shadow-none lg:overflow-hidden lg:rounded-[26px] lg:border lg:border-line/90 lg:bg-[#e8eef2] lg:p-8 lg:shadow-panel">
         <div
           aria-hidden="true"
@@ -62,13 +62,13 @@ export default function ForgotPasswordPage() {
                   Return to login
                 </p>
                 <p className="mt-1 text-sm font-bold text-foreground">
-                  Rejoin once the reset is done
+                  Log back in after reset
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="play-panel-reveal relative order-1 mx-auto w-full max-w-[500px] lg:order-2 lg:max-w-none">
+          <div className="play-panel-reveal relative order-1 mx-auto w-full max-w-125 lg:order-2 lg:max-w-none">
             <div
               aria-hidden="true"
               className="absolute -inset-2 hidden rounded-[20px] bg-linear-to-b from-[#486b89]/24 to-transparent blur-lg lg:block"
