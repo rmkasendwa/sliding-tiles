@@ -183,7 +183,7 @@ export default async function LeaderboardPage() {
       </div>
 
       <div
-        className="profile-reveal grid gap-3 min-[780px]:grid-cols-3"
+        className="profile-reveal grid gap-3 min-[820px]:grid-cols-3"
         style={{ animationDelay: '70ms' }}
       >
         {podium.map((score, index) => {
@@ -234,14 +234,14 @@ export default async function LeaderboardPage() {
           ? Array.from({ length: 3 - podium.length }).map((_, index) => {
               return (
                 <article
-                  className="rounded-lg border-2 border-dashed p-4 border-black/8 bg-black/1.5"
+                  className="rounded-lg border-2 border-dashed p-4 border-black/8 bg-black/1.5 max-[820px]:hidden"
                   key={index}
                 />
               );
             })
           : null}
         {podium.length === 0 ? (
-          <div className="rounded-lg border border-line bg-panel p-4 text-muted min-[780px]:col-span-3">
+          <div className="rounded-lg border border-line bg-panel p-4 text-muted min-[820px]:col-span-3">
             Top-3 podium will appear as soon as runs are posted.
           </div>
         ) : null}
