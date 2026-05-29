@@ -94,13 +94,6 @@ export default async function LoginPage() {
                   href={routes.signup}
                 >
                   Create one
-                </Link>{' '}
-                · Forgot your password?{' '}
-                <Link
-                  className="font-bold text-accent-strong transition-colors hover:text-accent"
-                  href={routes.forgotPassword}
-                >
-                  Reset it
                 </Link>
               </p>
             </div>

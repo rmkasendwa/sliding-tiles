@@ -1,5 +1,6 @@
 'use client';
 
+import { Eye, EyeOff } from 'lucide-react';
 import {
   useActionState,
   useEffect,
@@ -8,10 +9,11 @@ import {
   type ChangeEvent,
   type FormEvent,
 } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
 
 import { login, signup } from '@/app/actions/auth';
+import { routes } from '@/lib/routes';
 import { AuthFormState } from '@/lib/validation';
+import Link from 'next/link';
 
 type AuthFormProps = {
   mode: 'login' | 'signup';
@@ -697,12 +699,22 @@ export function AuthForm({ mode }: AuthFormProps) {
         }
       >
         <div className="grid gap-2">
-          <label className={fieldLabelClass} htmlFor="password">
-            Password{' '}
-            <span aria-hidden="true" className="text-danger">
-              *
-            </span>
-          </label>
+          <span className="flex items-center justify-between">
+            <label className={fieldLabelClass} htmlFor="password">
+              Password{' '}
+              <span aria-hidden="true" className="text-danger">
+                *
+              </span>
+            </label>
+            {mode === 'login' && (
+              <Link
+                className="font-bold text-[0.78rem] text-accent-strong transition-colors hover:text-accent"
+                href={routes.forgotPassword}
+              >
+                Forgot your password?
+              </Link>
+            )}
+          </span>
           <div className="relative">
             <input
               aria-describedby={
