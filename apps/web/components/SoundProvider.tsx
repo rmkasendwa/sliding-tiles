@@ -498,14 +498,6 @@ export function SoundProvider({
           break;
         case 'hint':
           playAudio(hintSoundRef.current, { volume: 0.14 });
-          window.setTimeout(() => {
-            if (!isMutedRef.current) {
-              playAudio(frogSoundRef.current, {
-                playbackRate: 1.18,
-                volume: 0.09,
-              });
-            }
-          }, 130);
           break;
         case 'complete':
           playAudio(completeSoundRef.current, { volume: 0.13 });
