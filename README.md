@@ -62,7 +62,13 @@ docker compose up -d postgres
 npm run db:migrate
 ```
 
-7. Run the full development stack:
+7. Generate the Prisma Client:
+
+```bash
+npm run db:generate
+```
+
+8. Run the full development stack:
 
 ```bash
 npm run dev
