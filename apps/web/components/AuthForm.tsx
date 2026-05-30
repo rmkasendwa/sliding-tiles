@@ -15,6 +15,8 @@ import { routes } from '@/lib/routes';
 import { AuthFormState } from '@/lib/validation';
 import Link from 'next/link';
 
+import { PasswordStrengthMeter } from './PasswordStrengthMeter';
+
 type AuthFormProps = {
   mode: 'login' | 'signup';
 };
@@ -46,44 +48,6 @@ type UsernameAvailabilityResponse = {
   suggestions: string[];
 };
 
-function getPasswordStrength(password: string) {
-  if (!password) {
-    return 0;
-  }
-
-  let score = 0;
-  if (password.length >= 8) {
-    score += 1;
-  }
-  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) {
-    score += 1;
-  }
-  if (/[0-9]/.test(password)) {
-    score += 1;
-  }
-  if (/[^a-zA-Z0-9]/.test(password)) {
-    score += 1;
-  }
-
-  return score;
-}
-
-function getPasswordStrengthLabel(strength: number) {
-  if (strength <= 1) {
-    return 'Weak';
-  }
-
-  if (strength <= 2) {
-    return 'Fair';
-  }
-
-  if (strength <= 3) {
-    return 'Good';
-  }
-
-  return 'Strong';
-}
-
 export function AuthForm({ mode }: AuthFormProps) {
   const isSignup = mode === 'signup';
   const [clientErrors, setClientErrors] = useState<Record<string, string>>({});
@@ -108,16 +72,6 @@ export function AuthForm({ mode }: AuthFormProps) {
       status: 'idle',
       suggestions: [],
     });
-  const passwordStrength = getPasswordStrength(formValues.password);
-  const passwordStrengthLabel = getPasswordStrengthLabel(passwordStrength);
-  const passwordStrengthClass =
-    passwordStrength <= 1
-      ? 'text-danger'
-      : passwordStrength <= 2
-        ? 'text-[#9a5d21]'
-        : passwordStrength <= 3
-          ? 'text-accent-strong'
-          : 'text-accent';
   const fieldLabelClass = isSignup
     ? 'text-[0.78rem] font-medium tracking-[0.01em] text-foreground/76'
     : 'text-[0.68rem] font-bold uppercase tracking-[0.08em] text-foreground/64';
@@ -749,33 +703,7 @@ export function AuthForm({ mode }: AuthFormProps) {
               )}
             </button>
           </div>
-          {isSignup && formValues.password.length > 0 && (
-            <div className="mt-1 grid gap-1.5">
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-panel-strong/60">
-                <div
-                  className={[
-                    'h-full rounded-full transition-all duration-200',
-                    passwordStrength <= 1
-                      ? 'bg-danger'
-                      : passwordStrength <= 2
-                        ? 'bg-[#b37a37]'
-                        : passwordStrength <= 3
-                          ? 'bg-accent-strong'
-                          : 'bg-accent',
-                  ].join(' ')}
-                  style={{ width: `${(passwordStrength / 4) * 100}%` }}
-                />
-              </div>
-              <p
-                className={[
-                  'text-[0.78rem] font-bold',
-                  passwordStrengthClass,
-                ].join(' ')}
-              >
-                Password strength: {passwordStrengthLabel}
-              </p>
-            </div>
-          )}
+          {isSignup && <PasswordStrengthMeter password={formValues.password} />}
           {getFieldError('password') && (
             <p className="text-[0.9rem] text-danger" id="password-error">
               {getFieldError('password')}

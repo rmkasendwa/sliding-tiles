@@ -9,11 +9,14 @@ import { resetPassword } from '@/app/actions/auth';
 import { routes } from '@/lib/routes';
 import { AuthFormState } from '@/lib/validation';
 
+import { PasswordStrengthMeter } from './PasswordStrengthMeter';
+
 export function ResetPasswordForm() {
   const [state, formAction, pending] = useActionState<AuthFormState, FormData>(
     resetPassword,
     {},
   );
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const searchParams = useSearchParams();
@@ -57,9 +60,11 @@ export function ResetPasswordForm() {
             id="password"
             minLength={8}
             name="password"
+            onChange={(event) => setPassword(event.target.value)}
             placeholder="8+ chars, letters & numbers"
             required
             type={showPassword ? 'text' : 'password'}
+            value={password}
           />
           <button
             aria-label={showPassword ? 'Hide password' : 'Show password'}
@@ -74,6 +79,7 @@ export function ResetPasswordForm() {
             )}
           </button>
         </div>
+        <PasswordStrengthMeter password={password} />
         {state.errors?.password?.[0] && (
           <p className="text-[0.9rem] text-danger" id="reset-password-error">
             {state.errors.password[0]}
