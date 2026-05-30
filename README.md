@@ -44,14 +44,25 @@ cp .env.example .env
   the localhost value and add your LAN IP origin for phone testing. Match these
   origins to `WEB_PORT`.
 
-4. Install dependencies and migrate:
+4. Install dependencies:
 
 ```bash
 npm install
+```
+
+5. Start the local database before running migrations:
+
+```bash
+docker compose up -d postgres
+```
+
+6. Run database migrations:
+
+```bash
 npm run db:migrate
 ```
 
-5. Run the full development stack:
+7. Run the full development stack:
 
 ```bash
 npm run dev
@@ -60,10 +71,9 @@ npm run dev
 This starts PostgreSQL, the NestJS API, and the Next.js web app. Open the URL
 for your `WEB_PORT`, such as `http://localhost:3000`.
 
-To run each service manually instead:
+To run each service manually after the database is already running:
 
 ```bash
-docker compose up -d postgres
 npm run api:dev
 npm run web:dev
 ```
