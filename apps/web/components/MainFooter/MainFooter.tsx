@@ -88,7 +88,7 @@ export async function MainFooter() {
         </div>
       </section>
 
-      <div className="page-rail mx-auto grid gap-8 py-8 text-sm text-muted min-[860px]:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)_minmax(0,1fr)]">
+      <div className="page-rail mx-auto grid gap-8 py-8 text-sm text-muted min-[860px]:grid-cols-[minmax(0,4fr)_minmax(0,1fr)_minmax(0,1fr)]">
         <div className="grid max-w-xl gap-3">
           <div className="flex items-center gap-3">
             <FrogLogo className="w-10 shrink-0" variant="monochrome" />

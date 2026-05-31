@@ -476,12 +476,7 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
                 </button>
               </div>
               <div className="grid gap-5">
-                <div className="grid gap-1">
-                  <span className="px-3 text-[0.72rem] font-bold uppercase tracking-[0.08em] text-accent-strong">
-                    Navigation
-                  </span>
-                  <div className="grid gap-1">{drawerNavigationLinks}</div>
-                </div>
+                <div className="grid gap-1">{drawerNavigationLinks}</div>
               </div>
             </aside>
           </>,

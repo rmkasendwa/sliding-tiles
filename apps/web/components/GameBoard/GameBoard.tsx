@@ -88,7 +88,7 @@ function MobileInfoModalPortal({
   return createPortal(
     <div
       className={[
-        'fixed inset-0 z-50 hidden items-center justify-center bg-foreground/45 p-3 backdrop-blur-sm transition-opacity duration-200 motion-reduce:transition-none max-[900px]:flex',
+        'fixed inset-0 z-50 hidden items-center justify-center bg-foreground/75 p-3 backdrop-blur-sm transition-opacity duration-200 motion-reduce:transition-none max-[900px]:flex',
         isVisible ? 'opacity-100' : 'opacity-0',
       ].join(' ')}
     >
