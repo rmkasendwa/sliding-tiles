@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 
 import { ChangePasswordForm } from '@/components/ChangePasswordForm';
 import { ProfileAvatar } from '@/components/ProfileAvatar';
+import { ProfileSettingsForm } from '@/components/ProfileSettingsForm';
 import { ApiGameState, ApiScore, apiRequest } from '@/lib/api';
 import { routes } from '@/lib/routes';
 import { getSession } from '@/lib/session';
@@ -243,7 +244,39 @@ export default async function ProfilePage() {
         </div>
 
         <div className="grid items-start gap-4 min-[980px]:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
-          <section className="grid gap-3 rounded-lg border border-[#5f87a8]/18 bg-[linear-gradient(160deg,#f4f9ff,#ffffff)] p-4">
+          <section className="grid gap-4 rounded-lg border border-[#5f87a8]/18 bg-[linear-gradient(160deg,#f4f9ff,#ffffff)] p-4">
+            <div className="flex items-end justify-between gap-3">
+              <div>
+                <h3 className="text-[1.03rem] font-bold">Profile settings</h3>
+                <p className="mt-0.5 text-sm text-muted">
+                  Update your public player identity.
+                </p>
+              </div>
+              <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#486b89]">
+                Public
+              </span>
+            </div>
+            <ProfileSettingsForm
+              email={session.email}
+              name={session.name}
+              username={session.username}
+            />
+          </section>
+
+          <section className="grid gap-4 rounded-lg border border-[#d5a344]/24 bg-[linear-gradient(160deg,#fff7df,#ffffff)] p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h3 className="text-[1.03rem] font-bold">Account security</h3>
+                <p className="mt-0.5 text-sm text-muted">Update password</p>
+              </div>
+              <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#8a621c]">
+                Protected
+              </span>
+            </div>
+            <ChangePasswordForm compact />
+          </section>
+
+          <section className="grid gap-3 rounded-lg border border-[#5f87a8]/18 bg-[linear-gradient(160deg,#f4f9ff,#ffffff)] p-4 min-[980px]:col-span-2">
             <div className="flex items-end justify-between gap-3">
               <h3 className="text-[1.03rem] font-bold">Milestone journey</h3>
               <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#486b89]">
@@ -277,19 +310,6 @@ export default async function ProfilePage() {
                 </article>
               ))}
             </div>
-          </section>
-
-          <section className="grid gap-4 rounded-lg border border-[#d5a344]/24 bg-[linear-gradient(160deg,#fff7df,#ffffff)] p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <h3 className="text-[1.03rem] font-bold">Account security</h3>
-                <p className="mt-0.5 text-sm text-muted">Update password</p>
-              </div>
-              <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#8a621c]">
-                Protected
-              </span>
-            </div>
-            <ChangePasswordForm compact />
           </section>
         </div>
       </section>

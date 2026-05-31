@@ -41,6 +41,27 @@ export const forgotPasswordSchema = z.object({
   identifier: z.string().trim().min(1, 'Enter your email or username.'),
 });
 
+export const reservedUsernames = new Set([
+  'admin',
+  'api',
+  'auth',
+  'contact',
+  'forgot_password',
+  'forgot-password',
+  'leaderboard',
+  'login',
+  'play',
+  'privacy',
+  'profile',
+  'register',
+  'reset_password',
+  'reset-password',
+  'settings',
+  'signup',
+  'support',
+  'terms',
+]);
+
 export const usernameSchema = z
   .string()
   .trim()
@@ -49,11 +70,20 @@ export const usernameSchema = z
   .regex(
     /^[a-zA-Z0-9_]+$/,
     'Username can only contain letters, numbers, and underscores.',
+  )
+  .refine(
+    (username) => !reservedUsernames.has(username.trim().toLowerCase()),
+    'This username is reserved.',
   );
+
+export const nameSchema = z
+  .string()
+  .trim()
+  .min(2, 'Name must be at least 2 characters.');
 
 export const signupSchema = z.object({
   email: z.string().trim().email('Enter a valid email address.'),
-  name: z.string().trim().min(2, 'Name must be at least 2 characters.'),
+  name: nameSchema,
   username: usernameSchema,
   password: z
     .string()
@@ -89,6 +119,11 @@ export const changePasswordSchema = z
     message: 'Passwords do not match.',
     path: ['confirmPassword'],
   });
+
+export const updateProfileSchema = z.object({
+  name: nameSchema,
+  username: usernameSchema,
+});
 
 export const saveGameStateSchema = z.object({
   board: boardStateSchema,

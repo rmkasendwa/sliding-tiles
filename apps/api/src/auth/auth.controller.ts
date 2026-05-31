@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Get,
+  Patch,
   Post,
   Query,
   Req,
@@ -21,6 +22,7 @@ import {
   parseBody,
   resetPasswordSchema,
   signupSchema,
+  updateProfileSchema,
   usernameAvailabilityQuerySchema,
 } from '../shared/zod';
 import { AuthService } from './auth.service';
@@ -113,6 +115,30 @@ export class AuthController {
     }
 
     return this.authService.getUsernameAvailability(result.data.username);
+  }
+
+  @Patch('profile')
+  @UseGuards(AuthGuard)
+  async updateProfile(
+    @Req() request: AuthenticatedRequest,
+    @Body() body: unknown,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const user = await this.authService.updateProfile(
+      request.user!.id,
+      parseBody(updateProfileSchema, body),
+    );
+    const session = await this.sessionService.createSession(user);
+    this.sessionService.setSessionCookie(
+      response,
+      session.token,
+      session.expiresAt,
+    );
+
+    return {
+      accessToken: session.token,
+      user,
+    };
   }
 
   @Post('logout')

@@ -1,6 +1,7 @@
 'use server';
 
 import { redirect } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
 
 import {
   ApiRequestError,
@@ -18,6 +19,7 @@ import {
   loginSchema,
   resetPasswordSchema,
   signupSchema,
+  updateProfileSchema,
 } from '@/lib/validation';
 
 export async function signup(
@@ -220,6 +222,47 @@ export async function changePassword(
 
   return {
     message: 'Password changed successfully.',
+    success: true,
+  };
+}
+
+export async function updateProfile(
+  _state: AuthFormState,
+  formData: FormData,
+): Promise<AuthFormState> {
+  const validatedFields = updateProfileSchema.safeParse({
+    name: formData.get('name'),
+    username: formData.get('username'),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      success: false,
+    };
+  }
+
+  const { name, username } = validatedFields.data;
+  try {
+    const response = await apiRequest<AuthResponse>('/auth/profile', {
+      body: { name, username },
+      method: 'PATCH',
+    });
+
+    await setSessionToken(response.accessToken);
+    revalidatePath(routes.profile);
+  } catch (error) {
+    return {
+      errors: getApiFieldErrors(error),
+      message:
+        getApiMessage(error) ??
+        'Could not update your profile right now. Try again shortly.',
+      success: false,
+    };
+  }
+
+  return {
+    message: 'Profile updated successfully.',
     success: true,
   };
 }

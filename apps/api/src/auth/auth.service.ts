@@ -180,6 +180,49 @@ export class AuthService {
     };
   }
 
+  async updateProfile(
+    userId: string,
+    {
+      name,
+      username,
+    }: {
+      name: string;
+      username: string;
+    },
+  ): Promise<SessionUser> {
+    try {
+      const user = await this.prisma.user.update({
+        data: {
+          name,
+          username: username.toLowerCase(),
+        },
+        select: {
+          email: true,
+          id: true,
+          name: true,
+          username: true,
+        },
+        where: { id: userId },
+      });
+
+      return this.toSessionUser(user);
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException({
+          errors: {
+            username: ['This username is already taken.'],
+          },
+          message: 'Request validation failed.',
+        });
+      }
+
+      throw error;
+    }
+  }
+
   private async generateUsernameSuggestions(username: string) {
     const sanitizedBase = this.sanitizeUsernameBase(username);
     const existingUsers = await this.prisma.user.findMany({
