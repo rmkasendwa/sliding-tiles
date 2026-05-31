@@ -7,8 +7,9 @@ import {
   Volume2,
   VolumeX,
 } from 'lucide-react';
-import type { PointerEvent, TouchEvent } from 'react';
+import type { PointerEvent, ReactNode, TouchEvent } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 import { recordCompletedLevel, saveGameState } from '@/app/actions/game';
 import {
@@ -47,6 +48,70 @@ export type GameBoardProps = {
   playerName?: string;
   soundEnabled?: boolean;
 };
+
+const INFO_MODAL_TRANSITION_MS = 180;
+
+function MobileInfoModalPortal({
+  children,
+  isOpen,
+  onClose,
+}: {
+  children: ReactNode;
+  isOpen: boolean;
+  onClose: () => void;
+}) {
+  const [isEntered, setIsEntered] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => setIsMounted(true), 0);
+
+    return () => window.clearTimeout(timeout);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted || !isOpen) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => setIsEntered(true));
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [isMounted, isOpen]);
+
+  if (!isMounted) {
+    return null;
+  }
+
+  const isVisible = isOpen && isEntered;
+
+  return createPortal(
+    <div
+      className={[
+        'fixed inset-0 z-50 hidden items-center justify-center bg-foreground/45 p-3 backdrop-blur-sm transition-opacity duration-200 motion-reduce:transition-none max-[900px]:flex',
+        isVisible ? 'opacity-100' : 'opacity-0',
+      ].join(' ')}
+    >
+      <button
+        aria-label="Close run details"
+        className="absolute inset-0 cursor-default"
+        onClick={onClose}
+        type="button"
+      />
+      <div
+        className={[
+          'relative z-10 w-full max-w-lg transform transition-all duration-200 motion-reduce:transform-none motion-reduce:transition-none',
+          isVisible
+            ? 'translate-y-0 scale-100 opacity-100'
+            : 'translate-y-1 scale-[0.98] opacity-0',
+        ].join(' ')}
+      >
+        {children}
+      </div>
+    </div>,
+    document.body,
+  );
+}
 
 function formatElapsedTime(milliseconds: number) {
   const totalSeconds = Math.max(0, Math.floor(milliseconds / 1000));
@@ -95,6 +160,7 @@ function GameBoardContent({
   const [tileRotationSeed, setTileRotationSeed] = useState(0);
   const [isResetting, setIsResetting] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
+  const [isInfoModalRendered, setIsInfoModalRendered] = useState(false);
   const [isBoardFullscreen, setIsBoardFullscreen] = useState(false);
   const FullscreenIcon = isBoardFullscreen ? Minimize2 : Maximize2;
   const boardFrameRef = useRef<HTMLElement>(null);
@@ -108,9 +174,37 @@ function GameBoardContent({
   const entryMotionSoundTimeoutsRef = useRef<number[]>([]);
   const entryMotionSoundCycleRef = useRef<number>(-1);
   const resetTimeoutRef = useRef<number | null>(null);
+  const infoModalTransitionTimeoutRef = useRef<number | null>(null);
   const boardHintMouseUpRef = useRef<(() => void) | null>(null);
   const suppressNextClickRef = useRef(false);
   const hasPlayedInitialEntrySoundRef = useRef(false);
+
+  const showInfoModal = useCallback(() => {
+    if (infoModalTransitionTimeoutRef.current !== null) {
+      window.clearTimeout(infoModalTransitionTimeoutRef.current);
+      infoModalTransitionTimeoutRef.current = null;
+    }
+
+    setIsInfoModalRendered(true);
+    setIsInfoModalOpen(true);
+  }, []);
+
+  const closeInfoModal = useCallback(() => {
+    if (infoModalTransitionTimeoutRef.current !== null) {
+      window.clearTimeout(infoModalTransitionTimeoutRef.current);
+    }
+
+    setIsInfoModalOpen(false);
+    const transitionMs = window.matchMedia('(prefers-reduced-motion: reduce)')
+      .matches
+      ? 0
+      : INFO_MODAL_TRANSITION_MS;
+
+    infoModalTransitionTimeoutRef.current = window.setTimeout(() => {
+      setIsInfoModalRendered(false);
+      infoModalTransitionTimeoutRef.current = null;
+    }, transitionMs);
+  }, []);
 
   useEffect(() => {
     startAmbience();
@@ -430,17 +524,20 @@ function GameBoardContent({
       if (resetTimeoutRef.current !== null) {
         window.clearTimeout(resetTimeoutRef.current);
       }
+      if (infoModalTransitionTimeoutRef.current !== null) {
+        window.clearTimeout(infoModalTransitionTimeoutRef.current);
+      }
     };
   }, [clearBoardHint, clearEntryMotionSoundTimers]);
 
   useEffect(() => {
-    if (!isInfoModalOpen) {
+    if (!isInfoModalRendered) {
       return;
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        setIsInfoModalOpen(false);
+        closeInfoModal();
       }
     };
 
@@ -451,7 +548,7 @@ function GameBoardContent({
       document.body.style.overflow = '';
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isInfoModalOpen]);
+  }, [closeInfoModal, isInfoModalRendered]);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -644,14 +741,14 @@ function GameBoardContent({
       await exitBoardFullscreen();
 
       if (window.matchMedia('(max-width: 900px)').matches) {
-        setIsInfoModalOpen(true);
+        showInfoModal();
       }
 
       return;
     }
 
-    setIsInfoModalOpen(true);
-  }, [exitBoardFullscreen, isBoardFullscreen]);
+    showInfoModal();
+  }, [exitBoardFullscreen, isBoardFullscreen, showInfoModal]);
   const toggleBoardFullscreen = useCallback(async () => {
     const boardFrame = boardFrameRef.current;
     if (!boardFrame) {
@@ -840,27 +937,22 @@ function GameBoardContent({
           rows={rows}
         />
       </aside>
-      {isInfoModalOpen && (
-        <div className="fixed inset-0 z-50 hidden items-center justify-center bg-foreground/45 p-3 backdrop-blur-sm max-[900px]:flex">
-          <button
-            aria-label="Close run details"
-            className="absolute inset-0 cursor-default"
-            onClick={() => setIsInfoModalOpen(false)}
-            type="button"
+      {isInfoModalRendered && (
+        <MobileInfoModalPortal
+          isOpen={isInfoModalOpen}
+          onClose={closeInfoModal}
+        >
+          <GameInfoPanel
+            columns={columns}
+            gameModeLabel={gameModeLabel}
+            isModal
+            isSignedIn={isSignedIn}
+            onClose={closeInfoModal}
+            playerAvatarUrl={playerAvatarUrl}
+            playerName={playerName}
+            rows={rows}
           />
-          <div className="relative z-10 max-h-[calc(100svh-28px)] w-full max-w-lg overflow-y-auto rounded-xl">
-            <GameInfoPanel
-              columns={columns}
-              gameModeLabel={gameModeLabel}
-              isModal
-              isSignedIn={isSignedIn}
-              onClose={() => setIsInfoModalOpen(false)}
-              playerAvatarUrl={playerAvatarUrl}
-              playerName={playerName}
-              rows={rows}
-            />
-          </div>
-        </div>
+        </MobileInfoModalPortal>
       )}
     </div>
   );

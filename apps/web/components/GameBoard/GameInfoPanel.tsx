@@ -29,11 +29,19 @@ export function GameInfoPanel({
   return (
     <div
       className={[
-        'grid content-start gap-4 self-start border border-line bg-panel shadow-panel',
-        isModal ? 'min-h-full rounded-xl p-4' : 'rounded-lg p-5',
+        'border border-line bg-panel shadow-panel',
+        isModal
+          ? 'grid max-h-[calc(100dvh-28px)] grid-rows-[auto_minmax(0,1fr)] overflow-hidden rounded-xl'
+          : 'grid content-start gap-4 self-start rounded-lg p-5',
       ].join(' ')}
     >
-      <div className="grid gap-2">
+      <div
+        className={
+          isModal
+            ? 'sticky top-0 z-10 grid gap-2 border-b border-line bg-panel p-4'
+            : 'grid gap-2'
+        }
+      >
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
             {gameModeLabel}
@@ -87,17 +95,25 @@ export function GameInfoPanel({
           picture.
         </p>
       </div>
-      <SolutionPreview columns={columns} isCompact={isModal} rows={rows} />
-      <p className="rounded-lg border border-line bg-white/40 p-3 text-sm leading-6 text-muted">
-        Use arrow keys or WASD. Click movable tiles to slide them, or click a
-        locked tile to flash where it belongs.
-      </p>
-      {!isSignedIn && (
-        <p className="leading-normal text-muted">
-          Anonymous progress stays in this browser. Sign in to sync your board
-          and post leaderboard times.
+      <div
+        className={
+          isModal
+            ? 'grid min-h-0 content-start gap-4 overflow-y-auto p-4'
+            : 'grid content-start gap-4'
+        }
+      >
+        <SolutionPreview columns={columns} isCompact={isModal} rows={rows} />
+        <p className="rounded-lg border border-line bg-white/40 p-3 text-sm leading-6 text-muted">
+          Use arrow keys or WASD. Click movable tiles to slide them, or click a
+          locked tile to flash where it belongs.
         </p>
-      )}
+        {!isSignedIn && (
+          <p className="leading-normal text-muted">
+            Anonymous progress stays in this browser. Sign in to sync your board
+            and post leaderboard times.
+          </p>
+        )}
+      </div>
     </div>
   );
 }
