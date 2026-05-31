@@ -4,6 +4,7 @@ import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { ApiScore, apiRequest, getApiMessage } from '@/lib/api';
 import { routes } from '@/lib/routes';
 import { getSession } from '@/lib/session';
+import { CurrentUserBadge } from '@/components/CurrentUserBadge';
 
 function formatDuration(totalSeconds: number) {
   const safeSeconds = Math.max(0, Math.floor(totalSeconds));
@@ -215,9 +216,9 @@ export default async function LeaderboardPage() {
                   name={playerName}
                   size={40}
                 />
-                <p className="text-lg font-bold text-foreground">
-                  {playerName}
-                  {session?.id === score.userId ? ' (You)' : ''}
+                <p className="inline-flex min-w-0 items-center gap-1.5 text-lg font-bold text-foreground">
+                  <span className="truncate">{playerName}</span>
+                  {session?.id === score.userId ? <CurrentUserBadge /> : null}
                 </p>
               </div>
               <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
@@ -312,9 +313,9 @@ export default async function LeaderboardPage() {
                 <span className="text-sm font-bold text-muted">
                   #{index + 1}
                 </span>
-                <span className="font-semibold text-foreground">
-                  {player.name}
-                  {session?.id === player.userId ? ' (You)' : ''}
+                <span className="inline-flex min-w-0 items-center gap-1.5 font-semibold text-foreground">
+                  <span className="truncate">{player.name}</span>
+                  {session?.id === player.userId ? <CurrentUserBadge /> : null}
                 </span>
                 <span className="rounded-md bg-accent/10 px-2 py-0.5 text-xs font-bold text-accent-strong">
                   L{player.bestLevel}
@@ -393,9 +394,9 @@ export default async function LeaderboardPage() {
                   {formatCompletedAt(score.completedAt)}
                 </p>
               </div>
-              <p className="mt-2 text-lg font-bold">
-                {score.user?.name ?? 'Player'}
-                {isCurrentUser ? ' (You)' : ''}
+              <p className="mt-2 inline-flex min-w-0 items-center gap-1.5 text-lg font-bold">
+                <span className="truncate">{score.user?.name ?? 'Player'}</span>
+                {isCurrentUser ? <CurrentUserBadge /> : null}
               </p>
               <p className="mt-1 text-sm text-muted">
                 Level {score.level} · {score.moves} moves ·{' '}
@@ -467,8 +468,12 @@ export default async function LeaderboardPage() {
                   </span>
                 </td>
                 <td className="border-b border-line p-3.5 text-left">
-                  {score.user?.name ?? 'Player'}
-                  {session?.id === score.userId ? ' (You)' : ''}
+                  <span className="inline-flex min-w-0 items-center gap-1.5">
+                    <span className="truncate">
+                      {score.user?.name ?? 'Player'}
+                    </span>
+                    {session?.id === score.userId ? <CurrentUserBadge /> : null}
+                  </span>
                 </td>
                 <td className="border-b border-line p-3.5 text-left">
                   {score.level}
