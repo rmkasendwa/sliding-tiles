@@ -927,7 +927,7 @@ function GameBoardContent({
         </div>
       </section>
 
-      <aside className="play-panel-reveal max-[900px]:hidden">
+      <aside className="play-panel-reveal sticky top-4 max-[900px]:hidden">
         <GameInfoPanel
           columns={columns}
           gameModeLabel={gameModeLabel}
