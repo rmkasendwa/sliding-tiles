@@ -26,6 +26,7 @@ export class ApiRequestError extends Error {
 }
 
 export type ApiUser = {
+  avatarUrl: string;
   email: string;
   id: string;
   name: string;
@@ -54,6 +55,7 @@ export type ApiScore = {
   moves: number;
   timeSeconds: number;
   user?: {
+    avatarUrl: string;
     name: string;
   };
   userId: string;

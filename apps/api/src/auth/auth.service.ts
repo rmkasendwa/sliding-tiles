@@ -9,11 +9,27 @@ import { createHash, randomBytes } from 'crypto';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { SessionUser } from '../session/session.types';
+import { getGravatarUrl } from '../shared/gravatar';
 import { hashPassword, verifyPassword } from './password';
 
 @Injectable()
 export class AuthService {
   constructor(private readonly prisma: PrismaService) {}
+
+  private toSessionUser(user: {
+    email: string;
+    id: string;
+    name: string;
+    username: string;
+  }): SessionUser {
+    return {
+      avatarUrl: getGravatarUrl(user.email),
+      email: user.email,
+      id: user.id,
+      name: user.name,
+      username: user.username,
+    };
+  }
 
   async changePassword(
     userId: string,
@@ -228,9 +244,9 @@ export class AuthService {
     password: string;
   }): Promise<SessionUser> {
     try {
-      return await this.prisma.user.create({
+      const user = await this.prisma.user.create({
         data: {
-          email: email.toLowerCase(),
+          email: email.trim().toLowerCase(),
           name,
           username: username.toLowerCase(),
           passwordHash: await hashPassword(password),
@@ -242,6 +258,8 @@ export class AuthService {
           username: true,
         },
       });
+
+      return this.toSessionUser(user);
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -312,11 +330,6 @@ export class AuthService {
       throw new UnauthorizedException('Email or password is incorrect.');
     }
 
-    return {
-      email: user.email,
-      id: user.id,
-      name: user.name,
-      username: user.username,
-    };
+    return this.toSessionUser(user);
   }
 }

@@ -13,7 +13,7 @@ import { ProfileAvatar } from './ProfileAvatar';
 
 type MainHeaderNavProps = {
   logout: () => Promise<void>;
-  session: { email: string; name: string } | null;
+  session: { avatarUrl?: string | null; email: string; name: string } | null;
 };
 
 const baseLinkClass =
@@ -330,8 +330,8 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
                 type="button"
               >
                 <ProfileAvatar
+                  avatarUrl={session.avatarUrl}
                   className="text-[0.95rem] font-bold"
-                  email={session.email}
                   name={session.name}
                   size={40}
                 />
@@ -358,8 +358,8 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
                   <div className="border-b border-line px-4 py-4">
                     <div className="flex items-center gap-3">
                       <ProfileAvatar
+                        avatarUrl={session.avatarUrl}
                         className="text-sm font-bold"
-                        email={session.email}
                         name={session.name}
                         size={44}
                       />

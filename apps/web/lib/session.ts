@@ -7,6 +7,7 @@ const SESSION_COOKIE_NAME = 'sliding_tiles_session';
 const SESSION_DURATION_SECONDS = 60 * 60 * 24 * 30;
 
 export type SessionUser = {
+  avatarUrl?: string | null;
   id: string;
   name: string;
   username: string;
@@ -74,6 +75,7 @@ export async function getSession(): Promise<SessionUser | null> {
     const session = payload as SessionPayload;
 
     return {
+      avatarUrl: session.avatarUrl,
       id: session.id,
       name: session.name,
       username: session.username ?? session.name,

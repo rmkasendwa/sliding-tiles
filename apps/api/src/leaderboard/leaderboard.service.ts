@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
 
 import { PrismaService } from '../prisma/prisma.service';
+import { getGravatarUrl } from '../shared/gravatar';
 import { boardStateSchema } from '../shared/zod';
 
 type BoardStateDto = z.infer<typeof boardStateSchema>;
@@ -15,6 +16,7 @@ export class LeaderboardService {
       include: {
         user: {
           select: {
+            email: true,
             name: true,
           },
         },
@@ -23,7 +25,15 @@ export class LeaderboardService {
       take,
     });
 
-    return { scores };
+    return {
+      scores: scores.map(({ user, ...score }) => ({
+        ...score,
+        user: {
+          avatarUrl: getGravatarUrl(user.email),
+          name: user.name,
+        },
+      })),
+    };
   }
 
   async recordCompletedLevel(userId: string, board: BoardStateDto) {

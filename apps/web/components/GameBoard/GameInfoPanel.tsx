@@ -9,7 +9,7 @@ export type GameInfoPanelProps = {
   columns: number;
   gameModeLabel: string;
   isModal?: boolean;
-  playerEmail?: string;
+  playerAvatarUrl?: string | null;
   playerName?: string;
   isSignedIn: boolean;
   onClose?: () => void;
@@ -20,7 +20,7 @@ export function GameInfoPanel({
   columns,
   gameModeLabel,
   isModal = false,
-  playerEmail,
+  playerAvatarUrl,
   playerName,
   isSignedIn,
   onClose,
@@ -42,8 +42,8 @@ export function GameInfoPanel({
             {isSignedIn && playerName && (
               <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/20 bg-accent/10 py-0.5 pl-0.5 pr-2 text-sm font-bold text-accent-strong">
                 <ProfileAvatar
+                  avatarUrl={playerAvatarUrl}
                   className="text-[0.65rem] tracking-[0.08em]"
-                  email={playerEmail}
                   name={playerName}
                   size={24}
                 />

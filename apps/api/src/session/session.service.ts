@@ -54,6 +54,7 @@ export class SessionService {
       const session = payload as SessionPayload;
 
       return {
+        avatarUrl: session.avatarUrl,
         email: session.email,
         id: session.id,
         name: session.name,

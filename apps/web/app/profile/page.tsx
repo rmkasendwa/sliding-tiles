@@ -190,8 +190,8 @@ export default async function ProfilePage() {
         <div className="rounded-lg border border-[#d5a344]/35 bg-[linear-gradient(180deg,#fff9e8,#f6fbef)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.76),0_14px_34px_rgba(138,109,33,0.12)]">
           <div className="flex items-center gap-3">
             <ProfileAvatar
+              avatarUrl={session.avatarUrl}
               className="text-sm"
-              email={session.email}
               name={session.name}
               size={48}
             />

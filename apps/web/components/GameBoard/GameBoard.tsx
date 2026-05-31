@@ -43,7 +43,7 @@ import { GameInfoPanel } from './GameInfoPanel';
 export type GameBoardProps = {
   initialBoard: BoardState;
   isSignedIn: boolean;
-  playerEmail?: string;
+  playerAvatarUrl?: string | null;
   playerName?: string;
   soundEnabled?: boolean;
 };
@@ -64,7 +64,7 @@ function formatElapsedTime(milliseconds: number) {
 function GameBoardContent({
   initialBoard,
   isSignedIn,
-  playerEmail,
+  playerAvatarUrl,
   playerName,
 }: GameBoardProps) {
   const {
@@ -835,7 +835,7 @@ function GameBoardContent({
           columns={columns}
           gameModeLabel={gameModeLabel}
           isSignedIn={isSignedIn}
-          playerEmail={playerEmail}
+          playerAvatarUrl={playerAvatarUrl}
           playerName={playerName}
           rows={rows}
         />
@@ -855,7 +855,7 @@ function GameBoardContent({
               isModal
               isSignedIn={isSignedIn}
               onClose={() => setIsInfoModalOpen(false)}
-              playerEmail={playerEmail}
+              playerAvatarUrl={playerAvatarUrl}
               playerName={playerName}
               rows={rows}
             />
@@ -869,7 +869,7 @@ function GameBoardContent({
 export function GameBoard({
   initialBoard,
   isSignedIn,
-  playerEmail,
+  playerAvatarUrl,
   playerName,
   soundEnabled = true,
 }: GameBoardProps) {
@@ -878,7 +878,7 @@ export function GameBoard({
       <GameBoardContent
         initialBoard={initialBoard}
         isSignedIn={isSignedIn}
-        playerEmail={playerEmail}
+        playerAvatarUrl={playerAvatarUrl}
         playerName={playerName}
       />
     </SoundProvider>

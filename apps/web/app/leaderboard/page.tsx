@@ -210,7 +210,11 @@ export default async function LeaderboardPage() {
                 </span>
               </div>
               <div className="mt-3 flex items-center gap-2.5">
-                <ProfileAvatar name={playerName} size={40} />
+                <ProfileAvatar
+                  avatarUrl={score.user?.avatarUrl}
+                  name={playerName}
+                  size={40}
+                />
                 <p className="text-lg font-bold text-foreground">
                   {playerName}
                   {session?.id === score.userId ? ' (You)' : ''}

@@ -1,6 +1,7 @@
 import type { Request } from 'express';
 
 export type SessionUser = {
+  avatarUrl: string;
   email: string;
   id: string;
   name: string;

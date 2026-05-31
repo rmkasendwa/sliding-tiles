@@ -2,22 +2,9 @@
 
 import { useMemo, useState } from 'react';
 
-import { md5 } from '@/lib/hash';
-
-type GravatarDefault =
-  | '404'
-  | 'mp'
-  | 'identicon'
-  | 'monsterid'
-  | 'wavatar'
-  | 'retro'
-  | 'robohash'
-  | 'blank';
-
 type ProfileAvatarProps = {
+  avatarUrl?: string | null;
   className?: string;
-  defaultGravatar?: GravatarDefault;
-  email?: string | null;
   name: string;
   size?: number;
 };
@@ -36,35 +23,26 @@ function getInitials(name: string) {
   return `${words[0][0] ?? ''}${words[1][0] ?? ''}`.toUpperCase();
 }
 
-function getGravatarUrl(
-  email: string,
-  size: number,
-  defaultGravatar: GravatarDefault,
-) {
-  const hash = md5(email.trim().toLowerCase());
-  const params = new URLSearchParams({
-    d: defaultGravatar,
-    s: String(size * 2),
-  });
-
-  return `https://www.gravatar.com/avatar/${hash}?${params.toString()}`;
+function withGravatarSize(avatarUrl: string, size: number) {
+  const url = new URL(avatarUrl);
+  url.searchParams.set('s', String(size * 2));
+  return url.toString();
 }
 
 export function ProfileAvatar({
+  avatarUrl,
   className,
-  defaultGravatar = 'blank',
-  email,
   name,
   size = 40,
 }: ProfileAvatarProps) {
   const [didImageFail, setDidImageFail] = useState(false);
-  const gravatarUrl = useMemo(() => {
-    if (!email || didImageFail) {
+  const sizedAvatarUrl = useMemo(() => {
+    if (!avatarUrl || didImageFail) {
       return null;
     }
 
-    return getGravatarUrl(email, size, defaultGravatar);
-  }, [defaultGravatar, didImageFail, email, size]);
+    return withGravatarSize(avatarUrl, size);
+  }, [avatarUrl, didImageFail, size]);
 
   return (
     <span
@@ -78,7 +56,7 @@ export function ProfileAvatar({
       style={{ height: size, width: size }}
     >
       <span aria-hidden="true">{getInitials(name)}</span>
-      {gravatarUrl ? (
+      {sizedAvatarUrl ? (
         // Gravatar is an external user-controlled image; use a plain img so
         // we do not need a project-wide Next image domain for this fallback.
         // eslint-disable-next-line @next/next/no-img-element
@@ -87,7 +65,7 @@ export function ProfileAvatar({
           className="absolute inset-0 h-full w-full object-cover"
           decoding="async"
           onError={() => setDidImageFail(true)}
-          src={gravatarUrl}
+          src={sizedAvatarUrl}
         />
       ) : null}
     </span>
