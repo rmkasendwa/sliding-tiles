@@ -1,4 +1,4 @@
-import { ExternalLink, GitFork, Trophy } from 'lucide-react';
+import { ExternalLink, Trophy } from 'lucide-react';
 import Link from 'next/link';
 
 import { ApiScore, apiRequest } from '@/lib/api';
@@ -109,6 +109,19 @@ export async function MainFooter() {
             </div>
           </div>
           <p className="max-w-[58ch] leading-6">{siteConfig.description}</p>
+          <p className="text-xs">
+            Built by Ronald Kasendwa <span aria-hidden="true">·</span>{' '}
+            <a
+              aria-label={`Open ${siteConfig.name} GitHub repository in a new tab`}
+              className="inline-flex items-center gap-1 transition-colors hover:text-accent-strong"
+              href={siteConfig.githubUrl}
+              rel="noreferrer"
+              target="_blank"
+            >
+              GitHub
+              <ExternalLink aria-hidden="true" className="size-3" />
+            </a>
+          </p>
           <p className="text-xs">{formatCopyright()}</p>
         </div>
 
@@ -145,19 +158,6 @@ export async function MainFooter() {
                 </Link>
               </li>
             ))}
-            <li>
-              <a
-                aria-label={`Open ${siteConfig.name} GitHub repository in a new tab`}
-                className="inline-flex items-center gap-1.5 transition-colors hover:text-accent-strong"
-                href={siteConfig.githubUrl}
-                rel="noreferrer"
-                target="_blank"
-              >
-                <GitFork aria-hidden="true" className="size-4" />
-                GitHub
-                <ExternalLink aria-hidden="true" className="size-3.5" />
-              </a>
-            </li>
           </ul>
         </nav>
       </div>
