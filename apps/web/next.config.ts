@@ -9,6 +9,9 @@ const allowedDevOrigins = process.env.NEXT_ALLOWED_DEV_ORIGINS?.split(',')
 const nextConfig: NextConfig = {
   ...(allowedDevOrigins?.length ? { allowedDevOrigins } : {}),
   reactStrictMode: true,
+  experimental: {
+    inlineCss: true,
+  },
 };
 
 export default nextConfig;
