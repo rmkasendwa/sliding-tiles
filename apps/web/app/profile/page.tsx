@@ -7,6 +7,7 @@ import { ProfileSettingsForm } from '@/components/ProfileSettingsForm';
 import { ApiGameState, ApiScore, apiRequest } from '@/lib/api';
 import { routes } from '@/lib/routes';
 import { getSession } from '@/lib/session';
+import { getUserDisplayName } from '@/lib/user-display';
 
 function formatDuration(totalSeconds: number) {
   const safeSeconds = Math.max(0, Math.floor(totalSeconds));
@@ -137,6 +138,8 @@ export default async function ProfilePage() {
       value: `Level ${nextTargetLevel}`,
     },
   ];
+  const playerLabel = getUserDisplayName(session);
+  const playerHandle = session.username ? `@${session.username}` : playerLabel;
 
   return (
     <section className="page-rail mx-auto grid max-w-300 gap-6 pt-5 pb-10">
@@ -154,7 +157,7 @@ export default async function ProfilePage() {
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <span className="rounded-full border border-accent/22 bg-white/76 px-3 py-1 text-xs font-bold uppercase text-accent-strong shadow-sm">
-              Signed in as {session.email}
+              Signed in as {playerHandle}
             </span>
             <span className="rounded-full border border-[#5f87a8]/28 bg-[#eef6ff]/78 px-3 py-1 text-xs font-bold uppercase text-[#486b89] shadow-sm">
               {completedRuns} completed runs
@@ -201,6 +204,7 @@ export default async function ProfilePage() {
               <p className="text-lg font-bold text-foreground">
                 {session.name}
               </p>
+              <p className="text-sm text-muted">{playerHandle}</p>
             </div>
           </div>
           <dl className="mt-4 grid grid-cols-2 gap-2.5 text-sm">
@@ -244,37 +248,14 @@ export default async function ProfilePage() {
         </div>
 
         <div className="grid items-start gap-4 min-[980px]:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
-          <section className="grid gap-4 rounded-lg border border-[#5f87a8]/18 bg-[linear-gradient(160deg,#f4f9ff,#ffffff)] p-4">
-            <div className="flex items-end justify-between gap-3">
-              <div>
-                <h3 className="text-[1.03rem] font-bold">Profile settings</h3>
-                <p className="mt-0.5 text-sm text-muted">
-                  Update your public player identity.
-                </p>
-              </div>
-              <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#486b89]">
-                Public
-              </span>
-            </div>
-            <ProfileSettingsForm
-              email={session.email}
-              name={session.name}
-              username={session.username}
-            />
-          </section>
+          <ProfileSettingsForm
+            compact
+            email={session.email}
+            name={session.name}
+            username={session.username}
+          />
 
-          <section className="grid gap-4 rounded-lg border border-[#d5a344]/24 bg-[linear-gradient(160deg,#fff7df,#ffffff)] p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <h3 className="text-[1.03rem] font-bold">Account security</h3>
-                <p className="mt-0.5 text-sm text-muted">Update password</p>
-              </div>
-              <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#8a621c]">
-                Protected
-              </span>
-            </div>
-            <ChangePasswordForm compact />
-          </section>
+          <ChangePasswordForm compact />
 
           <section className="grid gap-3 rounded-lg border border-[#5f87a8]/18 bg-[linear-gradient(160deg,#f4f9ff,#ffffff)] p-4 min-[980px]:col-span-2">
             <div className="flex items-end justify-between gap-3">

@@ -11,7 +11,10 @@ import {
   usernameSchema,
 } from '@/lib/validation';
 
+import { SettingsDisclosure } from './SettingsDisclosure';
+
 type ProfileSettingsFormProps = {
+  compact?: boolean;
   email: string;
   name: string;
   username: string;
@@ -33,6 +36,7 @@ type UsernameAvailabilityState = {
 const initialState: AuthFormState = {};
 
 export function ProfileSettingsForm({
+  compact = false,
   email,
   name,
   username,
@@ -217,7 +221,7 @@ export function ProfileSettingsForm({
     !usernameError &&
     usernameAvailability.status !== 'checking';
 
-  return (
+  const form = (
     <form action={formAction} className="grid gap-4" onSubmit={handleSubmit}>
       <div className="grid gap-2">
         <label
@@ -338,10 +342,11 @@ export function ProfileSettingsForm({
 
       {state.message ? (
         <p
+          role={state.success ? 'status' : 'alert'}
           className={
             state.success
-              ? 'text-[0.9rem] text-accent-strong'
-              : 'text-[0.9rem] text-danger'
+              ? 'rounded-[9px] border border-accent/24 bg-accent/8 px-3 py-2 text-[0.9rem] font-bold text-accent-strong'
+              : 'rounded-[9px] border border-danger/24 bg-danger/6 px-3 py-2 text-[0.9rem] font-bold text-danger'
           }
         >
           {state.message}
@@ -357,4 +362,18 @@ export function ProfileSettingsForm({
       </button>
     </form>
   );
+
+  if (compact) {
+    return (
+      <SettingsDisclosure
+        badge="Public"
+        description="Update your public player identity."
+        title="Profile settings"
+      >
+        {form}
+      </SettingsDisclosure>
+    );
+  }
+
+  return form;
 }

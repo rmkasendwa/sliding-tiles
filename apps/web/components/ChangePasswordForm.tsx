@@ -8,6 +8,7 @@ import { changePassword } from '@/app/actions/auth';
 import { AuthFormState, changePasswordSchema } from '@/lib/validation';
 
 import { PasswordStrengthMeter } from './PasswordStrengthMeter';
+import { SettingsDisclosure } from './SettingsDisclosure';
 
 const initialState: AuthFormState = {};
 
@@ -192,10 +193,11 @@ export function ChangePasswordForm({
 
       {state.message && (
         <p
+          role={state.success ? 'status' : 'alert'}
           className={
             state.success
-              ? 'text-[0.9rem] text-accent-strong'
-              : 'text-[0.9rem] text-danger'
+              ? 'rounded-[9px] border border-accent/24 bg-accent/8 px-3 py-2 text-[0.9rem] font-bold text-accent-strong'
+              : 'rounded-[9px] border border-danger/24 bg-danger/6 px-3 py-2 text-[0.9rem] font-bold text-danger'
           }
         >
           {state.message}
@@ -214,31 +216,21 @@ export function ChangePasswordForm({
 
   if (compact) {
     return (
-      <details className="group w-full max-w-140 rounded-[10px] border border-line bg-white/62">
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2 text-sm font-bold text-foreground marker:content-none">
-          Change password
-          <span className="inline-flex items-center gap-2 text-[0.72rem] font-semibold uppercase tracking-[0.08em] text-muted">
-            <span>Security</span>
-            <span className="relative grid h-5 w-5 place-items-center rounded-full border border-line/80 bg-white/80 text-foreground/70">
-              <span className="absolute transition-all duration-200 group-open:translate-y-1 group-open:opacity-0">
-                +
-              </span>
-              <span className="absolute opacity-0 transition-all duration-200 group-open:translate-y-0 group-open:opacity-100">
-                -
-              </span>
-            </span>
-          </span>
-        </summary>
+      <SettingsDisclosure
+        badge="Security"
+        description="Update password"
+        title="Account security"
+      >
         <form
           action={formAction}
-          className="grid gap-4 border-t border-line/70 p-3"
+          className="grid gap-4"
           noValidate
           onSubmit={handleSubmit}
           ref={formRef}
         >
           {formFields}
         </form>
-      </details>
+      </SettingsDisclosure>
     );
   }
 

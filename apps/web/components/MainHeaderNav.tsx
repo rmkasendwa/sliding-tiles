@@ -7,13 +7,19 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { routes, type AppRoute } from '@/lib/routes';
+import { getUserDisplayName } from '@/lib/user-display';
 
 import { FrogLogo } from './FrogLogo';
 import { ProfileAvatar } from './ProfileAvatar';
 
 type MainHeaderNavProps = {
   logout: () => Promise<void>;
-  session: { avatarUrl?: string | null; email: string; name: string } | null;
+  session: {
+    avatarUrl?: string | null;
+    email: string;
+    name: string;
+    username: string;
+  } | null;
 };
 
 const baseLinkClass =
@@ -56,6 +62,7 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const sessionDisplayName = session ? getUserDisplayName(session) : null;
   const shouldRevealHeader =
     !(isHomePage || isPlayPage) || hasScrolledRevealPage;
   const closeDrawer = () => setIsDrawerOpen(false);
@@ -368,7 +375,9 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
                           {session.name}
                         </strong>
                         <span className="truncate text-[0.82rem] text-muted">
-                          {session.email}
+                          {sessionDisplayName && session.username
+                            ? `@${sessionDisplayName}`
+                            : sessionDisplayName}
                         </span>
                       </div>
                     </div>
