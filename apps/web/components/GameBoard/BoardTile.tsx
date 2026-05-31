@@ -1,5 +1,10 @@
 import { Slot, slotKey, Tile } from '@/lib/board';
-import type { CSSProperties, MutableRefObject } from 'react';
+import {
+  useRef,
+  type CSSProperties,
+  type MutableRefObject,
+  type TouchEvent,
+} from 'react';
 
 import {
   BOARD_SIZE,
@@ -8,9 +13,15 @@ import {
   TILE_ENTRY_ANIMATION_MS,
   TILE_TRANSITION,
 } from './constants';
+import {
+  getSwipeDirection,
+  isSwipeTowardEmptySlot,
+  type TouchPoint,
+} from './touchSwipe';
 
 export type BoardTileProps = {
   columns: number;
+  emptySlot: Slot;
   hintedSlot: string | null;
   isHintPlaceholderVisible: boolean;
   isEntering: boolean;
@@ -30,6 +41,7 @@ export type BoardTileProps = {
 
 export function BoardTile({
   columns,
+  emptySlot,
   hintedSlot,
   isHintPlaceholderVisible,
   isEntering,
@@ -46,6 +58,7 @@ export function BoardTile({
   tileRotationSeed,
   tileWidth,
 }: BoardTileProps) {
+  const touchStartRef = useRef<TouchPoint | null>(null);
   const [homeRow, homeColumn] = tile.homeSlot;
   const [row, column] = isShowingSolvedHint ? tile.homeSlot : tile.slot;
   const isHintPlaceholder = tile.type === 'PLACEHOLDER';
@@ -71,6 +84,61 @@ export function BoardTile({
       onInvalidMove();
       onHint(slotKey(tile.homeSlot));
     }
+  };
+  const startTileSwipe = (event: TouchEvent<HTMLButtonElement>) => {
+    if (!isMovable || isHintPlaceholder) {
+      touchStartRef.current = null;
+      return;
+    }
+
+    const touch = event.touches[0];
+    if (!touch) {
+      touchStartRef.current = null;
+      return;
+    }
+
+    touchStartRef.current = {
+      x: touch.clientX,
+      y: touch.clientY,
+    };
+  };
+  const preventSwipeScroll = (event: TouchEvent<HTMLButtonElement>) => {
+    if (touchStartRef.current) {
+      event.preventDefault();
+    }
+  };
+  const finishTileSwipe = (event: TouchEvent<HTMLButtonElement>) => {
+    const touchStart = touchStartRef.current;
+    touchStartRef.current = null;
+
+    if (!touchStart || !isMovable || isHintPlaceholder) {
+      return;
+    }
+
+    const touch = event.changedTouches[0];
+    if (!touch) {
+      return;
+    }
+
+    const direction = getSwipeDirection(touchStart, {
+      x: touch.clientX,
+      y: touch.clientY,
+    });
+
+    if (!direction) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    suppressNextClickRef.current = true;
+
+    if (isSwipeTowardEmptySlot(tile.slot, emptySlot, direction)) {
+      onMove(tile.slot);
+    }
+  };
+  const cancelTileSwipe = () => {
+    touchStartRef.current = null;
   };
   const tileClasses = [
     'board-tile absolute cursor-pointer rounded-md border border-black/20 bg-no-repeat shadow-[inset_0_-3px_4px_rgba(0,0,0,0.26),inset_0_3px_4px_rgba(255,255,255,0.34),0_16px_22px_rgba(0,0,0,0.24)] hover:z-[8] focus-visible:z-[8]',
@@ -99,6 +167,10 @@ export function BoardTile({
         }
       }}
       onMouseLeave={() => onHint(null)}
+      onTouchCancel={cancelTileSwipe}
+      onTouchEnd={finishTileSwipe}
+      onTouchMove={preventSwipeScroll}
+      onTouchStart={startTileSwipe}
       style={
         {
           width: `${(tileWidth / BOARD_SIZE) * 100}%`,
@@ -112,7 +184,7 @@ export function BoardTile({
           }% ${rows > 1 ? (homeRow / (rows - 1)) * 100 : 0}%`,
           opacity: isHintPlaceholder && !isHintPlaceholderVisible ? 0 : 1,
           WebkitTapHighlightColor: 'transparent',
-          touchAction: 'manipulation',
+          touchAction: isMovable ? 'none' : 'manipulation',
           '--tile-entry-x': `${entryX}%`,
           '--tile-entry-y': `${entryY}%`,
           '--tile-entry-rotation': `${entryRotation}deg`,

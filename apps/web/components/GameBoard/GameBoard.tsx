@@ -706,7 +706,7 @@ function GameBoardContent({
           onTouchEnd={moveTileFromTouch}
           style={{
             background: BOARD_SURFACE_BACKGROUND,
-            touchAction: 'manipulation',
+            touchAction: 'none',
           }}
         >
           {board.tileGrid.flat().map((tile) => {
@@ -719,6 +719,7 @@ function GameBoardContent({
             return (
               <BoardTile
                 columns={columns}
+                emptySlot={board.emptySlot}
                 hintedSlot={hintedSlot}
                 isHintPlaceholderVisible={isShowingHintPlaceholder}
                 isEntering={isBoardEntering}
