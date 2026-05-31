@@ -9,8 +9,8 @@ import { createPortal } from 'react-dom';
 import { routes, type AppRoute } from '@/lib/routes';
 import { getUserDisplayName } from '@/lib/user-display';
 
-import { FrogLogo } from './FrogLogo';
-import { ProfileAvatar } from './ProfileAvatar';
+import { FrogLogo } from '../FrogLogo';
+import { ProfileAvatar } from '../ProfileAvatar';
 
 type MainHeaderNavProps = {
   logout: () => Promise<void>;

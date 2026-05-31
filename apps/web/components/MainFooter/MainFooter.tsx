@@ -6,8 +6,9 @@ import { routes } from '@/lib/routes';
 import { getSession } from '@/lib/session';
 import { formatCopyright, siteConfig } from '@/lib/site';
 
-import { FrogLogo } from './FrogLogo';
-import { ProfileAvatar } from './ProfileAvatar';
+import { FooterLeaderboardCta } from './FooterLeaderboardCta';
+import { FrogLogo } from '../FrogLogo';
+import { ProfileAvatar } from '../ProfileAvatar';
 
 const footerLinks = [
   { href: routes.play, label: 'Play' },
@@ -82,12 +83,7 @@ export async function MainFooter() {
                 </div>
               </div>
             </div>
-            <Link
-              className="inline-flex min-h-10 items-center justify-center rounded-[7px] border border-accent bg-accent px-4 text-sm font-bold text-white shadow-[0_10px_22px_rgba(37,111,90,0.2)] transition-colors hover:bg-accent-strong"
-              href={routes.leaderboard}
-            >
-              View Leaderboard <span aria-hidden="true">&rarr;</span>
-            </Link>
+            <FooterLeaderboardCta />
           </div>
         </div>
       </section>
@@ -110,7 +106,7 @@ export async function MainFooter() {
           </div>
           <p className="max-w-[58ch] leading-6">{siteConfig.description}</p>
           <p className="text-xs">
-            Built by Ronald Kasendwa <span aria-hidden="true">·</span>{' '}
+            Built by Ronald M. Kasendwa <span aria-hidden="true">·</span>{' '}
             <a
               aria-label={`Open ${siteConfig.name} GitHub repository in a new tab`}
               className="inline-flex items-center gap-1 transition-colors hover:text-accent-strong"
