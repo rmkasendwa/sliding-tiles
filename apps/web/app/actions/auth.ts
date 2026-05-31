@@ -204,10 +204,11 @@ export async function changePassword(
     };
   }
 
-  const { currentPassword, newPassword } = validatedFields.data;
+  const { confirmPassword, currentPassword, newPassword } =
+    validatedFields.data;
   try {
     await apiRequest<{ ok: true }>('/auth/change-password', {
-      body: { currentPassword, newPassword },
+      body: { confirmPassword, currentPassword, newPassword },
       method: 'POST',
     });
   } catch (error) {
