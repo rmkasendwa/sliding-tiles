@@ -1,6 +1,7 @@
 import { Slot, slotKey, Tile } from '@/lib/board';
 import {
   useRef,
+  useState,
   type CSSProperties,
   type MutableRefObject,
   type TouchEvent,
@@ -14,10 +15,21 @@ import {
   TILE_TRANSITION,
 } from './constants';
 import {
+  getConstrainedDragOffset,
   getSwipeDirection,
+  getSwipeDirectionTowardEmptySlot,
   isSwipeTowardEmptySlot,
+  TILE_DRAG_COMMIT_RATIO,
+  TILE_SWIPE_THRESHOLD_PX,
+  type SwipeDirection,
   type TouchPoint,
 } from './touchSwipe';
+
+type TileDragSession = {
+  direction: SwipeDirection;
+  maxDistance: number;
+  start: TouchPoint;
+};
 
 export type BoardTileProps = {
   columns: number;
@@ -58,7 +70,9 @@ export function BoardTile({
   tileRotationSeed,
   tileWidth,
 }: BoardTileProps) {
-  const touchStartRef = useRef<TouchPoint | null>(null);
+  const tileDragSessionRef = useRef<TileDragSession | null>(null);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [isDraggingTile, setIsDraggingTile] = useState(false);
   const [homeRow, homeColumn] = tile.homeSlot;
   const [row, column] = isShowingSolvedHint ? tile.homeSlot : tile.slot;
   const isHintPlaceholder = tile.type === 'PLACEHOLDER';
@@ -86,32 +100,67 @@ export function BoardTile({
     }
   };
   const startTileSwipe = (event: TouchEvent<HTMLButtonElement>) => {
-    if (!isMovable || isHintPlaceholder) {
-      touchStartRef.current = null;
+    const allowedDirection = getSwipeDirectionTowardEmptySlot(
+      tile.slot,
+      emptySlot,
+    );
+
+    if (!isMovable || isHintPlaceholder || !allowedDirection) {
+      tileDragSessionRef.current = null;
       return;
     }
 
     const touch = event.touches[0];
     if (!touch) {
-      touchStartRef.current = null;
+      tileDragSessionRef.current = null;
       return;
     }
 
-    touchStartRef.current = {
-      x: touch.clientX,
-      y: touch.clientY,
+    tileDragSessionRef.current = {
+      direction: allowedDirection,
+      maxDistance:
+        allowedDirection === 'left' || allowedDirection === 'right'
+          ? tileWidth
+          : tileHeight,
+      start: {
+        x: touch.clientX,
+        y: touch.clientY,
+      },
     };
+    setDragOffset({ x: 0, y: 0 });
+    setIsDraggingTile(false);
   };
   const preventSwipeScroll = (event: TouchEvent<HTMLButtonElement>) => {
-    if (touchStartRef.current) {
-      event.preventDefault();
+    const dragSession = tileDragSessionRef.current;
+    const touch = event.touches[0];
+
+    if (!dragSession || !touch) {
+      return;
+    }
+
+    event.preventDefault();
+
+    const nextOffset = getConstrainedDragOffset(
+      dragSession.direction,
+      touch.clientX - dragSession.start.x,
+      touch.clientY - dragSession.start.y,
+      dragSession.maxDistance,
+    );
+
+    setDragOffset(nextOffset);
+
+    if (
+      !isDraggingTile &&
+      Math.max(Math.abs(nextOffset.x), Math.abs(nextOffset.y)) > 2
+    ) {
+      setIsDraggingTile(true);
     }
   };
   const finishTileSwipe = (event: TouchEvent<HTMLButtonElement>) => {
-    const touchStart = touchStartRef.current;
-    touchStartRef.current = null;
+    const dragSession = tileDragSessionRef.current;
+    tileDragSessionRef.current = null;
 
-    if (!touchStart || !isMovable || isHintPlaceholder) {
+    if (!dragSession || !isMovable || isHintPlaceholder) {
       return;
     }
 
@@ -120,25 +169,58 @@ export function BoardTile({
       return;
     }
 
-    const direction = getSwipeDirection(touchStart, {
+    const endPoint = {
       x: touch.clientX,
       y: touch.clientY,
-    });
+    };
+    const direction = getSwipeDirection(dragSession.start, endPoint);
+    const finalOffset = getConstrainedDragOffset(
+      dragSession.direction,
+      endPoint.x - dragSession.start.x,
+      endPoint.y - dragSession.start.y,
+      dragSession.maxDistance,
+    );
+    const dragDistance = Math.max(
+      Math.abs(finalOffset.x),
+      Math.abs(finalOffset.y),
+    );
+    const didDragVisibly = dragDistance > 2;
 
-    if (!direction) {
+    if (!direction && !didDragVisibly) {
       return;
     }
 
     event.preventDefault();
     event.stopPropagation();
     suppressNextClickRef.current = true;
+    setIsDraggingTile(false);
 
-    if (isSwipeTowardEmptySlot(tile.slot, emptySlot, direction)) {
+    if (
+      dragDistance >= dragSession.maxDistance * TILE_DRAG_COMMIT_RATIO &&
+      direction === dragSession.direction &&
+      isSwipeTowardEmptySlot(tile.slot, emptySlot, direction)
+    ) {
+      setDragOffset({ x: 0, y: 0 });
       onMove(tile.slot);
+      return;
     }
+
+    if (
+      direction === dragSession.direction &&
+      dragDistance >= TILE_SWIPE_THRESHOLD_PX &&
+      isSwipeTowardEmptySlot(tile.slot, emptySlot, direction)
+    ) {
+      setDragOffset({ x: 0, y: 0 });
+      onMove(tile.slot);
+      return;
+    }
+
+    setDragOffset({ x: 0, y: 0 });
   };
   const cancelTileSwipe = () => {
-    touchStartRef.current = null;
+    tileDragSessionRef.current = null;
+    setIsDraggingTile(false);
+    setDragOffset({ x: 0, y: 0 });
   };
   const tileClasses = [
     'board-tile absolute cursor-pointer rounded-md border border-black/20 bg-no-repeat shadow-[inset_0_-3px_4px_rgba(0,0,0,0.26),inset_0_3px_4px_rgba(255,255,255,0.34),0_16px_22px_rgba(0,0,0,0.24)] hover:z-[8] focus-visible:z-[8]',
@@ -147,6 +229,7 @@ export function BoardTile({
       ? 'z-[2] cursor-default brightness-[1.04] saturate-[1.08]'
       : '',
     isHintPlaceholder ? 'pointer-events-none' : '',
+    isDraggingTile ? 'z-[12]' : '',
     hintedSlot === slotKey(tile.homeSlot)
       ? 'z-[9] shadow-[0_18px_30px_rgba(0,0,0,0.28)]'
       : '',
@@ -185,6 +268,10 @@ export function BoardTile({
           opacity: isHintPlaceholder && !isHintPlaceholderVisible ? 0 : 1,
           WebkitTapHighlightColor: 'transparent',
           touchAction: isMovable ? 'none' : 'manipulation',
+          transform:
+            dragOffset.x !== 0 || dragOffset.y !== 0
+              ? `translate3d(${dragOffset.x}px, ${dragOffset.y}px, 0)`
+              : undefined,
           '--tile-entry-x': `${entryX}%`,
           '--tile-entry-y': `${entryY}%`,
           '--tile-entry-rotation': `${entryRotation}deg`,
@@ -195,9 +282,11 @@ export function BoardTile({
               : isEntering
                 ? `tile-enter ${TILE_ENTRY_ANIMATION_MS}ms cubic-bezier(0.16, 0.72, 0.2, 1) both`
                 : undefined,
-          transition: isHintPlaceholder
-            ? HINT_PLACEHOLDER_TRANSITION
-            : TILE_TRANSITION,
+          transition: isDraggingTile
+            ? 'none'
+            : isHintPlaceholder
+              ? HINT_PLACEHOLDER_TRANSITION
+              : `${TILE_TRANSITION}, transform 160ms ease`,
         } as CSSProperties
       }
       type="button"
