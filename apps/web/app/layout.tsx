@@ -2,12 +2,13 @@ import type { Metadata } from 'next';
 
 import { MainFooter } from '@/components/MainFooter';
 import { MainHeader } from '@/components/MainHeader';
+import { siteConfig } from '@/lib/site';
 
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Sliding Tiles',
-  description: 'A sliding tile puzzle with accounts and leaderboards.',
+  title: siteConfig.name,
+  description: siteConfig.description,
   manifest: '/manifest.json',
   icons: {
     icon: [

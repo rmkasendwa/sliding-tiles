@@ -2,10 +2,13 @@ export const routes = {
   home: '/',
   play: '/play',
   leaderboard: '/leaderboard',
+  contact: '/contact',
   login: '/login',
+  privacy: '/privacy',
   forgotPassword: '/forgot-password',
   resetPassword: '/reset-password',
   signup: '/signup',
+  terms: '/terms',
   profile: '/profile',
 } as const;
 
