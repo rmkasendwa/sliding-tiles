@@ -238,7 +238,7 @@ export default async function LeaderboardPage() {
           ? Array.from({ length: 3 - podium.length }).map((_, index) => {
               return (
                 <article
-                  className="rounded-lg border-2 border-dashed p-4 border-black/8 bg-black/1.5 max-[820px]:hidden"
+                  className="rounded-lg border border-dashed p-4 border-black/8 bg-black/1.5 max-[820px]:hidden"
                   key={index}
                 />
               );
