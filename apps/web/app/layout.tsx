@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 
 import { MainFooter } from '@/components/MainFooter';
 import { MainHeader } from '@/components/MainHeader';
+import { RouteProgressBar } from '@/components/RouteProgressBar';
 import { siteConfig } from '@/lib/site';
 
 import './globals.css';
@@ -32,6 +33,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen">
+        <RouteProgressBar />
         <div className="flex min-h-screen flex-col">
           <MainHeader />
           <main className="flex flex-1 flex-col items-start">{children}</main>
