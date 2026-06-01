@@ -69,7 +69,7 @@ export default function ResetPasswordPage() {
             </div>
           </div>
 
-          <div className="play-panel-reveal relative order-1 mx-auto w-full max-w-125 lg:order-2 lg:max-w-none">
+          <div className="play-panel-reveal relative order-1 mx-auto w-full max-w-100 lg:order-2 lg:max-w-none">
             <div
               aria-hidden="true"
               className="absolute -inset-2 hidden rounded-[20px] bg-linear-to-b from-[#486b89]/24 to-transparent blur-lg lg:block"

@@ -76,7 +76,7 @@ export default async function LoginPage() {
             </div>
           </div>
 
-          <div className="play-panel-reveal relative order-1 mx-auto w-full max-w-125 lg:order-2 lg:max-w-none">
+          <div className="play-panel-reveal relative order-1 mx-auto w-full max-w-100 lg:order-2 lg:max-w-none">
             <div
               aria-hidden="true"
               className="absolute -inset-2 hidden rounded-[20px] bg-linear-to-b from-accent/18 to-transparent blur-lg lg:block"
