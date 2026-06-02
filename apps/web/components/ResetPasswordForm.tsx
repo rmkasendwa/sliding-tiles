@@ -56,7 +56,7 @@ export function ResetPasswordForm() {
             }
             aria-invalid={Boolean(state.errors?.password)}
             autoComplete="new-password"
-            className="min-h-11 w-full rounded-[9px] border border-line bg-white px-3 pr-11 text-foreground placeholder:text-[0.85rem] outline-none transition-[border-color,box-shadow,background-color] focus:border-accent/60 focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,111,90,0.14)]"
+            className="min-h-11 w-full rounded-[9px] border border-line bg-white px-3 pr-11 text-foreground placeholder:text-[0.85rem] outline-none transition-[border-color,box-shadow,background-color] focus:border-accent/60 focus:bg-white focus:shadow-focus-primary"
             id="password"
             minLength={8}
             name="password"
@@ -103,7 +103,7 @@ export function ResetPasswordForm() {
             }
             aria-invalid={Boolean(state.errors?.confirmPassword)}
             autoComplete="new-password"
-            className="min-h-11 w-full rounded-[9px] border border-line bg-white px-3 pr-11 text-foreground placeholder:text-[0.85rem] outline-none transition-[border-color,box-shadow,background-color] focus:border-accent/60 focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,111,90,0.14)]"
+            className="min-h-11 w-full rounded-[9px] border border-line bg-white px-3 pr-11 text-foreground placeholder:text-[0.85rem] outline-none transition-[border-color,box-shadow,background-color] focus:border-accent/60 focus:bg-white focus:shadow-focus-primary"
             id="confirmPassword"
             name="confirmPassword"
             placeholder="Re-enter your password"
@@ -167,7 +167,7 @@ export function ResetPasswordForm() {
       )}
 
       <button
-        className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[9px] border border-accent bg-accent px-3.5 font-bold text-white shadow-[0_10px_20px_rgba(37,111,90,0.24)] transition-[background-color,transform] hover:bg-accent-strong active:translate-y-px disabled:cursor-wait disabled:opacity-70"
+        className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[9px] border border-accent bg-accent px-3.5 font-bold text-white shadow-button-primary transition-[background-color,transform] hover:bg-accent-strong active:translate-y-px disabled:cursor-wait disabled:opacity-70"
         disabled={pending}
         type="submit"
       >

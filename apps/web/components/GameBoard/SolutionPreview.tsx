@@ -13,7 +13,7 @@ export function SolutionImage({ columns, rows }: SolutionImageProps) {
   return (
     <div
       aria-label="Completed puzzle reference image"
-      className="aspect-square overflow-hidden rounded-[7px] border border-foreground/15 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]"
+      className="aspect-square overflow-hidden rounded-[7px] border border-foreground/15 shadow-solution-preview"
       role="img"
       style={{
         backgroundImage: SOLUTION_GRID_BACKGROUND,

@@ -35,15 +35,15 @@ function perLevel(value: number, level: number, precision = 2) {
 
 function getRankTone(rank: number) {
   if (rank === 1) {
-    return 'bg-[#f6edd0] border-[#ecd387] text-[#8a6d21]';
+    return 'bg-medal-gold-surface border-medal-gold-border text-medal-gold-text';
   }
 
   if (rank === 2) {
-    return 'bg-[#ecf0f4] border-[#c9d4df] text-[#546271]';
+    return 'bg-medal-silver-surface border-medal-silver-border text-medal-silver-text';
   }
 
   if (rank === 3) {
-    return 'bg-[#f3e2d4] border-[#dbb38d] text-[#875936]';
+    return 'bg-medal-bronze-surface border-medal-bronze-border text-clay-strong';
   }
 
   return 'bg-panel border-line text-foreground';
@@ -135,17 +135,17 @@ export default async function LeaderboardPage() {
             <span className="rounded-full border border-accent/22 bg-white/76 px-3 py-1 text-xs font-bold uppercase text-accent-strong shadow-sm">
               Live top 50
             </span>
-            <span className="rounded-full border border-[#d5a344]/35 bg-[#fff4d6]/78 px-3 py-1 text-xs font-bold uppercase text-[#8a621c] shadow-sm">
+            <span className="rounded-full border border-warning/35 bg-warning-soft/78 px-3 py-1 text-xs font-bold uppercase text-warning-strong shadow-sm">
               Best level, then time
             </span>
             {currentUserRank > 0 ? (
-              <span className="rounded-full border border-[#5f87a8]/28 bg-[#eef6ff]/78 px-3 py-1 text-xs font-bold uppercase text-[#486b89] shadow-sm">
+              <span className="rounded-full border border-info/28 bg-info-soft/78 px-3 py-1 text-xs font-bold uppercase text-info-strong shadow-sm">
                 Your best rank: #{currentUserRank}
               </span>
             ) : null}
           </div>
         </div>
-        <div className="grid gap-2 rounded-lg border border-[#d5a344]/35 bg-[linear-gradient(180deg,#fff9e8,#f6fbef)] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.76),0_14px_34px_rgba(138,109,33,0.12)] min-[1060px]:mt-8 min-[1060px]:self-start">
+        <div className="grid gap-2 rounded-lg border border-warning/35 bg-[linear-gradient(180deg,var(--color-warning-surface),var(--color-primary-soft))] p-3 shadow-featured-stat min-[1060px]:mt-8 min-[1060px]:self-start">
           <div className="flex items-center justify-between gap-3">
             <p className="text-[0.72rem] font-extrabold uppercase leading-none text-muted">
               Featured run
@@ -195,10 +195,10 @@ export default async function LeaderboardPage() {
               className={[
                 'rounded-lg border p-4 shadow-panel',
                 rank === 1
-                  ? 'border-[#e2c066] bg-[linear-gradient(180deg,#fff8e2,#fff1cb)]'
+                  ? 'border-medal-gold-border bg-[linear-gradient(180deg,var(--color-warning-surface),var(--color-warning-soft))]'
                   : rank === 2
-                    ? 'border-[#bfd0dd] bg-[linear-gradient(180deg,#f8fbff,#eef3f8)]'
-                    : 'border-[#ddb18a] bg-[linear-gradient(180deg,#fff5ed,#f6e2d0)]',
+                    ? 'border-medal-silver-border bg-[linear-gradient(180deg,var(--color-info-surface),var(--color-info-soft))]'
+                    : 'border-medal-bronze-border bg-[linear-gradient(180deg,var(--color-clay-soft),var(--color-medal-bronze-surface))]',
               ].join(' ')}
               key={score.id}
             >
@@ -256,20 +256,20 @@ export default async function LeaderboardPage() {
         className="profile-reveal grid grid-cols-4 gap-3 max-[980px]:grid-cols-2 max-[620px]:grid-cols-1"
         style={{ animationDelay: '100ms' }}
       >
-        <article className="rounded-lg border border-accent/22 bg-[linear-gradient(160deg,#f5fbef,#ffffff)] p-4 shadow-panel">
+        <article className="rounded-lg border border-accent/22 bg-[linear-gradient(160deg,var(--color-primary-soft),var(--color-surface))] p-4 shadow-panel">
           <p className="text-[0.75rem] font-extrabold uppercase text-accent-strong">
             Posted runs
           </p>
           <p className="mt-1 text-2xl font-bold">{scores.length}</p>
         </article>
-        <article className="rounded-lg border border-[#5f87a8]/24 bg-[linear-gradient(160deg,#eef6ff,#ffffff)] p-4 shadow-panel">
-          <p className="text-[0.75rem] font-extrabold uppercase text-[#486b89]">
+        <article className="rounded-lg border border-info/24 bg-[linear-gradient(160deg,var(--color-info-soft),var(--color-surface))] p-4 shadow-panel">
+          <p className="text-[0.75rem] font-extrabold uppercase text-info-strong">
             Players
           </p>
           <p className="mt-1 text-2xl font-bold">{uniquePlayers}</p>
         </article>
-        <article className="rounded-lg border border-[#d5a344]/30 bg-[linear-gradient(160deg,#fff5d8,#ffffff)] p-4 shadow-panel">
-          <p className="text-[0.75rem] font-extrabold uppercase text-[#8a621c]">
+        <article className="rounded-lg border border-warning/30 bg-[linear-gradient(160deg,var(--color-warning-soft),var(--color-surface))] p-4 shadow-panel">
+          <p className="text-[0.75rem] font-extrabold uppercase text-warning-strong">
             Best run
           </p>
           <p className="mt-1 text-2xl font-bold">
@@ -277,8 +277,8 @@ export default async function LeaderboardPage() {
           </p>
           <p className="mt-1 text-sm text-muted">Highest level: {bestLevel}</p>
         </article>
-        <article className="rounded-lg border border-[#c77d56]/24 bg-[linear-gradient(160deg,#fff1e8,#ffffff)] p-4 shadow-panel">
-          <p className="text-[0.75rem] font-extrabold uppercase text-[#875936]">
+        <article className="rounded-lg border border-clay/24 bg-[linear-gradient(160deg,var(--color-clay-soft),var(--color-surface))] p-4 shadow-panel">
+          <p className="text-[0.75rem] font-extrabold uppercase text-clay-strong">
             Avg moves
           </p>
           <p className="mt-1 text-2xl font-bold">
@@ -329,16 +329,16 @@ export default async function LeaderboardPage() {
           </ol>
         </article>
 
-        <article className="overflow-hidden rounded-lg border border-[#5f87a8]/18 bg-panel shadow-panel">
-          <header className="border-b border-[#5f87a8]/16 bg-[linear-gradient(90deg,rgba(91,132,175,0.18),rgba(255,255,255,0.45))] px-4 py-3">
-            <p className="text-[0.74rem] font-extrabold uppercase text-[#486b89]">
+        <article className="overflow-hidden rounded-lg border border-info/18 bg-panel shadow-panel">
+          <header className="border-b border-info/16 bg-[linear-gradient(90deg,rgba(91,132,175,0.18),rgba(255,255,255,0.45))] px-4 py-3">
+            <p className="text-[0.74rem] font-extrabold uppercase text-info-strong">
               Recent completions
             </p>
           </header>
           <ul className="grid">
             {recentRuns.map((score) => (
               <li
-                className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-line/80 px-4 py-2.5 odd:bg-[#5f87a8]/5 last:border-b-0"
+                className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-line/80 px-4 py-2.5 odd:bg-info/5 last:border-b-0"
                 key={score.id}
               >
                 <span className="truncate text-sm text-foreground">
@@ -372,12 +372,12 @@ export default async function LeaderboardPage() {
               className={[
                 'rounded-lg border p-4 shadow-panel',
                 isCurrentUser
-                  ? 'border-accent bg-[#f2f8eb]'
+                  ? 'border-accent bg-primary-soft'
                   : rank % 3 === 1
-                    ? 'border-accent/18 bg-[#f8fcf2]'
+                    ? 'border-accent/18 bg-primary-soft/70'
                     : rank % 3 === 2
-                      ? 'border-[#5f87a8]/18 bg-[#f4f9ff]'
-                      : 'border-[#d5a344]/22 bg-[#fff9eb]',
+                      ? 'border-info/18 bg-info-surface'
+                      : 'border-warning/22 bg-warning-surface',
               ].join(' ')}
               key={score.id}
             >
@@ -453,7 +453,7 @@ export default async function LeaderboardPage() {
                     ? 'bg-[linear-gradient(90deg,rgba(112,173,71,0.16),rgba(112,173,71,0.06))]'
                     : index % 2 === 0
                       ? 'bg-white/34'
-                      : 'bg-[#f7fbf3]/70'
+                      : 'bg-primary-soft/70'
                 }
                 key={score.id}
               >

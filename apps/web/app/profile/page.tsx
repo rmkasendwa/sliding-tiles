@@ -159,7 +159,7 @@ export default async function ProfilePage() {
             <span className="rounded-full border border-accent/22 bg-white/76 px-3 py-1 text-xs font-bold uppercase text-accent-strong shadow-sm">
               Signed in as {playerHandle}
             </span>
-            <span className="rounded-full border border-[#5f87a8]/28 bg-[#eef6ff]/78 px-3 py-1 text-xs font-bold uppercase text-[#486b89] shadow-sm">
+            <span className="rounded-full border border-info/28 bg-info-soft/78 px-3 py-1 text-xs font-bold uppercase text-info-strong shadow-sm">
               {completedRuns} completed runs
             </span>
             {achievementBadges.slice(0, 2).map((badge, index) => (
@@ -167,8 +167,8 @@ export default async function ProfilePage() {
                 className={[
                   'rounded-full border px-3 py-1 text-xs font-bold uppercase shadow-sm',
                   index === 0
-                    ? 'border-[#d5a344]/35 bg-[#fff4d6]/78 text-[#8a621c]'
-                    : 'border-[#c77d56]/24 bg-[#fff1e8]/78 text-[#875936]',
+                    ? 'border-warning/35 bg-warning-soft/78 text-warning-strong'
+                    : 'border-clay/24 bg-clay-soft/78 text-clay-strong',
                 ].join(' ')}
                 key={badge}
               >
@@ -178,20 +178,20 @@ export default async function ProfilePage() {
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
             <Link
-              className="inline-flex min-h-9 items-center justify-center rounded-[7px] border border-accent bg-accent px-3 text-sm font-bold text-white shadow-[0_10px_22px_rgba(37,111,90,0.22)]"
+              className="inline-flex min-h-9 items-center justify-center rounded-[7px] border border-accent bg-accent px-3 text-sm font-bold text-white shadow-button-primary"
               href={routes.play}
             >
               Continue playing
             </Link>
             <Link
-              className="inline-flex min-h-9 items-center justify-center rounded-[7px] border border-[#5f87a8]/30 bg-[#eef6ff]/76 px-3 text-sm font-bold text-[#486b89]"
+              className="inline-flex min-h-9 items-center justify-center rounded-[7px] border border-info/30 bg-info-soft/76 px-3 text-sm font-bold text-info-strong"
               href={routes.leaderboard}
             >
               View leaderboard
             </Link>
           </div>
         </div>
-        <div className="rounded-lg border border-[#d5a344]/35 bg-[linear-gradient(180deg,#fff9e8,#f6fbef)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.76),0_14px_34px_rgba(138,109,33,0.12)]">
+        <div className="rounded-lg border border-warning/35 bg-[linear-gradient(180deg,var(--color-warning-surface),var(--color-primary-soft))] p-4 shadow-featured-stat">
           <div className="flex items-center gap-3">
             <ProfileAvatar
               avatarUrl={session.avatarUrl}
@@ -214,20 +214,20 @@ export default async function ProfilePage() {
                 {bestRun ? formatDuration(bestRun.timeSeconds) : '-'}
               </dd>
             </div>
-            <div className="rounded-[7px] border border-[#5f87a8]/20 bg-white/68 p-2.5">
-              <dt className="text-[#486b89]">Top level</dt>
+            <div className="rounded-[7px] border border-info/20 bg-white/68 p-2.5">
+              <dt className="text-info-strong">Top level</dt>
               <dd className="mt-1 font-bold text-foreground">
                 {highestCompletedLevel > 0 ? highestCompletedLevel : '-'}
               </dd>
             </div>
-            <div className="rounded-[7px] border border-[#d5a344]/26 bg-white/68 p-2.5">
-              <dt className="text-[#8a621c]">Avg moves</dt>
+            <div className="rounded-[7px] border border-warning/26 bg-white/68 p-2.5">
+              <dt className="text-warning-strong">Avg moves</dt>
               <dd className="mt-1 font-bold text-foreground">
                 {averageMoves ?? '-'}
               </dd>
             </div>
-            <div className="rounded-[7px] border border-[#c77d56]/20 bg-white/68 p-2.5">
-              <dt className="text-[#875936]">Saved board</dt>
+            <div className="rounded-[7px] border border-clay/20 bg-white/68 p-2.5">
+              <dt className="text-clay-strong">Saved board</dt>
               <dd className="mt-1 font-bold text-foreground">
                 {gameState ? `Level ${gameState.level}` : 'None'}
               </dd>
@@ -257,10 +257,10 @@ export default async function ProfilePage() {
 
           <ChangePasswordForm compact />
 
-          <section className="grid gap-3 rounded-lg border border-[#5f87a8]/18 bg-[linear-gradient(160deg,#f4f9ff,#ffffff)] p-4 min-[980px]:col-span-2">
+          <section className="grid gap-3 rounded-lg border border-info/18 bg-[linear-gradient(160deg,var(--color-info-surface),var(--color-surface))] p-4 min-[980px]:col-span-2">
             <div className="flex items-end justify-between gap-3">
               <h3 className="text-[1.03rem] font-bold">Milestone journey</h3>
-              <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#486b89]">
+              <span className="text-xs font-bold uppercase tracking-[0.08em] text-info-strong">
                 Progress map
               </span>
             </div>
@@ -272,10 +272,10 @@ export default async function ProfilePage() {
                     index % 4 === 0
                       ? 'border-accent/20'
                       : index % 4 === 1
-                        ? 'border-[#d5a344]/28'
+                        ? 'border-warning/28'
                         : index % 4 === 2
-                          ? 'border-[#5f87a8]/22'
-                          : 'border-[#c77d56]/22',
+                          ? 'border-info/22'
+                          : 'border-clay/22',
                   ].join(' ')}
                   key={item.label}
                 >
@@ -296,18 +296,18 @@ export default async function ProfilePage() {
       </section>
 
       <section
-        className="profile-reveal grid gap-5 rounded-xl border border-[#5f87a8]/16 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(244,249,255,0.86))] p-4 shadow-panel"
+        className="profile-reveal grid gap-5 rounded-xl border border-info/16 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(244,249,255,0.86))] p-4 shadow-panel"
         style={{ animationDelay: '70ms' }}
       >
-        <div className="flex items-end justify-between gap-3 border-b border-[#5f87a8]/16 pb-2">
+        <div className="flex items-end justify-between gap-3 border-b border-info/16 pb-2">
           <h2 className="text-[1.12rem] font-bold">Performance and Activity</h2>
-          <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#486b89]">
+          <span className="text-xs font-bold uppercase tracking-[0.08em] text-info-strong">
             Analytics
           </span>
         </div>
 
         <div className="grid gap-3 min-[880px]:grid-cols-3">
-          <article className="rounded-lg border border-accent/22 bg-[linear-gradient(160deg,#f5fbef,#ffffff)] p-4">
+          <article className="rounded-lg border border-accent/22 bg-[linear-gradient(160deg,var(--color-primary-soft),var(--color-surface))] p-4">
             <p className="text-[0.75rem] font-extrabold uppercase text-accent-strong">
               Latest run
             </p>
@@ -320,8 +320,8 @@ export default async function ProfilePage() {
                 : 'No completed runs yet'}
             </p>
           </article>
-          <article className="rounded-lg border border-[#5f87a8]/24 bg-[linear-gradient(160deg,#eef6ff,#ffffff)] p-4">
-            <p className="text-[0.75rem] font-extrabold uppercase text-[#486b89]">
+          <article className="rounded-lg border border-info/24 bg-[linear-gradient(160deg,var(--color-info-soft),var(--color-surface))] p-4">
+            <p className="text-[0.75rem] font-extrabold uppercase text-info-strong">
               Best pace
             </p>
             <p className="mt-1 text-lg font-bold text-foreground">
@@ -335,8 +335,8 @@ export default async function ProfilePage() {
                 : 'Complete runs to measure pace'}
             </p>
           </article>
-          <article className="rounded-lg border border-[#d5a344]/30 bg-[linear-gradient(160deg,#fff5d8,#ffffff)] p-4">
-            <p className="text-[0.75rem] font-extrabold uppercase text-[#8a621c]">
+          <article className="rounded-lg border border-warning/30 bg-[linear-gradient(160deg,var(--color-warning-soft),var(--color-surface))] p-4">
+            <p className="text-[0.75rem] font-extrabold uppercase text-warning-strong">
               Recent average
             </p>
             <p className="mt-1 text-lg font-bold text-foreground">
@@ -350,10 +350,10 @@ export default async function ProfilePage() {
 
         <div className="grid grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] items-start gap-5 max-[980px]:grid-cols-1">
           <div className="grid gap-5">
-            <section className="grid gap-4 rounded-lg border border-[#c77d56]/22 bg-[linear-gradient(160deg,#fff1e8,#ffffff)] p-4">
+            <section className="grid gap-4 rounded-lg border border-clay/22 bg-[linear-gradient(160deg,var(--color-clay-soft),var(--color-surface))] p-4">
               <div className="flex items-end justify-between gap-3">
                 <h2 className="text-[clamp(1.6rem,3vw,2.2rem)]">Saved board</h2>
-                <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#875936]">
+                <span className="text-xs font-bold uppercase tracking-[0.08em] text-clay-strong">
                   Resume point
                 </span>
               </div>
@@ -368,16 +368,16 @@ export default async function ProfilePage() {
                         {gameState.level}
                       </strong>
                     </div>
-                    <div className="rounded-[7px] border border-[#5f87a8]/20 bg-white/65 p-3">
-                      <span className="block text-[0.78rem] text-[#486b89]">
+                    <div className="rounded-[7px] border border-info/20 bg-white/65 p-3">
+                      <span className="block text-[0.78rem] text-info-strong">
                         Moves
                       </span>
                       <strong className="mt-1 block text-[1.4rem]">
                         {gameState.moves}
                       </strong>
                     </div>
-                    <div className="rounded-[7px] border border-[#d5a344]/26 bg-white/65 p-3">
-                      <span className="block text-[0.78rem] text-[#8a621c]">
+                    <div className="rounded-[7px] border border-warning/26 bg-white/65 p-3">
+                      <span className="block text-[0.78rem] text-warning-strong">
                         Last save
                       </span>
                       <strong className="mt-1 block text-[1.08rem]">
@@ -400,22 +400,22 @@ export default async function ProfilePage() {
             </section>
 
             <div className="grid grid-cols-3 gap-3 max-[620px]:grid-cols-1">
-              <article className="rounded-lg border border-accent/18 bg-[#f8fcf2] p-4">
+              <article className="rounded-lg border border-accent/18 bg-primary-soft/70 p-4">
                 <p className="text-[0.75rem] font-extrabold uppercase text-accent-strong">
                   Completed runs
                 </p>
                 <p className="mt-1 text-2xl font-bold">{completedRuns}</p>
               </article>
-              <article className="rounded-lg border border-[#5f87a8]/18 bg-[#f4f9ff] p-4">
-                <p className="text-[0.75rem] font-extrabold uppercase text-[#486b89]">
+              <article className="rounded-lg border border-info/18 bg-info-surface p-4">
+                <p className="text-[0.75rem] font-extrabold uppercase text-info-strong">
                   Best level
                 </p>
                 <p className="mt-1 text-2xl font-bold">
                   {highestCompletedLevel > 0 ? highestCompletedLevel : '-'}
                 </p>
               </article>
-              <article className="rounded-lg border border-[#d5a344]/22 bg-[#fff9eb] p-4">
-                <p className="text-[0.75rem] font-extrabold uppercase text-[#8a621c]">
+              <article className="rounded-lg border border-warning/22 bg-warning-surface p-4">
+                <p className="text-[0.75rem] font-extrabold uppercase text-warning-strong">
                   Fastest clear
                 </p>
                 <p className="mt-1 text-2xl font-bold">
@@ -424,7 +424,7 @@ export default async function ProfilePage() {
               </article>
             </div>
 
-            <section className="grid gap-3 rounded-lg border border-accent/18 bg-[linear-gradient(160deg,#f7fcf1,#ffffff)] p-4">
+            <section className="grid gap-3 rounded-lg border border-accent/18 bg-[linear-gradient(160deg,var(--color-primary-soft),var(--color-surface))] p-4">
               <div className="flex items-end justify-between gap-2">
                 <h3 className="text-[1.12rem] font-bold">Performance trend</h3>
                 <span className="text-xs font-bold uppercase tracking-[0.08em] text-accent-strong">
@@ -450,7 +450,7 @@ export default async function ProfilePage() {
                         </div>
                         <div className="h-2.5 w-full overflow-hidden rounded-full bg-white/72">
                           <div
-                            className="profile-trend-bar h-full rounded-full bg-[linear-gradient(90deg,#6cb34d,#2f7f61,#5f87a8)]"
+                            className="profile-trend-bar h-full rounded-full bg-[linear-gradient(90deg,var(--color-primary),var(--color-primary-strong),var(--color-info))]"
                             style={
                               {
                                 '--bar-scale': `${widthPercent / 100}`,
@@ -473,10 +473,10 @@ export default async function ProfilePage() {
               )}
             </section>
 
-            <section className="grid gap-3 rounded-lg border border-[#d5a344]/24 bg-[linear-gradient(160deg,#fff7df,#ffffff)] p-4">
+            <section className="grid gap-3 rounded-lg border border-warning/24 bg-[linear-gradient(160deg,var(--color-warning-soft),var(--color-surface))] p-4">
               <div className="flex items-end justify-between gap-2">
                 <h3 className="text-[1.12rem] font-bold">Personal records</h3>
-                <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#8a621c]">
+                <span className="text-xs font-bold uppercase tracking-[0.08em] text-warning-strong">
                   Snapshot
                 </span>
               </div>
@@ -491,8 +491,8 @@ export default async function ProfilePage() {
                       : 'No record yet'}
                   </p>
                 </article>
-                <article className="rounded-lg border border-[#5f87a8]/18 bg-white/66 p-3">
-                  <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-[#486b89]">
+                <article className="rounded-lg border border-info/18 bg-white/66 p-3">
+                  <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-info-strong">
                     Best pace run
                   </p>
                   <p className="mt-1 text-sm font-bold text-foreground">
@@ -501,8 +501,8 @@ export default async function ProfilePage() {
                       : 'No record yet'}
                   </p>
                 </article>
-                <article className="rounded-lg border border-[#c77d56]/20 bg-white/66 p-3">
-                  <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-[#875936]">
+                <article className="rounded-lg border border-clay/20 bg-white/66 p-3">
+                  <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-clay-strong">
                     Cleanest run
                   </p>
                   <p className="mt-1 text-sm font-bold text-foreground">
@@ -515,10 +515,10 @@ export default async function ProfilePage() {
             </section>
           </div>
 
-          <section className="grid gap-4 rounded-lg border border-[#5f87a8]/18 bg-[linear-gradient(160deg,#f4f9ff,#ffffff)] p-4">
+          <section className="grid gap-4 rounded-lg border border-info/18 bg-[linear-gradient(160deg,var(--color-info-surface),var(--color-surface))] p-4">
             <div className="flex items-end justify-between gap-3">
               <h2 className="text-[clamp(1.6rem,3vw,2.2rem)]">Recent runs</h2>
-              <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#486b89]">
+              <span className="text-xs font-bold uppercase tracking-[0.08em] text-info-strong">
                 Last {scores.length > 10 ? 10 : scores.length}
               </span>
             </div>
@@ -541,9 +541,9 @@ export default async function ProfilePage() {
                         index === 0
                           ? 'border-accent bg-accent'
                           : index % 3 === 1
-                            ? 'border-[#5f87a8] bg-[#5f87a8]'
+                            ? 'border-info bg-info'
                             : index % 3 === 2
-                              ? 'border-[#d5a344] bg-[#d5a344]'
+                              ? 'border-warning bg-warning'
                               : 'border-line bg-panel',
                       ].join(' ')}
                     />
@@ -551,11 +551,11 @@ export default async function ProfilePage() {
                       className={[
                         'grid gap-2 rounded-lg border bg-white/60 p-3',
                         index === 0
-                          ? 'border-accent/45 shadow-[0_8px_20px_rgba(90,133,63,0.16)]'
+                          ? 'border-accent/45 shadow-rank-highlight'
                           : index % 3 === 1
-                            ? 'border-[#5f87a8]/22 bg-[#f4f9ff]'
+                            ? 'border-info/22 bg-info-surface'
                             : index % 3 === 2
-                              ? 'border-[#d5a344]/26 bg-[#fff9eb]'
+                              ? 'border-warning/26 bg-warning-surface'
                               : 'border-line',
                       ].join(' ')}
                     >

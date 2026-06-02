@@ -223,7 +223,7 @@ export function BoardTile({
     setDragOffset({ x: 0, y: 0 });
   };
   const tileClasses = [
-    'board-tile absolute cursor-pointer rounded-md border border-black/20 bg-no-repeat shadow-[inset_0_-3px_4px_rgba(0,0,0,0.26),inset_0_3px_4px_rgba(255,255,255,0.34),0_16px_22px_rgba(0,0,0,0.24)] hover:z-[8] focus-visible:z-[8]',
+    'board-tile absolute cursor-pointer rounded-md border border-black/20 bg-no-repeat shadow-tile hover:z-[8] focus-visible:z-[8]',
     isMovable ? '' : 'cursor-not-allowed',
     isShowingSolvedHint
       ? 'z-[2] cursor-default brightness-[1.04] saturate-[1.08]'
@@ -231,7 +231,7 @@ export function BoardTile({
     isHintPlaceholder ? 'pointer-events-none' : '',
     isDraggingTile ? 'z-[12]' : '',
     hintedSlot === slotKey(tile.homeSlot)
-      ? 'z-[9] shadow-[0_18px_30px_rgba(0,0,0,0.28)]'
+      ? 'z-[9] shadow-tile-active'
       : '',
   ]
     .filter(Boolean)

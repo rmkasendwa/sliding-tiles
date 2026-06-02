@@ -196,7 +196,7 @@ export function RouteProgressBar() {
     >
       <div
         className={[
-          'h-full origin-left bg-accent shadow-[0_0_12px_rgba(37,111,90,0.42)] transition-[opacity,transform] duration-200 ease-out',
+          'h-full origin-left bg-accent shadow-progress-primary transition-[opacity,transform] duration-200 ease-out',
           state === 'loading' ? 'opacity-100' : 'opacity-0',
         ].join(' ')}
         style={{ transform: `scaleX(${progress / 100})` }}

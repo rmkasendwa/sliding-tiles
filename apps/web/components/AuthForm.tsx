@@ -227,8 +227,8 @@ export function AuthForm({ mode }: AuthFormProps) {
     return [
       'min-h-11 w-full rounded-[9px] border bg-white px-3 text-foreground placeholder:text-[0.85rem] outline-none transition-[border-color,box-shadow,background-color]',
       hasError
-        ? 'border-danger/65 focus:border-danger/75 focus:shadow-[0_0_0_3px_rgba(154,46,46,0.16)]'
-        : 'border-line focus:border-accent/60 focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,111,90,0.14)]',
+        ? 'border-danger/65 focus:border-danger/75 focus:shadow-focus-danger'
+        : 'border-line focus:border-accent/60 focus:bg-white focus:shadow-focus-primary',
     ].join(' ');
   };
 
@@ -464,8 +464,8 @@ export function AuthForm({ mode }: AuthFormProps) {
       className={[
         'grid gap-4 border shadow-panel',
         isSignup
-          ? 'rounded-lg border-line bg-[#fff4e3] p-4 sm:p-6'
-          : 'rounded-2xl border-line bg-[#f4fbf7] p-4 shadow-[0_24px_64px_rgba(35,35,28,0.2)] backdrop-blur-[2px] sm:p-6',
+          ? 'rounded-lg border-line bg-warning-soft p-4 sm:p-6'
+          : 'rounded-2xl border-line bg-success-soft p-4 shadow-panel-strong backdrop-blur-[2px] sm:p-6',
       ].join(' ')}
     >
       <div className="grid gap-1.5">
@@ -770,7 +770,7 @@ export function AuthForm({ mode }: AuthFormProps) {
       )}
 
       <button
-        className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[9px] border border-accent bg-accent px-3.5 font-bold text-white shadow-[0_10px_20px_rgba(37,111,90,0.24)] transition-[background-color,transform] hover:bg-accent-strong active:translate-y-px disabled:cursor-wait disabled:opacity-70"
+        className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[9px] border border-accent bg-accent px-3.5 font-bold text-white shadow-button-primary transition-[background-color,transform] hover:bg-accent-strong active:translate-y-px disabled:cursor-wait disabled:opacity-70"
         disabled={pending}
         type="submit"
       >

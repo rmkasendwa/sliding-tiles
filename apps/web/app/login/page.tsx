@@ -14,7 +14,7 @@ export default async function LoginPage() {
 
   return (
     <section className="page-rail mx-auto flex-1 grid place-items-center py-5 lg:py-8">
-      <div className="relative w-full overflow-visible border-0 bg-transparent p-0 shadow-none lg:overflow-hidden lg:rounded-[26px] lg:border lg:border-line/90 lg:bg-[#f3ead8] lg:p-8 lg:shadow-panel">
+      <div className="relative w-full overflow-visible border-0 bg-transparent p-0 shadow-none lg:overflow-hidden lg:rounded-[26px] lg:border lg:border-line/90 lg:bg-surface-auth-warm lg:p-8 lg:shadow-panel">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 hidden opacity-60 lg:block"
@@ -30,11 +30,11 @@ export default async function LoginPage() {
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -bottom-24 left-8 hidden h-56 w-56 rounded-full bg-[#f6cf82]/30 blur-2xl lg:block"
+          className="pointer-events-none absolute -bottom-24 left-8 hidden h-56 w-56 rounded-full bg-warning/30 blur-2xl lg:block"
         />
 
         <div className="relative grid gap-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,460px)] lg:items-stretch lg:gap-6">
-          <div className="profile-reveal order-2 hidden content-between gap-4 rounded-2xl border border-line/80 bg-linear-to-br from-white/88 via-panel/86 to-[#efe6d6]/88 p-4 sm:p-5 lg:order-1 lg:grid lg:gap-6 lg:p-6">
+          <div className="profile-reveal order-2 hidden content-between gap-4 rounded-2xl border border-line/80 bg-linear-to-br from-white/88 via-panel/86 to-surface-auth-gold/88 p-4 sm:p-5 lg:order-1 lg:grid lg:gap-6 lg:p-6">
             <div className="grid gap-4">
               <p className="inline-flex w-fit items-center rounded-full border border-accent/20 bg-accent/10 px-3 py-1 text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-accent-strong">
                 Pond access
@@ -49,7 +49,7 @@ export default async function LoginPage() {
             </div>
 
             <div className="hidden gap-3 lg:grid xl:grid-cols-3">
-              <div className="rounded-xl border border-line/85 bg-white/78 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+              <div className="rounded-xl border border-line/85 bg-white/78 p-3 shadow-inset-highlight">
                 <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
                   Save state
                 </p>
@@ -57,7 +57,7 @@ export default async function LoginPage() {
                   Always on
                 </p>
               </div>
-              <div className="rounded-xl border border-line/85 bg-white/78 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+              <div className="rounded-xl border border-line/85 bg-white/78 p-3 shadow-inset-highlight">
                 <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
                   Leaderboards
                 </p>
@@ -65,7 +65,7 @@ export default async function LoginPage() {
                   Live stats
                 </p>
               </div>
-              <div className="rounded-xl border border-line/85 bg-white/78 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+              <div className="rounded-xl border border-line/85 bg-white/78 p-3 shadow-inset-highlight">
                 <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
                   Progress
                 </p>

@@ -46,7 +46,7 @@ function getPasswordStrengthTextClass(strength: number) {
   }
 
   if (strength <= 2) {
-    return 'text-[#9a5d21]';
+    return 'text-warning-strong';
   }
 
   if (strength <= 3) {
@@ -62,7 +62,7 @@ function getPasswordStrengthBarClass(strength: number) {
   }
 
   if (strength <= 2) {
-    return 'bg-[#b37a37]';
+    return 'bg-warning';
   }
 
   if (strength <= 3) {

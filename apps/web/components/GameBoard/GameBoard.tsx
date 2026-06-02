@@ -775,7 +775,7 @@ function GameBoardContent({
     <div className="play-shell-reveal grid min-h-full w-full grid-cols-[minmax(0,1fr)_320px] items-start gap-5 max-[900px]:grid-cols-1">
       <section
         className={[
-          'play-board-reveal relative grid min-h-0 place-items-center overflow-hidden bg-[#17231f] shadow-[0_24px_80px_rgba(0,0,0,0.24)]',
+          'play-board-reveal relative grid min-h-0 place-items-center overflow-hidden bg-night shadow-game-shell',
           isBoardFullscreen
             ? 'fullscreen-board-stage fixed inset-0 z-50 h-screen rounded-none p-4'
             : 'h-[calc(100svh-36px)] rounded-lg p-3 max-[900px]:p-2.5',
@@ -844,7 +844,7 @@ function GameBoardContent({
               <div className="absolute inset-4 rounded-lg border border-white/60 shadow-[inset_0_0_52px_rgba(255,255,255,0.38),0_0_44px_rgba(243,212,107,0.3)]" />
               {CELEBRATION_PARTICLES.map((particle, index) => (
                 <span
-                  className="absolute block animate-[celebration-float_1600ms_ease-out_both] rounded-full bg-[#f3d46b] shadow-[0_0_26px_rgba(243,212,107,0.9),0_0_8px_rgba(255,255,255,0.9)]"
+                  className="absolute block animate-[celebration-float_1600ms_ease-out_both] rounded-full bg-celebration shadow-[0_0_26px_rgba(243,212,107,0.9),0_0_8px_rgba(255,255,255,0.9)]"
                   key={index}
                   style={{
                     animationDelay: particle.delay,

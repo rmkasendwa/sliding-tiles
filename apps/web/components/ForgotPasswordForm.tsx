@@ -27,7 +27,7 @@ export function ForgotPasswordForm() {
           aria-invalid={Boolean(state.errors?.identifier)}
           autoCapitalize="none"
           autoComplete="username"
-          className="min-h-11 w-full rounded-[9px] border border-line bg-white px-3 text-foreground placeholder:text-[0.85rem] outline-none transition-[border-color,box-shadow,background-color] focus:border-accent/60 focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,111,90,0.14)]"
+          className="min-h-11 w-full rounded-[9px] border border-line bg-white px-3 text-foreground placeholder:text-[0.85rem] outline-none transition-[border-color,box-shadow,background-color] focus:border-accent/60 focus:bg-white focus:shadow-focus-primary"
           id="identifier"
           name="identifier"
           placeholder="name@example.com or handle"
@@ -54,7 +54,7 @@ export function ForgotPasswordForm() {
       )}
 
       <button
-        className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[9px] border border-accent bg-accent px-3.5 font-bold text-white shadow-[0_10px_20px_rgba(37,111,90,0.24)] transition-[background-color,transform] hover:bg-accent-strong active:translate-y-px disabled:cursor-wait disabled:opacity-70"
+        className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[9px] border border-accent bg-accent px-3.5 font-bold text-white shadow-button-primary transition-[background-color,transform] hover:bg-accent-strong active:translate-y-px disabled:cursor-wait disabled:opacity-70"
         disabled={pending}
         type="submit"
       >

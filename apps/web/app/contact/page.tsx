@@ -46,7 +46,7 @@ export default function ContactPage() {
         </article>
 
         <article className="rounded-lg border border-line bg-panel p-5 shadow-panel">
-          <div className="grid size-10 place-items-center rounded-[7px] border border-[#5f87a8]/24 bg-[#eef6ff]/78 text-[#486b89]">
+          <div className="grid size-10 place-items-center rounded-[7px] border border-info/24 bg-info-soft/78 text-info-strong">
             <GitFork aria-hidden="true" className="size-5" />
           </div>
           <h2 className="mt-4 text-xl font-bold text-foreground">
@@ -59,7 +59,7 @@ export default function ContactPage() {
           </p>
           <a
             aria-label={`Open ${siteConfig.name} GitHub repository in a new tab`}
-            className="mt-4 inline-flex min-h-10 items-center justify-center gap-2 rounded-[7px] border border-[#5f87a8]/30 bg-[#eef6ff]/78 px-4 text-sm font-bold text-[#486b89] transition-colors hover:bg-[#dfefff]"
+            className="mt-4 inline-flex min-h-10 items-center justify-center gap-2 rounded-[7px] border border-info/30 bg-info-soft/78 px-4 text-sm font-bold text-info-strong transition-colors hover:bg-info-surface"
             href={siteConfig.githubUrl}
             rel="noreferrer"
             target="_blank"

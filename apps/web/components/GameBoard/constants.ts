@@ -14,9 +14,9 @@ export const HINT_PLACEHOLDER_TRANSITION =
   'left 180ms ease, top 180ms ease, opacity 360ms ease, box-shadow 180ms ease, filter 180ms ease';
 
 export const BOARD_SURFACE_BACKGROUND =
-  'repeating-linear-gradient(-45deg, rgba(30, 37, 34, 0.12) 0 10px, rgba(30, 37, 34, 0.12) 10px 18px, rgba(255, 255, 255, 0.22) 18px 28px, rgba(255, 255, 255, 0.22) 28px 36px), #ece4d3';
+  'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--color-foreground) 12%, transparent) 0 10px, color-mix(in srgb, var(--color-foreground) 12%, transparent) 10px 18px, color-mix(in srgb, var(--color-surface) 22%, transparent) 18px 28px, color-mix(in srgb, var(--color-surface) 22%, transparent) 28px 36px), var(--color-surface-sunken)';
 export const SOLUTION_GRID_BACKGROUND =
-  "linear-gradient(to right, rgba(255, 255, 255, 0.42) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.42) 1px, transparent 1px), url('/frog.svg')";
+  "linear-gradient(to right, color-mix(in srgb, var(--color-surface) 42%, transparent) 1px, transparent 1px), linear-gradient(to bottom, color-mix(in srgb, var(--color-surface) 42%, transparent) 1px, transparent 1px), url('/frog.svg')";
 export const TILE_BACKGROUND = "url('/frog.svg')";
 
 export const CELEBRATION_PARTICLES = Array.from(

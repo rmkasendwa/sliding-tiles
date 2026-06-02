@@ -624,11 +624,11 @@ export function SoundProvider({
           }}
           style={{
             backdropFilter: 'blur(4px)',
-            background: 'rgba(15, 23, 42, 0.78)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
+            background: 'color-mix(in srgb, var(--color-night) 78%, transparent)',
+            border: '1px solid color-mix(in srgb, var(--color-primary-contrast) 20%, transparent)',
             borderRadius: '999px',
             bottom: '1rem',
-            color: '#fff',
+            color: 'var(--color-primary-contrast)',
             cursor: 'pointer',
             fontSize: '0.875rem',
             fontWeight: 700,

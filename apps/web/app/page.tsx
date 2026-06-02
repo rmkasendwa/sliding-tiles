@@ -82,12 +82,12 @@ function HomePuzzlePreview({ footerText, label }: HomePuzzlePreviewProps) {
 
           return (
             <div
-              className="min-w-0 rounded-[7px] border border-black/20 bg-no-repeat shadow-[inset_0_-4px_5px_rgba(0,0,0,0.24),inset_0_3px_4px_rgba(255,255,255,0.28)]"
+              className="min-w-0 rounded-[7px] border border-black/20 bg-no-repeat shadow-tile-preview"
               key={index}
               style={{
                 background:
                   homeIndex === null
-                    ? 'repeating-linear-gradient(-45deg, rgba(30, 37, 34, 0.16) 0 10px, rgba(30, 37, 34, 0.16) 10px 18px, rgba(255, 255, 255, 0.3) 18px 28px, rgba(255, 255, 255, 0.3) 28px 36px), #ece4d3'
+                    ? 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--color-foreground) 16%, transparent) 0 10px, color-mix(in srgb, var(--color-foreground) 16%, transparent) 10px 18px, color-mix(in srgb, var(--color-surface) 30%, transparent) 18px 28px, color-mix(in srgb, var(--color-surface) 30%, transparent) 28px 36px), var(--color-surface-sunken)'
                     : undefined,
                 backgroundImage:
                   homeIndex === null ? undefined : "url('/frog.svg')",
@@ -140,7 +140,7 @@ export default async function HomePage() {
       <ScrollRevealObserver targetId="home-page" />
       <section className="page-rail mx-auto grid min-h-svh grid-cols-[minmax(0,1.08fr)_minmax(330px,0.92fr)] items-center gap-12 py-10 xl:gap-14 max-[900px]:grid-cols-1">
         <div
-          className="scroll-reveal grid gap-6 rounded-[18px] border border-accent/10 bg-white/38 p-7 shadow-[0_18px_44px_rgba(24,58,43,0.08)] backdrop-blur-[2px] max-[620px]:p-5"
+          className="scroll-reveal grid gap-6 rounded-[18px] border border-accent/10 bg-white/38 p-7 shadow-card-lift backdrop-blur-[2px] max-[620px]:p-5"
           style={{ animationDelay: '40ms' }}
         >
           <div className="flex items-center justify-between gap-4 max-[540px]:grid">
@@ -174,7 +174,7 @@ export default async function HomePage() {
           )}
           <div className="flex flex-wrap gap-3 max-[560px]:grid">
             <Link
-              className="inline-flex min-h-11 min-w-42 items-center justify-center gap-2 rounded-[7px] border border-accent bg-accent px-4 font-bold text-white shadow-[0_10px_22px_rgba(37,111,90,0.28)] transition-[background-color,transform] hover:bg-accent-strong active:translate-y-px max-[560px]:w-full"
+              className="inline-flex min-h-11 min-w-42 items-center justify-center gap-2 rounded-[7px] border border-accent bg-accent px-4 font-bold text-white shadow-button-primary transition-[background-color,transform] hover:bg-accent-strong active:translate-y-px max-[560px]:w-full"
               href={routes.play}
             >
               {playCtaLabel}
@@ -216,13 +216,13 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="bg-[#17231f] py-16 text-white">
+      <section className="bg-night py-16 text-white">
         <div
           className="page-rail scroll-reveal mx-auto grid gap-8"
           style={{ animationDelay: '120ms' }}
         >
           <div className="grid max-w-215 gap-4">
-            <p className="text-[0.78rem] font-extrabold uppercase text-[#aee686]">
+            <p className="text-[0.78rem] font-extrabold uppercase text-night-accent">
               Your next board
             </p>
             <h2 className="text-[clamp(1.9rem,3.6vw,3.4rem)] leading-[0.94]">
@@ -237,11 +237,11 @@ export default async function HomePage() {
           <div className="grid grid-cols-3 gap-4 max-[900px]:grid-cols-1">
             {highlights.map((item, index) => (
               <article
-                className="scroll-reveal rounded-xl border border-white/12 bg-[linear-gradient(170deg,rgba(255,255,255,0.13),rgba(255,255,255,0.05))] p-5 shadow-[0_16px_34px_rgba(0,0,0,0.22)]"
+                className="scroll-reveal rounded-xl border border-white/12 bg-[linear-gradient(170deg,rgba(255,255,255,0.13),rgba(255,255,255,0.05))] p-5 shadow-night-card"
                 key={item.title}
                 style={{ animationDelay: `${160 + index * 30}ms` }}
               >
-                <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-[#aee686]">
+                <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-night-accent">
                   0{index + 1}
                 </p>
                 <h3 className="text-xl">{item.title}</h3>
@@ -252,7 +252,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="bg-[#dfeccf] py-16">
+      <section className="bg-surface-meadow py-16">
         <div
           className="page-rail scroll-reveal mx-auto grid gap-8"
           style={{ animationDelay: '200ms' }}
@@ -273,7 +273,7 @@ export default async function HomePage() {
           <ol className="grid grid-cols-3 gap-4 [counter-reset:step] max-[900px]:grid-cols-1">
             {flow.map((item, index) => (
               <li
-                className="scroll-reveal grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-3 rounded-[11px] border border-accent/16 bg-[linear-gradient(165deg,rgba(255,255,255,0.86),rgba(255,255,255,0.58))] p-3 [counter-increment:step] shadow-[0_12px_26px_rgba(24,58,43,0.1)] before:grid before:aspect-square before:place-items-center before:rounded-full before:bg-accent before:text-sm before:font-bold before:text-white before:content-[counter(step)]"
+                className="scroll-reveal grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-3 rounded-[11px] border border-accent/16 bg-[linear-gradient(165deg,rgba(255,255,255,0.86),rgba(255,255,255,0.58))] p-3 [counter-increment:step] shadow-card-soft before:grid before:aspect-square before:place-items-center before:rounded-full before:bg-accent before:text-sm before:font-bold before:text-white before:content-[counter(step)]"
                 key={item}
                 style={{ animationDelay: `${240 + index * 30}ms` }}
               >
@@ -320,7 +320,7 @@ export default async function HomePage() {
         <div className="grid grid-cols-3 gap-4 max-[760px]:grid-cols-1">
           {playModes.map((item, index) => (
             <div
-              className="scroll-reveal grid gap-2.5 rounded-xl border border-accent/14 bg-[linear-gradient(168deg,rgba(255,255,255,0.96),rgba(244,238,224,0.9))] p-4 shadow-[0_14px_30px_rgba(24,58,43,0.1)] max-[760px]:grid-cols-[2.8rem_minmax(0,1fr)] max-[760px]:items-center max-[760px]:p-3"
+              className="scroll-reveal grid gap-2.5 rounded-xl border border-accent/14 bg-[linear-gradient(168deg,rgba(255,255,255,0.96),rgba(244,238,224,0.9))] p-4 shadow-card-soft max-[760px]:grid-cols-[2.8rem_minmax(0,1fr)] max-[760px]:items-center max-[760px]:p-3"
               key={item.title}
               style={{ animationDelay: `${330 + index * 30}ms` }}
             >

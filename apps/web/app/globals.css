@@ -6,11 +6,76 @@
   --color-muted: #66716a;
   --color-panel: #fffaf1;
   --color-panel-strong: #ece4d3;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f6f1e8;
+  --color-surface-raised: #fffaf1;
+  --color-surface-sunken: #ece4d3;
+  --color-surface-auth-warm: #f3ead8;
+  --color-surface-auth-gold: #efe3cd;
+  --color-surface-auth-cool: #e8eef2;
+  --color-surface-auth-cool-soft: #eef5fb;
+  --color-surface-meadow: #dfeccf;
   --color-accent: #256f5a;
   --color-accent-strong: #174f43;
+  --color-primary: #256f5a;
+  --color-primary-strong: #174f43;
+  --color-primary-soft: #f5fbef;
+  --color-primary-contrast: #ffffff;
+  --color-info: #5f87a8;
+  --color-info-strong: #486b89;
+  --color-info-soft: #eef6ff;
+  --color-info-surface: #f4f9ff;
+  --color-warning: #d5a344;
+  --color-warning-strong: #8a621c;
+  --color-warning-soft: #fff4d6;
+  --color-warning-surface: #fff9eb;
+  --color-success: #256f5a;
+  --color-success-strong: #174f43;
+  --color-success-soft: #f5fbef;
+  --color-clay: #c77d56;
+  --color-clay-strong: #875936;
+  --color-clay-soft: #fff1e8;
+  --color-night: #17231f;
+  --color-night-accent: #aee686;
+  --color-frog-lime: #d6f58a;
+  --color-celebration: #f3d46b;
+  --color-medal-gold-surface: #f6edd0;
+  --color-medal-gold-border: #ecd387;
+  --color-medal-gold-text: #8a6d21;
+  --color-medal-silver-surface: #ecf0f4;
+  --color-medal-silver-border: #c9d4df;
+  --color-medal-silver-text: #546271;
+  --color-medal-bronze-surface: #f3e2d4;
+  --color-medal-bronze-border: #dbb38d;
   --color-danger: #9a2e2e;
+  --color-danger-soft: rgba(154, 46, 46, 0.06);
   --color-line: rgba(30, 37, 34, 0.14);
+  --color-line-soft: rgba(30, 37, 34, 0.08);
+  --color-line-inverse: rgba(255, 255, 255, 0.14);
   --shadow-panel: 0 22px 60px rgba(35, 35, 28, 0.16);
+  --shadow-panel-strong: 0 24px 64px rgba(35, 35, 28, 0.2);
+  --shadow-card-soft: 0 14px 30px rgba(24, 58, 43, 0.1);
+  --shadow-card-lift: 0 18px 44px rgba(24, 58, 43, 0.08);
+  --shadow-board-overlay: 0 10px 28px rgba(0, 0, 0, 0.16);
+  --shadow-game-shell: 0 24px 80px rgba(0, 0, 0, 0.24);
+  --shadow-night-card: 0 16px 34px rgba(0, 0, 0, 0.22);
+  --shadow-featured-stat: inset 0 1px 0 rgba(255, 255, 255, 0.76),
+    0 14px 34px rgba(138, 109, 33, 0.12);
+  --shadow-rank-highlight: 0 8px 20px rgba(90, 133, 63, 0.16);
+  --shadow-tile: inset 0 -3px 4px rgba(0, 0, 0, 0.26),
+    inset 0 3px 4px rgba(255, 255, 255, 0.34),
+    0 16px 22px rgba(0, 0, 0, 0.24);
+  --shadow-tile-preview: inset 0 -4px 5px rgba(0, 0, 0, 0.24),
+    inset 0 3px 4px rgba(255, 255, 255, 0.28);
+  --shadow-tile-active: 0 18px 30px rgba(0, 0, 0, 0.28);
+  --shadow-solution-preview: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+  --shadow-frog-logo: inset 0 -5px 10px rgba(37, 111, 90, 0.24),
+    inset 0 4px 8px rgba(255, 255, 255, 0.5);
+  --shadow-focus-primary: 0 0 0 3px rgba(37, 111, 90, 0.14);
+  --shadow-focus-danger: 0 0 0 3px rgba(154, 46, 46, 0.16);
+  --shadow-button-primary: 0 10px 22px rgba(37, 111, 90, 0.24);
+  --shadow-progress-primary: 0 0 12px rgba(37, 111, 90, 0.42);
+  --shadow-inset-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
 @layer base {
@@ -21,7 +86,11 @@
 
   body {
     background:
-      linear-gradient(180deg, rgba(37, 111, 90, 0.08), transparent 310px),
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--color-primary) 8%, transparent),
+        transparent 310px
+      ),
       var(--color-background);
     color: var(--color-foreground);
     font-family:
@@ -74,9 +143,9 @@
   }
 
   .board-overlay {
-    border-color: rgba(255, 255, 255, 0.14);
+    border-color: var(--color-line-inverse);
     background: color-mix(in srgb, var(--color-panel) 74%, transparent);
-    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16);
+    box-shadow: var(--shadow-board-overlay);
     backdrop-filter: blur(8px);
   }
 
@@ -88,7 +157,7 @@
     display: grid;
     width: 8.25rem;
     gap: 0.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    border: 1px solid var(--color-line-inverse);
     border-radius: 0.5rem;
     padding: 0.3rem;
   }
@@ -130,7 +199,7 @@
   }
 
   .game-hud-preview [role='img'] {
-    border-color: rgba(30, 37, 34, 0.08);
+    border-color: var(--color-line-soft);
     border-radius: 0.35rem;
   }
 

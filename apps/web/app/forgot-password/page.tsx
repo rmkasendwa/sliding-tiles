@@ -7,7 +7,7 @@ import { routes } from '@/lib/routes';
 export default function ForgotPasswordPage() {
   return (
     <section className="page-rail mx-auto flex-1 grid place-items-center py-5 lg:py-8">
-      <div className="relative w-full overflow-visible border-0 bg-transparent p-0 shadow-none lg:overflow-hidden lg:rounded-[26px] lg:border lg:border-line/90 lg:bg-[#e8eef2] lg:p-8 lg:shadow-panel">
+      <div className="relative w-full overflow-visible border-0 bg-transparent p-0 shadow-none lg:overflow-hidden lg:rounded-[26px] lg:border lg:border-line/90 lg:bg-surface-auth-cool lg:p-8 lg:shadow-panel">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 hidden opacity-55 lg:block"
@@ -18,7 +18,7 @@ export default function ForgotPasswordPage() {
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -right-20 -top-20 hidden h-64 w-64 rounded-full bg-[#5f87a8]/28 blur-2xl lg:block"
+          className="pointer-events-none absolute -right-20 -top-20 hidden h-64 w-64 rounded-full bg-info/28 blur-2xl lg:block"
         />
         <div
           aria-hidden="true"
@@ -26,7 +26,7 @@ export default function ForgotPasswordPage() {
         />
 
         <div className="relative grid gap-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,460px)] lg:items-stretch lg:gap-6">
-          <div className="profile-reveal order-2 hidden content-between gap-4 rounded-2xl border border-line/80 bg-linear-to-br from-white/88 via-panel/86 to-[#dce8ef]/92 p-4 sm:p-5 lg:order-1 lg:grid lg:gap-6 lg:p-6">
+          <div className="profile-reveal order-2 hidden content-between gap-4 rounded-2xl border border-line/80 bg-linear-to-br from-white/88 via-panel/86 to-surface-auth-cool/92 p-4 sm:p-5 lg:order-1 lg:grid lg:gap-6 lg:p-6">
             <div className="grid gap-4">
               <h1 className="auth-display-heading max-w-[14ch] text-foreground">
                 Reset access in a single step.
@@ -38,7 +38,7 @@ export default function ForgotPasswordPage() {
             </div>
 
             <div className="hidden gap-3 lg:grid xl:grid-cols-3">
-              <div className="rounded-xl border border-line/85 bg-white/78 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+              <div className="rounded-xl border border-line/85 bg-white/78 p-3 shadow-inset-highlight">
                 <p className="inline-flex items-center gap-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
                   <ShieldCheck className="h-3.5 w-3.5 text-accent-strong" />
                   Secure link
@@ -47,7 +47,7 @@ export default function ForgotPasswordPage() {
                   Time-limited and hashed
                 </p>
               </div>
-              <div className="rounded-xl border border-line/85 bg-white/78 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+              <div className="rounded-xl border border-line/85 bg-white/78 p-3 shadow-inset-highlight">
                 <p className="inline-flex items-center gap-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
                   <Mail className="h-3.5 w-3.5 text-accent-strong" />
                   Fast reply
@@ -56,7 +56,7 @@ export default function ForgotPasswordPage() {
                   Check inbox and spam
                 </p>
               </div>
-              <div className="rounded-xl border border-line/85 bg-white/78 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+              <div className="rounded-xl border border-line/85 bg-white/78 p-3 shadow-inset-highlight">
                 <p className="inline-flex items-center gap-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
                   <ArrowRight className="h-3.5 w-3.5 text-accent-strong" />
                   Return to login
@@ -71,9 +71,9 @@ export default function ForgotPasswordPage() {
           <div className="play-panel-reveal relative order-1 mx-auto w-full max-w-100 lg:order-2 lg:max-w-none">
             <div
               aria-hidden="true"
-              className="absolute -inset-2 hidden rounded-[20px] bg-linear-to-b from-[#486b89]/24 to-transparent blur-lg lg:block"
+              className="absolute -inset-2 hidden rounded-[20px] bg-linear-to-b from-info-strong/24 to-transparent blur-lg lg:block"
             />
-            <div className="relative grid gap-4 rounded-2xl border border-line bg-[#eef5fb] p-4 shadow-panel sm:p-6">
+            <div className="relative grid gap-4 rounded-2xl border border-line bg-surface-auth-cool-soft p-4 shadow-panel sm:p-6">
               <p className="hidden w-fit items-center gap-1.5 rounded-full border border-accent/20 bg-accent/10 px-2.5 py-1 text-[0.74rem] font-bold uppercase tracking-[0.08em] text-foreground/75 lg:inline-flex">
                 <Mail className="h-3.5 w-3.5 text-accent-strong" />
                 Reset request
