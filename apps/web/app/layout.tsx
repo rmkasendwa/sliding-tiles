@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 
+import { CookieConsentBanner } from '@/components/CookieConsentBanner';
 import { MainFooter } from '@/components/MainFooter';
 import { MainHeader } from '@/components/MainHeader';
 import { RouteProgressBar } from '@/components/RouteProgressBar';
@@ -39,6 +40,7 @@ export default async function RootLayout({
           <main className="flex flex-1 flex-col items-start">{children}</main>
           <MainFooter />
         </div>
+        <CookieConsentBanner />
       </body>
     </html>
   );
