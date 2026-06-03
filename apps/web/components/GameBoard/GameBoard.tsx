@@ -159,6 +159,7 @@ function GameBoardContent({
   );
   const [tileRotationSeed, setTileRotationSeed] = useState(0);
   const [isResetting, setIsResetting] = useState(false);
+  const [isShuffleInProgress, setIsShuffleInProgress] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [isInfoModalRendered, setIsInfoModalRendered] = useState(false);
   const [isBoardFullscreen, setIsBoardFullscreen] = useState(false);
@@ -174,6 +175,7 @@ function GameBoardContent({
   const entryMotionSoundTimeoutsRef = useRef<number[]>([]);
   const entryMotionSoundCycleRef = useRef<number>(-1);
   const resetTimeoutRef = useRef<number | null>(null);
+  const shuffleInProgressRef = useRef(false);
   const infoModalTransitionTimeoutRef = useRef<number | null>(null);
   const boardHintMouseUpRef = useRef<(() => void) | null>(null);
   const suppressNextClickRef = useRef(false);
@@ -218,6 +220,10 @@ function GameBoardContent({
 
     boardEntryTimeoutRef.current = window.setTimeout(() => {
       setIsBoardEntering(false);
+      if (shuffleInProgressRef.current) {
+        shuffleInProgressRef.current = false;
+        setIsShuffleInProgress(false);
+      }
       boardEntryTimeoutRef.current = null;
     }, TILE_ENTRY_ANIMATION_MS);
 
@@ -365,6 +371,8 @@ function GameBoardContent({
     setIsClockRunning(true);
   }, [isClockRunning]);
 
+  const isShuffleAnimationRunning = isResetting || isShuffleInProgress;
+
   const completeLevel = useCallback(
     (completedBoard: BoardState) => {
       const completedAtMs = Date.now();
@@ -420,7 +428,7 @@ function GameBoardContent({
 
   const moveTile = useCallback(
     (slot: Slot) => {
-      if (isCelebrating || isResetting) {
+      if (isCelebrating || isShuffleAnimationRunning) {
         return;
       }
 
@@ -440,7 +448,7 @@ function GameBoardContent({
       board,
       completeLevel,
       isCelebrating,
-      isResetting,
+      isShuffleAnimationRunning,
       playSound,
       startClockIfNeeded,
     ],
@@ -449,7 +457,7 @@ function GameBoardContent({
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const [row, column] = board.emptySlot;
-      if (isCelebrating || isResetting) {
+      if (isCelebrating || isShuffleAnimationRunning) {
         return;
       }
 
@@ -480,7 +488,13 @@ function GameBoardContent({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [board, isCelebrating, isResetting, movableSlotKeys, moveTile]);
+  }, [
+    board,
+    isCelebrating,
+    isShuffleAnimationRunning,
+    movableSlotKeys,
+    moveTile,
+  ]);
 
   const [columns, rows] = board.dimensions;
   const tileWidth = BOARD_SIZE / columns;
@@ -524,6 +538,7 @@ function GameBoardContent({
       if (resetTimeoutRef.current !== null) {
         window.clearTimeout(resetTimeoutRef.current);
       }
+      shuffleInProgressRef.current = false;
       if (infoModalTransitionTimeoutRef.current !== null) {
         window.clearTimeout(infoModalTransitionTimeoutRef.current);
       }
@@ -588,7 +603,7 @@ function GameBoardContent({
         return;
       }
 
-      if (isCelebrating || isResetting) {
+      if (isCelebrating || isShuffleAnimationRunning) {
         return;
       }
 
@@ -614,21 +629,21 @@ function GameBoardContent({
       boardHintMouseUpRef.current = clearBoardHint;
       window.addEventListener('mouseup', clearBoardHint, { once: true });
     },
-    [clearBoardHint, isCelebrating, isResetting, playSound],
+    [clearBoardHint, isCelebrating, isShuffleAnimationRunning, playSound],
   );
 
   const clearBoardHintFromPointer = useCallback(() => {
-    if (isCelebrating || isResetting) {
+    if (isCelebrating || isShuffleAnimationRunning) {
       return;
     }
 
     clearBoardHint();
-  }, [clearBoardHint, isCelebrating, isResetting]);
+  }, [clearBoardHint, isCelebrating, isShuffleAnimationRunning]);
 
   const moveTileAtClientPoint = useCallback(
     (clientX: number, clientY: number) => {
       const boardSurface = boardSurfaceRef.current;
-      if (!boardSurface || isCelebrating || isResetting) {
+      if (!boardSurface || isCelebrating || isShuffleAnimationRunning) {
         return;
       }
 
@@ -666,7 +681,7 @@ function GameBoardContent({
       board.tileGrid,
       columns,
       isCelebrating,
-      isResetting,
+      isShuffleAnimationRunning,
       movableSlotKeys,
       moveTile,
       playSound,
@@ -689,11 +704,17 @@ function GameBoardContent({
   );
 
   const restartLevel = useCallback(() => {
-    if (isResetting) {
+    if (shuffleInProgressRef.current || isShuffleAnimationRunning) {
       return;
     }
 
+    shuffleInProgressRef.current = true;
+    setIsShuffleInProgress(true);
     clearBoardHint();
+    if (boardEntryTimeoutRef.current !== null) {
+      window.clearTimeout(boardEntryTimeoutRef.current);
+      boardEntryTimeoutRef.current = null;
+    }
     if (levelAdvanceTimeoutRef.current !== null) {
       window.clearTimeout(levelAdvanceTimeoutRef.current);
       levelAdvanceTimeoutRef.current = null;
@@ -719,7 +740,7 @@ function GameBoardContent({
     board.dimensions,
     board.level,
     clearBoardHint,
-    isResetting,
+    isShuffleAnimationRunning,
     playSound,
     resetClock,
     scheduleLockInSound,
@@ -881,15 +902,31 @@ function GameBoardContent({
         </div>
         <div className="board-overlay absolute bottom-4 right-4 z-40 flex gap-1 rounded-[7px] border p-1 text-accent-strong">
           <button
-            aria-label="Restart level"
-            className="grid h-8 w-8 cursor-pointer place-items-center rounded-md border border-line transition-colors hover:bg-accent/10"
-            disabled={isResetting}
+            aria-label={
+              isShuffleAnimationRunning
+                ? 'Level is shuffling'
+                : 'Restart level'
+            }
+            className="grid h-8 w-8 cursor-pointer place-items-center rounded-md border border-line transition-colors hover:bg-accent/10 disabled:cursor-wait disabled:opacity-50 disabled:hover:bg-transparent"
+            disabled={isShuffleAnimationRunning}
             onClick={restartLevel}
+            title={
+              isShuffleAnimationRunning
+                ? 'Level is shuffling'
+                : 'Restart level'
+            }
             type="button"
           >
             <RotateCcw
               aria-hidden="true"
-              className="size-4"
+              className={[
+                'size-4',
+                isShuffleAnimationRunning
+                  ? 'animate-spin motion-reduce:animate-none'
+                  : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
               strokeWidth={2.2}
             />
           </button>
