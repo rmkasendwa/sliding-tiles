@@ -1,5 +1,5 @@
-import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 
 import { FrogLogo } from '@/components/FrogLogo';
 import { ScrollRevealObserver } from '@/components/ScrollRevealObserver';
@@ -309,12 +309,14 @@ export default async function HomePage() {
             >
               {playCtaLabel}
             </Link>
-            <Link
-              className="inline-flex min-h-10 items-center justify-center rounded-[7px] border border-accent/30 px-3.5 font-bold text-accent-strong max-[560px]:w-full"
-              href={routes.signup}
-            >
-              Create account
-            </Link>
+            {!session ? (
+              <Link
+                className="inline-flex min-h-10 items-center justify-center rounded-[7px] border border-accent/30 px-3.5 font-bold text-accent-strong max-[560px]:w-full"
+                href={routes.signup}
+              >
+                Create account
+              </Link>
+            ) : null}
           </div>
         </div>
         <div className="grid grid-cols-3 gap-4 max-[760px]:grid-cols-1">
