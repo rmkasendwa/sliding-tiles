@@ -4,14 +4,15 @@ import Link from 'next/link';
 import { useSyncExternalStore } from 'react';
 
 import { routes } from '@/lib/routes';
-import { siteConfig } from '@/lib/site';
 
 const COOKIE_CONSENT_STORAGE_KEY = 'sliding-tiles:cookie-consent';
 const COOKIE_CONSENT_EVENT = 'sliding-tiles:cookie-consent-changed';
 
 function getStoredConsent() {
   try {
-    return window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY) === 'accepted';
+    return (
+      window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY) === 'accepted'
+    );
   } catch {
     return false;
   }
@@ -57,8 +58,8 @@ export function CookieConsentBanner() {
             Cookie preferences
           </h2>
           <p className="text-sm leading-6 text-muted">
-            {siteConfig.name} uses cookies and local storage for
-            authentication, preferences, analytics, and site functionality.
+            We use cookies and local storage to keep you signed in, remember
+            your preferences, and improve your experience.
           </p>
         </div>
         <div className="flex flex-col gap-2 min-[420px]:flex-row sm:justify-end">
