@@ -12,9 +12,16 @@ import { SessionUser } from '../session/session.types';
 import { getGravatarUrl } from '../shared/gravatar';
 import { hashPassword, verifyPassword } from './password';
 
+const EMAIL_ALREADY_EXISTS_MESSAGE =
+  'An account with this email address already exists.';
+
 @Injectable()
 export class AuthService {
   constructor(private readonly prisma: PrismaService) {}
+
+  private normalizeEmail(email: string) {
+    return email.trim().toLowerCase();
+  }
 
   private toSessionUser(user: {
     email: string;
@@ -286,12 +293,28 @@ export class AuthService {
     username: string;
     password: string;
   }): Promise<SessionUser> {
+    const normalizedEmail = this.normalizeEmail(email);
+    const normalizedUsername = username.toLowerCase();
+    const existingEmailUser = await this.prisma.user.findFirst({
+      select: { id: true },
+      where: { email: normalizedEmail },
+    });
+
+    if (existingEmailUser) {
+      throw new ConflictException({
+        errors: {
+          email: [EMAIL_ALREADY_EXISTS_MESSAGE],
+        },
+        message: 'Request validation failed.',
+      });
+    }
+
     try {
       const user = await this.prisma.user.create({
         data: {
-          email: email.trim().toLowerCase(),
+          email: normalizedEmail,
           name,
-          username: username.toLowerCase(),
+          username: normalizedUsername,
           passwordHash: await hashPassword(password),
         },
         select: {
@@ -310,6 +333,8 @@ export class AuthService {
       ) {
         const target = Array.isArray(error.meta?.target)
           ? error.meta.target
+          : typeof error.meta?.target === 'string'
+            ? [error.meta.target]
           : [];
         const hasEmailConflict = target.some((value) =>
           String(value).toLowerCase().includes('email'),
@@ -321,7 +346,7 @@ export class AuthService {
         if (hasEmailConflict) {
           throw new ConflictException({
             errors: {
-              email: ['An account with this email already exists.'],
+              email: [EMAIL_ALREADY_EXISTS_MESSAGE],
             },
             message: 'Request validation failed.',
           });

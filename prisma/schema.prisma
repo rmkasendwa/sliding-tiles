@@ -10,7 +10,8 @@ model User {
   id           String        @id @default(cuid())
   name         String
   username     String        @unique(map: "users_username_key")
-  email        String        @unique(map: "users_email_key")
+  /// Case-insensitive uniqueness is enforced by the users_email_lower_key expression index.
+  email        String
   passwordHash String        @map("password_hash")
   resetPasswordTokenHash      String?       @map("reset_password_token_hash")
   resetPasswordTokenExpiresAt DateTime?     @map("reset_password_token_expires_at")

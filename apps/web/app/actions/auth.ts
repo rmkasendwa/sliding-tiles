@@ -59,7 +59,7 @@ export async function signup(
 
       return {
         errors: {
-          email: ['An account with this email already exists.'],
+          email: ['An account with this email address already exists.'],
         },
       };
     }

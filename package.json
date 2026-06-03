@@ -19,6 +19,7 @@
     "build": "npm run db:generate && npm run api:build && npm run web:build",
     "start": "npm run web:start",
     "lint": "eslint .",
+    "test": "npm run api:build && node --test test/*.test.mjs",
     "typecheck": "npm run web:typecheck && tsc --noEmit -p apps/api/tsconfig.json",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
