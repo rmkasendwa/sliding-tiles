@@ -3,6 +3,7 @@
 import {
   Maximize2,
   Minimize2,
+  Search,
   RotateCcw,
   Volume2,
   VolumeX,
@@ -50,6 +51,7 @@ export type GameBoardProps = {
 };
 
 const INFO_MODAL_TRANSITION_MS = 180;
+const PEEK_BUTTON_PREVIEW_DELAY_MS = 120;
 
 function MobileInfoModalPortal({
   children,
@@ -164,6 +166,8 @@ function GameBoardContent({
   const [isInfoModalRendered, setIsInfoModalRendered] = useState(false);
   const [isBoardFullscreen, setIsBoardFullscreen] = useState(false);
   const FullscreenIcon = isBoardFullscreen ? Minimize2 : Maximize2;
+  const previewButtonPointerIdRef = useRef<number | null>(null);
+  const previewButtonTimeoutRef = useRef<number | null>(null);
   const boardFrameRef = useRef<HTMLElement>(null);
   const boardSurfaceRef = useRef<HTMLDivElement>(null);
   const boardHintTimeoutRef = useRef<number | null>(null);
@@ -519,6 +523,31 @@ function GameBoardContent({
     }
   }, []);
 
+  const showFullImagePreview = useCallback(() => {
+    if (isCelebrating || isShuffleAnimationRunning) {
+      return;
+    }
+
+    if (boardHintTimeoutRef.current !== null) {
+      window.clearTimeout(boardHintTimeoutRef.current);
+      boardHintTimeoutRef.current = null;
+    }
+    if (placeholderRevealTimeoutRef.current !== null) {
+      window.clearTimeout(placeholderRevealTimeoutRef.current);
+      placeholderRevealTimeoutRef.current = null;
+    }
+
+    suppressNextClickRef.current = true;
+    setIsShowingSolvedHint(true);
+    setIsShowingHintPlaceholder(true);
+    playSound('hint');
+  }, [isCelebrating, isShuffleAnimationRunning, playSound]);
+
+  const hideFullImagePreview = useCallback(() => {
+    previewButtonPointerIdRef.current = null;
+    clearBoardHint();
+  }, [clearBoardHint]);
+
   useEffect(() => {
     return () => {
       clearBoardHint();
@@ -539,6 +568,9 @@ function GameBoardContent({
         window.clearTimeout(resetTimeoutRef.current);
       }
       shuffleInProgressRef.current = false;
+      if (previewButtonTimeoutRef.current !== null) {
+        window.clearTimeout(previewButtonTimeoutRef.current);
+      }
       if (infoModalTransitionTimeoutRef.current !== null) {
         window.clearTimeout(infoModalTransitionTimeoutRef.current);
       }
@@ -639,6 +671,55 @@ function GameBoardContent({
 
     clearBoardHint();
   }, [clearBoardHint, isCelebrating, isShuffleAnimationRunning]);
+
+  const startPeekButtonPreview = useCallback(
+    (event: PointerEvent<HTMLButtonElement>) => {
+      if (event.button !== 0 || isCelebrating || isShuffleAnimationRunning) {
+        return;
+      }
+
+      previewButtonPointerIdRef.current = event.pointerId;
+      event.currentTarget.setPointerCapture(event.pointerId);
+      if (previewButtonTimeoutRef.current !== null) {
+        window.clearTimeout(previewButtonTimeoutRef.current);
+      }
+
+      previewButtonTimeoutRef.current = window.setTimeout(() => {
+        if (previewButtonPointerIdRef.current === event.pointerId) {
+          showFullImagePreview();
+        }
+        previewButtonTimeoutRef.current = null;
+      }, PEEK_BUTTON_PREVIEW_DELAY_MS);
+    },
+    [isCelebrating, isShuffleAnimationRunning, showFullImagePreview],
+  );
+
+  const stopPeekButtonPreview = useCallback(
+    (event?: PointerEvent<HTMLButtonElement>) => {
+      if (
+        event &&
+        previewButtonPointerIdRef.current !== null &&
+        previewButtonPointerIdRef.current !== event.pointerId
+      ) {
+        return;
+      }
+
+      if (
+        event &&
+        event.currentTarget.hasPointerCapture(event.pointerId)
+      ) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+
+      if (previewButtonTimeoutRef.current !== null) {
+        window.clearTimeout(previewButtonTimeoutRef.current);
+        previewButtonTimeoutRef.current = null;
+      }
+
+      hideFullImagePreview();
+    },
+    [hideFullImagePreview],
+  );
 
   const moveTileAtClientPoint = useCallback(
     (clientX: number, clientY: number) => {
@@ -945,6 +1026,20 @@ function GameBoardContent({
               />
             </button>
           ) : null}
+          <button
+            aria-label="Peek full image"
+            className="grid h-8 w-8 cursor-pointer place-items-center rounded-md border border-line transition-colors hover:bg-accent/10 active:bg-accent/15 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent"
+            disabled={isCelebrating || isShuffleAnimationRunning}
+            onClick={(event) => event.preventDefault()}
+            onPointerCancel={stopPeekButtonPreview}
+            onPointerDown={startPeekButtonPreview}
+            onPointerLeave={stopPeekButtonPreview}
+            onPointerUp={stopPeekButtonPreview}
+            title="Peek full image"
+            type="button"
+          >
+            <Search aria-hidden="true" className="size-4" strokeWidth={2.2} />
+          </button>
           <button
             aria-label={
               isBoardFullscreen
