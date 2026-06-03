@@ -8,8 +8,13 @@ import {
   Volume2,
   VolumeX,
 } from 'lucide-react';
-import type { PointerEvent, ReactNode, TouchEvent } from 'react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type {
+  ButtonHTMLAttributes,
+  PointerEvent,
+  ReactNode,
+  TouchEvent,
+} from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { recordCompletedLevel, saveGameState } from '@/app/actions/game';
@@ -52,6 +57,56 @@ export type GameBoardProps = {
 
 const INFO_MODAL_TRANSITION_MS = 180;
 const PEEK_BUTTON_PREVIEW_DELAY_MS = 120;
+
+type GameToolButtonProps = Omit<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  'children'
+> & {
+  description: string;
+  icon: ReactNode;
+  tooltip: string;
+};
+
+function GameToolButton({
+  className = '',
+  description,
+  icon,
+  tooltip,
+  ...buttonProps
+}: GameToolButtonProps) {
+  const descriptionId = useId();
+  const tooltipId = useId();
+  const describedBy = [descriptionId, tooltipId, buttonProps['aria-describedby']]
+    .filter(Boolean)
+    .join(' ');
+
+  return (
+    <span className="group/tool relative inline-grid">
+      <button
+        {...buttonProps}
+        aria-describedby={describedBy}
+        className={[
+          'grid h-8 w-8 cursor-pointer place-items-center rounded-md border border-line transition-colors hover:bg-accent/10 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent',
+          className,
+        ]
+          .filter(Boolean)
+          .join(' ')}
+      >
+        {icon}
+        <span className="sr-only" id={descriptionId}>
+          {description}
+        </span>
+      </button>
+      <span
+        className="pointer-events-none absolute bottom-full right-0 z-50 mb-2 w-max max-w-52 translate-y-1 rounded-md border border-line bg-panel px-2.5 py-1.5 text-xs font-bold leading-snug text-foreground opacity-0 shadow-panel transition-[opacity,transform] duration-150 group-active/tool:translate-y-0 group-active/tool:opacity-100 group-focus-within/tool:translate-y-0 group-focus-within/tool:opacity-100 group-hover/tool:translate-y-0 group-hover/tool:opacity-100 motion-reduce:transition-none"
+        id={tooltipId}
+        role="tooltip"
+      >
+        {tooltip}
+      </span>
+    </span>
+  );
+}
 
 function MobileInfoModalPortal({
   children,
@@ -982,80 +1037,102 @@ function GameBoardContent({
           {elapsedTimeLabel}
         </div>
         <div className="board-overlay absolute bottom-4 right-4 z-40 flex gap-1 rounded-[7px] border p-1 text-accent-strong">
-          <button
+          <GameToolButton
             aria-label={
               isShuffleAnimationRunning
                 ? 'Level is shuffling'
                 : 'Restart level'
             }
-            className="grid h-8 w-8 cursor-pointer place-items-center rounded-md border border-line transition-colors hover:bg-accent/10 disabled:cursor-wait disabled:opacity-50 disabled:hover:bg-transparent"
-            disabled={isShuffleAnimationRunning}
-            onClick={restartLevel}
-            title={
+            className={
               isShuffleAnimationRunning
-                ? 'Level is shuffling'
-                : 'Restart level'
+                ? 'disabled:cursor-wait'
+                : undefined
             }
-            type="button"
-          >
-            <RotateCcw
-              aria-hidden="true"
-              className={[
-                'size-4',
-                isShuffleAnimationRunning
-                  ? 'animate-spin motion-reduce:animate-none'
-                  : '',
-              ]
-                .filter(Boolean)
-                .join(' ')}
-              strokeWidth={2.2}
-            />
-          </button>
-          {isSoundEnabled ? (
-            <button
-              aria-label={isMuted ? 'Turn sound on' : 'Turn sound off'}
-              aria-pressed={!isMuted}
-              className="grid h-8 w-8 cursor-pointer place-items-center rounded-md border border-line transition-colors hover:bg-accent/10"
-              onClick={toggleMuted}
-              type="button"
-            >
-              <SoundIcon
+            description="Return the current puzzle to its starting state."
+            disabled={isShuffleAnimationRunning}
+            icon={
+              <RotateCcw
                 aria-hidden="true"
-                className="size-4"
+                className={[
+                  'size-4',
+                  isShuffleAnimationRunning
+                    ? 'animate-spin motion-reduce:animate-none'
+                    : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
                 strokeWidth={2.2}
               />
-            </button>
+            }
+            onClick={restartLevel}
+            tooltip={
+              isShuffleAnimationRunning
+                ? 'Shuffling the puzzle'
+                : 'Reset the current puzzle'
+            }
+            type="button"
+          />
+          {isSoundEnabled ? (
+            <GameToolButton
+              aria-label={isMuted ? 'Turn sound on' : 'Turn sound off'}
+              aria-pressed={!isMuted}
+              description={
+                isMuted
+                  ? 'Enable music and game sound effects.'
+                  : 'Mute music and game sound effects.'
+              }
+              icon={
+                <SoundIcon
+                  aria-hidden="true"
+                  className="size-4"
+                  strokeWidth={2.2}
+                />
+              }
+              onClick={toggleMuted}
+              tooltip={isMuted ? 'Enable game sounds' : 'Mute game sounds'}
+              type="button"
+            />
           ) : null}
-          <button
+          <GameToolButton
             aria-label="Peek full image"
-            className="grid h-8 w-8 cursor-pointer place-items-center rounded-md border border-line transition-colors hover:bg-accent/10 active:bg-accent/15 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent"
+            className="active:bg-accent/15"
+            description="Temporarily reveal the complete puzzle image while pressed."
             disabled={isCelebrating || isShuffleAnimationRunning}
+            icon={
+              <Search aria-hidden="true" className="size-4" strokeWidth={2.2} />
+            }
             onClick={(event) => event.preventDefault()}
             onPointerCancel={stopPeekButtonPreview}
             onPointerDown={startPeekButtonPreview}
             onPointerLeave={stopPeekButtonPreview}
             onPointerUp={stopPeekButtonPreview}
-            title="Peek full image"
+            tooltip="Hold to preview the full image"
             type="button"
-          >
-            <Search aria-hidden="true" className="size-4" strokeWidth={2.2} />
-          </button>
-          <button
+          />
+          <GameToolButton
             aria-label={
               isBoardFullscreen
                 ? 'Exit fullscreen board'
                 : 'Enter fullscreen board'
             }
-            className="grid h-8 w-8 cursor-pointer place-items-center rounded-md border border-line transition-colors hover:bg-accent/10"
+            description={
+              isBoardFullscreen
+                ? 'Return the board to the page layout.'
+                : 'Expand the board to fill the screen.'
+            }
+            icon={
+              <FullscreenIcon
+                aria-hidden="true"
+                className="size-4"
+                strokeWidth={2.2}
+              />
+            }
             onClick={toggleBoardFullscreen}
+            tooltip={
+              isBoardFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'
+            }
             type="button"
-          >
-            <FullscreenIcon
-              aria-hidden="true"
-              className="size-4"
-              strokeWidth={2.2}
-            />
-          </button>
+          />
         </div>
       </section>
 
