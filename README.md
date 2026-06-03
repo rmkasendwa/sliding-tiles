@@ -106,6 +106,22 @@ npm run docker:up    # build and run Postgres, migrations, API, and web
 
 Project conventions and contribution rules are documented in [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## Licensing
+
+Sliding Tiles is licensed under **AGPL-3.0-only**.
+
+This license was selected because Sliding Tiles is a networked multiplayer web
+application with authentication, profiles, leaderboards, a shared API, and a
+portable deployment image. AGPL-3.0 keeps the project open when modified
+versions are offered to users over a network, while still allowing the official
+project to be deployed and monetized.
+
+See [LICENSE](LICENSE) for the repository license notice,
+[NOTICE](NOTICE) for copyright and attribution notices, and
+[docs/licensing.md](docs/licensing.md) for the project-specific licensing
+rationale, contribution ownership rules, third-party asset notes, and future
+relicensing considerations.
+
 ### Shared API
 
 The NestJS API lives in `apps/api` and currently exposes the backend surfaces
@@ -220,3 +236,7 @@ restart the dev servers so both apps pick up the new values.
 
 - The sliding-door sound used for the tile fan-out effect comes from Mixkit:
   [mixkit-heavy-sliding-door-1523.wav](https://assets.mixkit.co/active_storage/sfx/1523/1523.wav)
+
+Third-party assets and dependencies remain under their own licenses. See
+[NOTICE](NOTICE) and [docs/licensing.md](docs/licensing.md) for how
+project-owned code, branding, and third-party material are treated.

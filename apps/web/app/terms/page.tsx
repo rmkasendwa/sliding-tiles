@@ -30,7 +30,7 @@ const sections = [
   },
   {
     heading: 'Intellectual property',
-    body: `The ${siteConfig.name} name, design, code, artwork, sounds, and gameplay presentation belong to the project owners or their licensors. You may not copy or reuse them in a way that suggests you own or operate ${siteConfig.name}.`,
+    body: `Project-owned ${siteConfig.name} application code is available under ${siteConfig.license.name}. Third-party assets and dependencies keep their own license terms. The ${siteConfig.name} name, branding, and official service identity may not be used in a way that suggests you own or operate the official project.`,
   },
   {
     heading: 'Limitation of liability',

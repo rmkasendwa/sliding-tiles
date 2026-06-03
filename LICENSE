@@ -1,0 +1,21 @@
+GNU AFFERO GENERAL PUBLIC LICENSE
+Version 3, 19 November 2007
+
+Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
+Everyone is permitted to copy and distribute verbatim copies of this license document, but changing it is not allowed.
+
+Sliding Tiles is licensed under the GNU Affero General Public License version 3 only (AGPL-3.0-only).
+
+The canonical full license text is published by the Free Software Foundation:
+
+https://www.gnu.org/licenses/agpl-3.0.txt
+
+The SPDX license identifier for this project is:
+
+AGPL-3.0-only
+
+Project copyright:
+
+Copyright (C) 2021-present Ronald M. Kasendwa and Sliding Tiles contributors.
+
+This repository may include third-party assets, sounds, dependencies, or generated artifacts that are governed by their own license terms. See README.md, docs/licensing.md, and package metadata for project-specific licensing notes and attribution guidance.

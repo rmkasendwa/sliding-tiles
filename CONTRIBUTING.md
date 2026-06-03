@@ -1,6 +1,51 @@
-# Contributing Rules
+# Contributing
 
-This project has explicit repo conventions. Follow these rules before opening a PR or pushing directly.
+Thanks for helping improve Sliding Tiles. This project has explicit repo
+conventions, licensing expectations, and community standards. Follow these
+rules before opening a PR or pushing directly.
+
+## How to Contribute
+
+1. Fork or branch from the current main development branch.
+2. Keep changes focused on one objective.
+3. Follow the setup instructions in [README.md](README.md).
+4. Run the required quality checks before submitting work.
+5. Open a pull request with a short summary of what changed and why.
+
+For bugs, include reproduction steps. For UI changes, include enough detail for
+reviewers to understand the affected screen and interaction.
+
+## Code of Conduct Expectations
+
+Sliding Tiles does not currently maintain a separate Code of Conduct document,
+so these expectations apply by default:
+
+- Be respectful and constructive.
+- Assume good intent, especially during review.
+- Critique code and behavior, not people.
+- Avoid harassment, personal attacks, discriminatory language, or hostile
+  conduct.
+- Keep competitive gameplay discussions fair and honest.
+
+Maintainers may remove comments, reject contributions, or limit participation
+when behavior makes collaboration harder or less welcoming.
+
+## Licensing and Contribution Ownership
+
+Sliding Tiles project-owned code is licensed under **AGPL-3.0-only**. See
+[LICENSE](LICENSE) and [docs/licensing.md](docs/licensing.md).
+
+By contributing, you agree that your contribution is licensed under
+AGPL-3.0-only, the same license as the project-owned code. You retain copyright
+in your contribution unless a separate written agreement says otherwise.
+
+The project does not currently use a Contributor License Agreement. That keeps
+contribution lightweight, but it also means future relicensing may require
+consent from affected contributors.
+
+Do not contribute code, assets, sounds, images, or text unless you have the
+right to license them under the applicable project terms. Third-party material
+must include clear attribution and license information.
 
 ## 1) Naming Conventions
 

@@ -118,6 +118,18 @@ export async function MainFooter() {
               <ExternalLink aria-hidden="true" className="size-3" />
             </a>
           </p>
+          <p className="text-xs">
+            Licensed under{' '}
+            <a
+              aria-label={`Read the ${siteConfig.license.name} license in a new tab`}
+              className="font-bold transition-colors hover:text-accent-strong"
+              href={siteConfig.license.url}
+              rel="noreferrer"
+              target="_blank"
+            >
+              {siteConfig.license.name}
+            </a>
+          </p>
           <p className="text-xs">{formatCopyright()}</p>
         </div>
 

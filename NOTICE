@@ -1,0 +1,14 @@
+Sliding Tiles
+
+Copyright (C) 2021-present Ronald M. Kasendwa and Sliding Tiles contributors.
+
+Project-owned application code is licensed under AGPL-3.0-only. See LICENSE and
+docs/licensing.md.
+
+Third-party dependencies, sounds, images, and generated artifacts remain under
+their own license terms.
+
+Attribution:
+
+- The sliding-door sound used for the tile fan-out effect comes from Mixkit:
+  https://assets.mixkit.co/active_storage/sfx/1523/1523.wav
