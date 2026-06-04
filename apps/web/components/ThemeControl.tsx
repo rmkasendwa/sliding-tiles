@@ -41,11 +41,9 @@ type ThemeControlProps = {
   onSelect?: () => void;
 };
 
-function getSnapshot() {
-  if (typeof window === 'undefined') {
-    return 'system:light';
-  }
+const SERVER_THEME_SNAPSHOT = 'system:light';
 
+function getSnapshot() {
   const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
   const preference = isThemePreference(storedTheme) ? storedTheme : 'system';
   const resolvedTheme = resolveThemePreference(
@@ -54,6 +52,10 @@ function getSnapshot() {
   );
 
   return `${preference}:${resolvedTheme}`;
+}
+
+function getServerSnapshot() {
+  return SERVER_THEME_SNAPSHOT;
 }
 
 function subscribe(onStoreChange: () => void) {
@@ -79,7 +81,7 @@ export function useThemeSnapshot(): ThemeSnapshot {
   const snapshot = useSyncExternalStore(
     subscribe,
     getSnapshot,
-    getSnapshot,
+    getServerSnapshot,
   );
   const [rawPreference, rawResolvedTheme] = snapshot.split(':');
 
