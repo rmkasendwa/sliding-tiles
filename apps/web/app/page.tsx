@@ -78,20 +78,19 @@ function HomePuzzlePreview({ footerText, label }: HomePuzzlePreviewProps) {
       <div className="pointer-events-none absolute right-3 top-3 rounded-full border border-accent/18 bg-surface/75 px-2.5 py-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-accent-strong">
         {label}
       </div>
-      <div className="grid aspect-square grid-cols-3 gap-2 overflow-hidden rounded-[7px]">
+      <div className="home-puzzle-preview-grid grid aspect-square grid-cols-3 gap-2 overflow-hidden rounded-[7px]">
         {heroTiles.map((homeIndex, index) => {
           const row = homeIndex === null ? 0 : Math.floor(homeIndex / 3);
           const column = homeIndex === null ? 0 : homeIndex % 3;
 
           return (
             <div
-              className="min-w-0 rounded-[7px] border border-foreground/20 bg-no-repeat shadow-tile-preview"
+              className={[
+                'home-puzzle-preview-tile min-w-0 rounded-[7px] border border-foreground/20 bg-no-repeat shadow-tile-preview',
+                homeIndex === null ? 'home-puzzle-preview-tile--empty' : '',
+              ].join(' ')}
               key={index}
               style={{
-                background:
-                  homeIndex === null
-                    ? 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--color-foreground) 16%, transparent) 0 10px, color-mix(in srgb, var(--color-foreground) 16%, transparent) 10px 18px, color-mix(in srgb, var(--color-surface) 30%, transparent) 18px 28px, color-mix(in srgb, var(--color-surface) 30%, transparent) 28px 36px), var(--color-surface-sunken)'
-                    : undefined,
                 backgroundImage:
                   homeIndex === null ? undefined : "url('/frog.svg')",
                 backgroundPosition:
@@ -240,7 +239,7 @@ export default async function HomePage() {
           <div className="grid grid-cols-3 gap-4 max-[900px]:grid-cols-1">
             {highlights.map((item, index) => (
               <article
-                className="scroll-reveal rounded-xl border border-surface/12 bg-[linear-gradient(170deg,color-mix(in_srgb,var(--color-surface)_13%,transparent),color-mix(in_srgb,var(--color-surface)_5%,transparent))] p-5 shadow-night-card"
+                className="scroll-reveal rounded-xl border border-night-accent/24 bg-[linear-gradient(170deg,color-mix(in_srgb,var(--color-surface)_24%,transparent),color-mix(in_srgb,var(--color-panel)_12%,transparent))] p-5 shadow-night-card transition-[border-color,background-color] hover:border-night-accent/38"
                 key={item.title}
                 style={{ animationDelay: `${160 + index * 30}ms` }}
               >
@@ -276,7 +275,7 @@ export default async function HomePage() {
           <ol className="grid grid-cols-3 gap-4 [counter-reset:step] max-[900px]:grid-cols-1">
             {flow.map((item, index) => (
               <li
-                className="scroll-reveal grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-3 rounded-[11px] border border-accent/16 bg-[linear-gradient(165deg,color-mix(in_srgb,var(--color-surface)_86%,transparent),color-mix(in_srgb,var(--color-surface)_58%,transparent))] p-3 [counter-increment:step] shadow-card-soft before:grid before:aspect-square before:place-items-center before:rounded-full before:bg-accent before:text-sm before:font-bold before:text-white before:content-[counter(step)]"
+                className="scroll-reveal grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-3 rounded-[11px] border border-accent/18 bg-[linear-gradient(165deg,color-mix(in_srgb,var(--color-surface)_88%,transparent),color-mix(in_srgb,var(--color-surface-raised)_62%,transparent))] p-3 [counter-increment:step] shadow-card-soft transition-[border-color,background-color] hover:border-primary/35 before:grid before:aspect-square before:place-items-center before:rounded-full before:border before:border-primary/35 before:bg-primary before:text-sm before:font-bold before:text-primary-contrast before:shadow-button-primary before:content-[counter(step)]"
                 key={item}
                 style={{ animationDelay: `${240 + index * 30}ms` }}
               >
