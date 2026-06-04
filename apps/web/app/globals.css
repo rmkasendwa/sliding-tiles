@@ -59,17 +59,20 @@
   --shadow-board-overlay: 0 10px 28px rgba(0, 0, 0, 0.16);
   --shadow-game-shell: 0 24px 80px rgba(0, 0, 0, 0.24);
   --shadow-night-card: 0 16px 34px rgba(0, 0, 0, 0.22);
-  --shadow-featured-stat: inset 0 1px 0 rgba(255, 255, 255, 0.76),
+  --shadow-featured-stat:
+    inset 0 1px 0 rgba(255, 255, 255, 0.76),
     0 14px 34px rgba(138, 109, 33, 0.12);
   --shadow-rank-highlight: 0 8px 20px rgba(90, 133, 63, 0.16);
-  --shadow-tile: inset 0 -3px 4px rgba(0, 0, 0, 0.26),
-    inset 0 3px 4px rgba(255, 255, 255, 0.34),
-    0 16px 22px rgba(0, 0, 0, 0.24);
-  --shadow-tile-preview: inset 0 -4px 5px rgba(0, 0, 0, 0.24),
+  --shadow-tile:
+    inset 0 -3px 4px rgba(0, 0, 0, 0.26),
+    inset 0 3px 4px rgba(255, 255, 255, 0.34), 0 16px 22px rgba(0, 0, 0, 0.24);
+  --shadow-tile-preview:
+    inset 0 -4px 5px rgba(0, 0, 0, 0.24),
     inset 0 3px 4px rgba(255, 255, 255, 0.28);
   --shadow-tile-active: 0 18px 30px rgba(0, 0, 0, 0.28);
   --shadow-solution-preview: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
-  --shadow-frog-logo: inset 0 -5px 10px rgba(37, 111, 90, 0.24),
+  --shadow-frog-logo:
+    inset 0 -5px 10px rgba(37, 111, 90, 0.24),
     inset 0 4px 8px rgba(255, 255, 255, 0.5);
   --shadow-focus-primary: 0 0 0 3px rgba(37, 111, 90, 0.14);
   --shadow-focus-danger: 0 0 0 3px rgba(154, 46, 46, 0.16);
@@ -143,17 +146,19 @@
     --shadow-board-overlay: 0 10px 28px rgba(0, 0, 0, 0.34);
     --shadow-game-shell: 0 24px 80px rgba(0, 0, 0, 0.52);
     --shadow-night-card: 0 16px 34px rgba(0, 0, 0, 0.42);
-    --shadow-featured-stat: inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      0 14px 34px rgba(0, 0, 0, 0.28);
+    --shadow-featured-stat:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 14px 34px rgba(0, 0, 0, 0.28);
     --shadow-rank-highlight: 0 8px 22px rgba(127, 202, 98, 0.18);
-    --shadow-tile: inset 0 -3px 4px rgba(0, 0, 0, 0.38),
-      inset 0 3px 4px rgba(255, 255, 255, 0.18),
-      0 16px 22px rgba(0, 0, 0, 0.36);
-    --shadow-tile-preview: inset 0 -4px 5px rgba(0, 0, 0, 0.34),
+    --shadow-tile:
+      inset 0 -3px 4px rgba(0, 0, 0, 0.38),
+      inset 0 3px 4px rgba(255, 255, 255, 0.18), 0 16px 22px rgba(0, 0, 0, 0.36);
+    --shadow-tile-preview:
+      inset 0 -4px 5px rgba(0, 0, 0, 0.34),
       inset 0 3px 4px rgba(255, 255, 255, 0.14);
     --shadow-tile-active: 0 18px 30px rgba(0, 0, 0, 0.44);
     --shadow-solution-preview: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-    --shadow-frog-logo: inset 0 -5px 10px rgba(0, 0, 0, 0.24),
+    --shadow-frog-logo:
+      inset 0 -5px 10px rgba(0, 0, 0, 0.24),
       inset 0 4px 8px rgba(255, 255, 255, 0.14);
     --shadow-focus-primary: 0 0 0 3px rgba(127, 202, 98, 0.28);
     --shadow-focus-danger: 0 0 0 3px rgba(255, 159, 159, 0.24);
@@ -306,16 +311,22 @@
   :root[data-theme='dark'] .home-puzzle-preview-grid {
     background: color-mix(in srgb, var(--color-night) 72%, transparent);
     box-shadow:
-      inset 0 0 0 1px color-mix(in srgb, var(--color-line-inverse) 80%, transparent),
+      inset 0 0 0 1px
+        color-mix(in srgb, var(--color-line-inverse) 80%, transparent),
       inset 0 14px 28px color-mix(in srgb, var(--color-night) 52%, transparent);
   }
 
   :root[data-theme='dark'] .home-puzzle-preview-tile {
     border-color: color-mix(in srgb, var(--color-foreground) 28%, transparent);
-    background-color: color-mix(in srgb, var(--color-surface-raised) 88%, var(--color-accent) 12%);
+    background-color: color-mix(
+      in srgb,
+      var(--color-surface-raised) 88%,
+      var(--color-accent) 12%
+    );
     box-shadow:
       inset 0 -4px 7px color-mix(in srgb, var(--color-night) 48%, transparent),
-      inset 0 3px 5px color-mix(in srgb, var(--color-foreground) 16%, transparent),
+      inset 0 3px 5px
+        color-mix(in srgb, var(--color-foreground) 16%, transparent),
       0 10px 18px color-mix(in srgb, var(--color-night) 58%, transparent);
     filter: brightness(1.08) saturate(0.92) contrast(1.04);
   }
@@ -327,13 +338,20 @@
         -45deg,
         color-mix(in srgb, var(--color-foreground) 18%, transparent) 0 10px,
         color-mix(in srgb, var(--color-foreground) 18%, transparent) 10px 18px,
-        color-mix(in srgb, var(--color-surface-raised) 22%, transparent) 18px 28px,
-        color-mix(in srgb, var(--color-surface-raised) 22%, transparent) 28px 36px
+        color-mix(in srgb, var(--color-surface-raised) 22%, transparent) 18px
+          28px,
+        color-mix(in srgb, var(--color-surface-raised) 22%, transparent) 28px
+          36px
       ),
-      color-mix(in srgb, var(--color-surface-sunken) 78%, var(--color-night) 22%);
+      color-mix(
+        in srgb,
+        var(--color-surface-sunken) 78%,
+        var(--color-night) 22%
+      );
     box-shadow:
       inset 0 4px 12px color-mix(in srgb, var(--color-night) 72%, transparent),
-      inset 0 0 0 1px color-mix(in srgb, var(--color-foreground) 8%, transparent);
+      inset 0 0 0 1px
+        color-mix(in srgb, var(--color-foreground) 8%, transparent);
     filter: none;
   }
 
