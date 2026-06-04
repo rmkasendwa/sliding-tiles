@@ -325,7 +325,7 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
             </span>
           </span>
         </Link>
-        <div className="flex items-center justify-end gap-2 max-[760px]:hidden">
+        <div className="flex items-center justify-end gap-2 max-[860px]:hidden">
           {desktopNavigationLinks}
           <ThemeControl />
           {session ? (
@@ -428,7 +428,7 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
           aria-controls="mobile-navigation"
           aria-expanded={isDrawerOpen}
           aria-label="Open navigation menu"
-          className="hidden h-11 w-11 cursor-pointer place-items-center rounded-[7px] border border-line text-accent-strong max-[760px]:grid"
+          className="hidden h-11 w-11 cursor-pointer place-items-center rounded-[7px] border border-line text-accent-strong max-[860px]:grid"
           onClick={() => setIsDrawerOpen(true)}
           type="button"
         >
@@ -444,7 +444,7 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
           <>
             <div
               className={[
-                'fixed inset-0 z-50 bg-foreground/35 transition-opacity duration-200 min-[761px]:hidden',
+                'fixed inset-0 z-50 bg-foreground/35 transition-opacity duration-200 min-[861px]:hidden',
                 isDrawerOpen
                   ? 'pointer-events-auto opacity-100'
                   : 'pointer-events-none opacity-0',
@@ -453,7 +453,7 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
             />
             <aside
               className={[
-                'fixed inset-y-0 left-0 z-50 grid w-[min(320px,calc(100%-40px))] content-start gap-6 border-r border-line bg-panel p-5 shadow-panel transition-transform duration-300 ease-out min-[761px]:hidden',
+                'fixed inset-y-0 left-0 z-50 grid w-[min(360px,calc(100%-40px))] content-start gap-6 border-r border-line bg-panel p-5 shadow-panel transition-transform duration-300 ease-out min-[861px]:hidden',
                 isDrawerOpen ? 'translate-x-0' : '-translate-x-full',
               ].join(' ')}
               id="mobile-navigation"
