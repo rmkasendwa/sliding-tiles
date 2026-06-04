@@ -101,10 +101,10 @@
     --color-surface-meadow: #203420;
     --color-accent: #7fca62;
     --color-accent-strong: #b9ef94;
-    --color-primary: #7fca62;
-    --color-primary-strong: #b9ef94;
+    --color-primary: #2f7d4f;
+    --color-primary-strong: #24633f;
     --color-primary-soft: #142419;
-    --color-primary-contrast: #102015;
+    --color-primary-contrast: #f7fff1;
     --color-info: #8bb8d8;
     --color-info-strong: #b6d8ef;
     --color-info-soft: #142434;
@@ -157,7 +157,7 @@
       inset 0 4px 8px rgba(255, 255, 255, 0.14);
     --shadow-focus-primary: 0 0 0 3px rgba(127, 202, 98, 0.28);
     --shadow-focus-danger: 0 0 0 3px rgba(255, 159, 159, 0.24);
-    --shadow-button-primary: 0 10px 22px rgba(127, 202, 98, 0.18);
+    --shadow-button-primary: 0 10px 22px rgba(47, 125, 79, 0.34);
     --shadow-progress-primary: 0 0 12px rgba(127, 202, 98, 0.5);
     --shadow-inset-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.08);
   }

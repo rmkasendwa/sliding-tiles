@@ -48,7 +48,7 @@ export function ProfileAvatar({
     <span
       aria-label={name}
       className={[
-        'relative inline-grid shrink-0 place-items-center overflow-hidden rounded-full border border-accent/25 bg-accent-strong text-sm font-extrabold uppercase text-white shadow-sm',
+        'relative inline-grid shrink-0 place-items-center overflow-hidden rounded-full border border-primary/35 bg-primary text-sm font-extrabold uppercase text-primary-contrast shadow-sm',
         className,
       ]
         .filter(Boolean)

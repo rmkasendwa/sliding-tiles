@@ -178,7 +178,7 @@ export default async function LeaderboardPage() {
             <p className="text-sm text-muted">Post a run to claim this spot.</p>
           )}
           <Link
-            className="mt-0.5 inline-flex min-h-9 w-fit items-center justify-center rounded-[7px] border border-accent bg-accent px-3.5 text-sm font-bold text-white"
+            className="mt-0.5 inline-flex min-h-9 w-fit items-center justify-center rounded-[7px] border border-primary bg-primary px-3.5 text-sm font-bold text-primary-contrast"
             href={routes.play}
           >
             Play a run

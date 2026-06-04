@@ -182,7 +182,7 @@ export default async function ProfilePage() {
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
             <Link
-              className="inline-flex min-h-9 items-center justify-center rounded-[7px] border border-accent bg-accent px-3 text-sm font-bold text-white shadow-button-primary"
+              className="inline-flex min-h-9 items-center justify-center rounded-[7px] border border-primary bg-primary px-3 text-sm font-bold text-primary-contrast shadow-button-primary"
               href={routes.play}
             >
               Continue playing
@@ -545,7 +545,7 @@ export default async function ProfilePage() {
                       className={[
                         'absolute -left-1 top-2 h-2.5 w-2.5 rounded-full border',
                         index === 0
-                          ? 'border-accent bg-accent'
+                          ? 'border-primary bg-primary'
                           : index % 3 === 1
                             ? 'border-info bg-info'
                             : index % 3 === 2

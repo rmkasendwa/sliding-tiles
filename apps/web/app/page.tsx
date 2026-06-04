@@ -177,7 +177,7 @@ export default async function HomePage() {
           )}
           <div className="flex flex-wrap gap-3 max-[560px]:grid">
             <Link
-              className="inline-flex min-h-11 min-w-42 items-center justify-center gap-2 rounded-[7px] border border-accent bg-accent px-4 font-bold text-white shadow-button-primary transition-[background-color,transform] hover:bg-accent-strong active:translate-y-px max-[560px]:w-full"
+              className="inline-flex min-h-11 min-w-42 items-center justify-center gap-2 rounded-[7px] border border-primary bg-primary px-4 font-bold text-primary-contrast shadow-button-primary transition-[background-color,transform] hover:bg-primary-strong active:translate-y-px max-[560px]:w-full"
               href={routes.play}
             >
               {playCtaLabel}
@@ -307,7 +307,7 @@ export default async function HomePage() {
           </p>
           <div className="flex flex-wrap gap-3 max-[560px]:grid">
             <Link
-              className="inline-flex min-h-10 items-center justify-center rounded-[7px] border border-accent bg-accent px-3.5 font-bold text-white max-[560px]:w-full"
+              className="inline-flex min-h-10 items-center justify-center rounded-[7px] border border-primary bg-primary px-3.5 font-bold text-primary-contrast max-[560px]:w-full"
               href={routes.play}
             >
               {playCtaLabel}

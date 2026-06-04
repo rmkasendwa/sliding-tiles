@@ -354,7 +354,7 @@ export function ProfileSettingsForm({
       ) : null}
 
       <button
-        className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[9px] border border-accent bg-accent px-3.5 font-bold text-white shadow-button-primary transition-[background-color,transform] hover:bg-accent-strong active:translate-y-px disabled:cursor-not-allowed disabled:opacity-65 sm:w-fit"
+        className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[9px] border border-primary bg-primary px-3.5 font-bold text-primary-contrast shadow-button-primary transition-[background-color,transform] hover:bg-primary-strong active:translate-y-px disabled:cursor-not-allowed disabled:opacity-65 sm:w-fit"
         disabled={!canSubmit}
         type="submit"
       >

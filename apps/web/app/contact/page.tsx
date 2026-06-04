@@ -35,7 +35,7 @@ export default function ContactPage() {
             should not live in a public issue.
           </p>
           <a
-            className="mt-4 inline-flex min-h-10 items-center justify-center rounded-[7px] border border-accent bg-accent px-4 text-sm font-bold text-white transition-colors hover:bg-accent-strong"
+            className="mt-4 inline-flex min-h-10 items-center justify-center rounded-[7px] border border-primary bg-primary px-4 text-sm font-bold text-primary-contrast transition-colors hover:bg-primary-strong"
             href={`mailto:${siteConfig.contactEmail}`}
           >
             {siteConfig.contactEmail}

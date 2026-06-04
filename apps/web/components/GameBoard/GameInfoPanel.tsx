@@ -62,7 +62,7 @@ export function GameInfoPanel({
             )}
             {!isSignedIn && (
               <Link
-                className="inline-flex min-h-8 items-center justify-center rounded-full bg-accent-strong px-3 text-sm font-bold text-white transition-colors hover:bg-accent"
+                className="inline-flex min-h-8 items-center justify-center rounded-full border border-primary bg-primary px-3 text-sm font-bold text-primary-contrast transition-colors hover:bg-primary-strong"
                 href={routes.login}
               >
                 Login

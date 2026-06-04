@@ -11,6 +11,7 @@ import { getUserDisplayName } from '@/lib/user-display';
 
 import { FrogLogo } from '../FrogLogo';
 import { ProfileAvatar } from '../ProfileAvatar';
+import { ThemeControl } from '../ThemeControl';
 
 type MainHeaderNavProps = {
   logout: () => Promise<void>;
@@ -196,8 +197,8 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
             className={[
               baseLinkClass,
               isRouteActive(pathname, routes.signup)
-                ? 'border-accent-strong/40 bg-accent-strong px-3.5 font-bold text-white'
-                : 'border-accent bg-accent font-bold text-white',
+                ? 'border-primary-strong/50 bg-primary-strong px-3.5 font-bold text-primary-contrast'
+                : 'border-primary bg-primary font-bold text-primary-contrast',
             ].join(' ')}
             href={routes.signup}
             onClick={closeDrawer}
@@ -290,7 +291,7 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
             aria-current={
               isRouteActive(pathname, routes.signup) ? 'page' : undefined
             }
-            className="flex min-h-12 items-center rounded-[7px] bg-accent px-3 text-left text-[1.05rem] font-bold text-white transition-colors hover:bg-accent-strong"
+            className="flex min-h-12 items-center rounded-[7px] border border-primary bg-primary px-3 text-left text-[1.05rem] font-bold text-primary-contrast transition-colors hover:bg-primary-strong"
             href={routes.signup}
             onClick={closeDrawer}
           >
@@ -326,6 +327,7 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
         </Link>
         <div className="flex items-center justify-end gap-2 max-[760px]:hidden">
           {desktopNavigationLinks}
+          <ThemeControl />
           {session ? (
             <div className="relative">
               <button
@@ -477,6 +479,12 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
               </div>
               <div className="grid gap-5">
                 <div className="grid gap-1">{drawerNavigationLinks}</div>
+                <div className="grid gap-2 rounded-lg border border-line bg-surface/60 p-3">
+                  <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-muted">
+                    Theme
+                  </p>
+                  <ThemeControl layout="drawer" />
+                </div>
               </div>
             </aside>
           </>,
