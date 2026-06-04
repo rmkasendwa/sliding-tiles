@@ -223,7 +223,7 @@ export function BoardTile({
     setDragOffset({ x: 0, y: 0 });
   };
   const tileClasses = [
-    'board-tile absolute cursor-pointer rounded-md border border-black/20 bg-no-repeat shadow-tile hover:z-[8] focus-visible:z-[8]',
+    'board-tile absolute cursor-pointer rounded-md border border-foreground/20 bg-no-repeat shadow-tile hover:z-[8] focus-visible:z-[8]',
     isMovable ? '' : 'cursor-not-allowed',
     isShowingSolvedHint
       ? 'z-[2] cursor-default brightness-[1.04] saturate-[1.08]'

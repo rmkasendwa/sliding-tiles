@@ -120,7 +120,7 @@ export default async function LeaderboardPage() {
   return (
     <section className="page-rail mx-auto grid max-w-300 gap-6 pt-5 pb-10">
       <div
-        className="profile-reveal grid gap-4 rounded-xl border border-accent/20 bg-[radial-gradient(circle_at_88%_12%,rgba(128,196,78,0.28),transparent_36%),radial-gradient(circle_at_12%_100%,rgba(246,207,130,0.34),transparent_34%),linear-gradient(135deg,rgba(23,79,67,0.12),rgba(255,255,255,0.52)_48%,rgba(91,132,175,0.18))] p-5 shadow-panel min-[1060px]:grid-cols-[minmax(0,1fr)_320px]"
+        className="profile-reveal grid gap-4 rounded-xl border border-accent/20 bg-[radial-gradient(circle_at_88%_12%,color-mix(in_srgb,var(--color-accent)_28%,transparent),transparent_36%),radial-gradient(circle_at_12%_100%,color-mix(in_srgb,var(--color-warning)_34%,transparent),transparent_34%),linear-gradient(135deg,color-mix(in_srgb,var(--color-primary-strong)_12%,transparent),color-mix(in_srgb,var(--color-surface)_52%,transparent)_48%,color-mix(in_srgb,var(--color-info)_18%,transparent))] p-5 shadow-panel min-[1060px]:grid-cols-[minmax(0,1fr)_320px]"
         style={{ animationDelay: '40ms' }}
       >
         <div>
@@ -135,7 +135,7 @@ export default async function LeaderboardPage() {
             moves, and keep your clock brutal. The top lane changes fast.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
-            <span className="rounded-full border border-accent/22 bg-white/76 px-3 py-1 text-xs font-bold uppercase text-accent-strong shadow-sm">
+            <span className="rounded-full border border-accent/22 bg-surface/76 px-3 py-1 text-xs font-bold uppercase text-accent-strong shadow-sm">
               Live top 50
             </span>
             <span className="rounded-full border border-warning/35 bg-warning-soft/78 px-3 py-1 text-xs font-bold uppercase text-warning-strong shadow-sm">
@@ -225,13 +225,13 @@ export default async function LeaderboardPage() {
                 </p>
               </div>
               <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
-                <p className="rounded-md border border-black/8 bg-white/60 px-2 py-1.5">
+                <p className="rounded-md border border-foreground/8 bg-surface/60 px-2 py-1.5">
                   L{score.level}
                 </p>
-                <p className="rounded-md border border-black/8 bg-white/60 px-2 py-1.5">
+                <p className="rounded-md border border-foreground/8 bg-surface/60 px-2 py-1.5">
                   {score.moves} mv
                 </p>
-                <p className="rounded-md border border-black/8 bg-white/60 px-2 py-1.5">
+                <p className="rounded-md border border-foreground/8 bg-surface/60 px-2 py-1.5">
                   {formatDuration(score.timeSeconds)}
                 </p>
               </div>
@@ -242,7 +242,7 @@ export default async function LeaderboardPage() {
           ? Array.from({ length: 3 - podium.length }).map((_, index) => {
               return (
                 <article
-                  className="rounded-lg border border-dashed p-4 border-black/8 bg-black/1.5 max-[820px]:hidden"
+                  className="rounded-lg border border-dashed p-4 border-foreground/8 bg-foreground/1.5 max-[820px]:hidden"
                   key={index}
                 />
               );
@@ -302,7 +302,7 @@ export default async function LeaderboardPage() {
         style={{ animationDelay: '130ms' }}
       >
         <article className="overflow-hidden rounded-lg border border-accent/18 bg-panel shadow-panel">
-          <header className="border-b border-accent/16 bg-[linear-gradient(90deg,rgba(128,196,78,0.16),rgba(255,255,255,0.45))] px-4 py-3">
+          <header className="border-b border-accent/16 bg-[linear-gradient(90deg,color-mix(in_srgb,var(--color-accent)_16%,transparent),color-mix(in_srgb,var(--color-surface)_45%,transparent))] px-4 py-3">
             <p className="text-[0.74rem] font-extrabold uppercase text-accent-strong">
               Top players in this slice
             </p>
@@ -333,7 +333,7 @@ export default async function LeaderboardPage() {
         </article>
 
         <article className="overflow-hidden rounded-lg border border-info/18 bg-panel shadow-panel">
-          <header className="border-b border-info/16 bg-[linear-gradient(90deg,rgba(91,132,175,0.18),rgba(255,255,255,0.45))] px-4 py-3">
+          <header className="border-b border-info/16 bg-[linear-gradient(90deg,color-mix(in_srgb,var(--color-info)_18%,transparent),color-mix(in_srgb,var(--color-surface)_45%,transparent))] px-4 py-3">
             <p className="text-[0.74rem] font-extrabold uppercase text-info-strong">
               Recent completions
             </p>
@@ -420,7 +420,7 @@ export default async function LeaderboardPage() {
         style={{ animationDelay: '160ms' }}
       >
         <table className="hidden w-full border-collapse min-[901px]:table">
-          <thead className="bg-[linear-gradient(90deg,rgba(128,196,78,0.14),rgba(91,132,175,0.12),rgba(246,207,130,0.16))]">
+          <thead className="bg-[linear-gradient(90deg,color-mix(in_srgb,var(--color-accent)_14%,transparent),color-mix(in_srgb,var(--color-info)_12%,transparent),color-mix(in_srgb,var(--color-warning)_16%,transparent))]">
             <tr>
               <th className="border-b border-line p-3.5 text-left text-[0.84rem] uppercase text-muted">
                 Rank
@@ -453,9 +453,9 @@ export default async function LeaderboardPage() {
               <tr
                 className={
                   session?.id === score.userId
-                    ? 'bg-[linear-gradient(90deg,rgba(112,173,71,0.16),rgba(112,173,71,0.06))]'
+                    ? 'bg-[linear-gradient(90deg,color-mix(in_srgb,var(--color-accent)_16%,transparent),color-mix(in_srgb,var(--color-accent)_6%,transparent))]'
                     : index % 2 === 0
-                      ? 'bg-white/34'
+                      ? 'bg-surface/34'
                       : 'bg-primary-soft/70'
                 }
                 key={score.id}

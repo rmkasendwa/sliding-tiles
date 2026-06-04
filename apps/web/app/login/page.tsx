@@ -23,7 +23,7 @@ export default async function LoginPage() {
           className="pointer-events-none absolute inset-0 hidden opacity-60 lg:block"
           style={{
             backgroundImage:
-              'linear-gradient(rgba(30,37,34,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(30,37,34,0.03) 1px, transparent 1px)',
+              'linear-gradient(color-mix(in srgb, var(--color-foreground) 3%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--color-foreground) 3%, transparent) 1px, transparent 1px)',
             backgroundSize: '32px 32px',
           }}
         />
@@ -37,7 +37,7 @@ export default async function LoginPage() {
         />
 
         <div className="relative grid gap-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,460px)] lg:items-stretch lg:gap-6">
-          <div className="profile-reveal order-2 hidden content-between gap-4 rounded-2xl border border-line/80 bg-linear-to-br from-white/88 via-panel/86 to-surface-auth-gold/88 p-4 sm:p-5 lg:order-1 lg:grid lg:gap-6 lg:p-6">
+          <div className="profile-reveal order-2 hidden content-between gap-4 rounded-2xl border border-line/80 bg-linear-to-br from-surface/88 via-panel/86 to-surface-auth-gold/88 p-4 sm:p-5 lg:order-1 lg:grid lg:gap-6 lg:p-6">
             <div className="grid gap-4">
               <p className="inline-flex w-fit items-center rounded-full border border-accent/20 bg-accent/10 px-3 py-1 text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-accent-strong">
                 Pond access
@@ -52,7 +52,7 @@ export default async function LoginPage() {
             </div>
 
             <div className="hidden gap-3 lg:grid xl:grid-cols-3">
-              <div className="rounded-xl border border-line/85 bg-white/78 p-3 shadow-inset-highlight">
+              <div className="rounded-xl border border-line/85 bg-surface/78 p-3 shadow-inset-highlight">
                 <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
                   Save state
                 </p>
@@ -60,7 +60,7 @@ export default async function LoginPage() {
                   Always on
                 </p>
               </div>
-              <div className="rounded-xl border border-line/85 bg-white/78 p-3 shadow-inset-highlight">
+              <div className="rounded-xl border border-line/85 bg-surface/78 p-3 shadow-inset-highlight">
                 <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
                   Leaderboards
                 </p>
@@ -68,7 +68,7 @@ export default async function LoginPage() {
                   Live stats
                 </p>
               </div>
-              <div className="rounded-xl border border-line/85 bg-white/78 p-3 shadow-inset-highlight">
+              <div className="rounded-xl border border-line/85 bg-surface/78 p-3 shadow-inset-highlight">
                 <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
                   Progress
                 </p>
@@ -85,7 +85,7 @@ export default async function LoginPage() {
               className="absolute -inset-2 hidden rounded-[20px] bg-linear-to-b from-accent/18 to-transparent blur-lg lg:block"
             />
             <div className="relative">
-              <p className="mb-3 hidden items-center gap-1.5 rounded-full border border-line/80 bg-white/75 px-2.5 py-1 text-[0.74rem] font-bold uppercase tracking-[0.08em] text-foreground/75 lg:inline-flex">
+              <p className="mb-3 hidden items-center gap-1.5 rounded-full border border-line/80 bg-surface/75 px-2.5 py-1 text-[0.74rem] font-bold uppercase tracking-[0.08em] text-foreground/75 lg:inline-flex">
                 <Lock className="h-3.5 w-3.5 text-accent-strong" />
                 Secure sign-in
               </p>

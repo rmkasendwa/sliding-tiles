@@ -225,10 +225,10 @@ export function AuthForm({ mode }: AuthFormProps) {
   const getInputClass = (fieldName: string) => {
     const hasError = Boolean(getFieldError(fieldName));
     return [
-      'min-h-11 w-full rounded-[9px] border bg-white px-3 text-foreground placeholder:text-[0.85rem] outline-none transition-[border-color,box-shadow,background-color]',
+      'min-h-11 w-full rounded-[9px] border bg-surface px-3 text-foreground placeholder:text-[0.85rem] outline-none transition-[border-color,box-shadow,background-color]',
       hasError
         ? 'border-danger/65 focus:border-danger/75 focus:shadow-focus-danger'
-        : 'border-line focus:border-accent/60 focus:bg-white focus:shadow-focus-primary',
+        : 'border-line focus:border-accent/60 focus:bg-surface focus:shadow-focus-primary',
     ].join(' ');
   };
 
@@ -565,7 +565,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                       {usernameAvailability.suggestions.map((suggestion) => (
                         <button
                           key={suggestion}
-                          className="rounded-full border border-line bg-white px-2.5 py-1 text-[0.75rem] font-medium text-foreground/78 transition-colors hover:border-accent/45 hover:text-accent-strong"
+                          className="rounded-full border border-line bg-surface px-2.5 py-1 text-[0.75rem] font-medium text-foreground/78 transition-colors hover:border-accent/45 hover:text-accent-strong"
                           onClick={() => applySuggestedUsername(suggestion)}
                           type="button"
                         >

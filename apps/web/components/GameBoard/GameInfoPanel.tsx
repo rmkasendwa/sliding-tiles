@@ -103,7 +103,7 @@ export function GameInfoPanel({
         }
       >
         <SolutionPreview columns={columns} isCompact={isModal} rows={rows} />
-        <p className="rounded-lg border border-line bg-white/40 p-3 text-sm leading-6 text-muted">
+        <p className="rounded-lg border border-line bg-surface/40 p-3 text-sm leading-6 text-muted">
           Use arrow keys or WASD. Click movable tiles to slide them, or click a
           locked tile to flash where it belongs.
         </p>

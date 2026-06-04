@@ -40,7 +40,7 @@ const sections = [
 export default function PrivacyPage() {
   return (
     <section className="page-rail mx-auto grid max-w-300 gap-6 pt-6 pb-12">
-      <div className="rounded-xl border border-accent/20 bg-[radial-gradient(circle_at_86%_12%,rgba(128,196,78,0.24),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.62),rgba(255,250,241,0.92))] p-5 shadow-panel">
+      <div className="rounded-xl border border-accent/20 bg-[radial-gradient(circle_at_86%_12%,color-mix(in_srgb,var(--color-accent)_24%,transparent),transparent_34%),linear-gradient(135deg,color-mix(in_srgb,var(--color-surface)_62%,transparent),color-mix(in_srgb,var(--color-panel)_92%,transparent))] p-5 shadow-panel">
         <p className="text-[0.78rem] font-extrabold uppercase tracking-[0.08em] text-accent-strong">
           Privacy Policy
         </p>

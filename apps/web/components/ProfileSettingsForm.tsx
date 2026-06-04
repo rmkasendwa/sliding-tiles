@@ -235,10 +235,10 @@ export function ProfileSettingsForm({
           aria-invalid={Boolean(nameError)}
           autoComplete="name"
           className={[
-            'min-h-11 w-full rounded-[9px] border bg-white px-3 text-foreground placeholder:text-[0.85rem] outline-none transition-[border-color,box-shadow,background-color]',
+            'min-h-11 w-full rounded-[9px] border bg-surface px-3 text-foreground placeholder:text-[0.85rem] outline-none transition-[border-color,box-shadow,background-color]',
             nameError
               ? 'border-danger/65 focus:border-danger/75 focus:shadow-focus-danger'
-              : 'border-line focus:border-accent/60 focus:bg-white focus:shadow-focus-primary',
+              : 'border-line focus:border-accent/60 focus:bg-surface focus:shadow-focus-primary',
           ].join(' ')}
           id="profile-name"
           minLength={2}
@@ -269,10 +269,10 @@ export function ProfileSettingsForm({
           aria-invalid={Boolean(usernameError)}
           autoComplete="username"
           className={[
-            'min-h-11 w-full rounded-[9px] border bg-white px-3 text-foreground placeholder:text-[0.85rem] outline-none transition-[border-color,box-shadow,background-color]',
+            'min-h-11 w-full rounded-[9px] border bg-surface px-3 text-foreground placeholder:text-[0.85rem] outline-none transition-[border-color,box-shadow,background-color]',
             usernameError
               ? 'border-danger/65 focus:border-danger/75 focus:shadow-focus-danger'
-              : 'border-line focus:border-accent/60 focus:bg-white focus:shadow-focus-primary',
+              : 'border-line focus:border-accent/60 focus:bg-surface focus:shadow-focus-primary',
           ].join(' ')}
           id="profile-username"
           maxLength={20}

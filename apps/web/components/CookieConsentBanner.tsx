@@ -64,7 +64,7 @@ export function CookieConsentBanner() {
         </div>
         <div className="flex flex-col gap-2 min-[420px]:flex-row sm:justify-end">
           <Link
-            className="inline-flex min-h-10 items-center justify-center rounded-[7px] border border-line bg-white/45 px-4 text-sm font-bold text-accent-strong transition-colors hover:bg-accent/10"
+            className="inline-flex min-h-10 items-center justify-center rounded-[7px] border border-line bg-surface/45 px-4 text-sm font-bold text-accent-strong transition-colors hover:bg-accent/10"
             href={routes.privacy}
           >
             Learn more

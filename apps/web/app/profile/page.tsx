@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { ChangePasswordForm } from '@/components/ChangePasswordForm';
 import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { ProfileSettingsForm } from '@/components/ProfileSettingsForm';
+import { ThemeSettings } from '@/components/ThemeSettings';
 import { ApiGameState, ApiScore, apiRequest } from '@/lib/api';
 import { pageMetadata } from '@/lib/metadata';
 import { routes } from '@/lib/routes';
@@ -146,7 +147,7 @@ export default async function ProfilePage() {
 
   return (
     <section className="page-rail mx-auto grid max-w-300 gap-6 pt-5 pb-10">
-      <div className="grid gap-4 rounded-xl border border-accent/20 bg-[radial-gradient(circle_at_88%_12%,rgba(128,196,78,0.28),transparent_36%),radial-gradient(circle_at_10%_100%,rgba(246,207,130,0.34),transparent_34%),linear-gradient(135deg,rgba(24,58,43,0.12),rgba(255,255,255,0.52)_48%,rgba(91,132,175,0.18))] p-5 shadow-panel min-[980px]:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="grid gap-4 rounded-xl border border-accent/20 bg-[radial-gradient(circle_at_88%_12%,color-mix(in_srgb,var(--color-accent)_28%,transparent),transparent_36%),radial-gradient(circle_at_10%_100%,color-mix(in_srgb,var(--color-warning)_34%,transparent),transparent_34%),linear-gradient(135deg,color-mix(in_srgb,var(--color-primary-strong)_12%,transparent),color-mix(in_srgb,var(--color-surface)_52%,transparent)_48%,color-mix(in_srgb,var(--color-info)_18%,transparent))] p-5 shadow-panel min-[980px]:grid-cols-[minmax(0,1fr)_340px]">
         <div>
           <p className="text-[0.78rem] font-extrabold uppercase tracking-[0.08em] text-accent-strong">
             Account cockpit
@@ -159,7 +160,7 @@ export default async function ProfilePage() {
             one place.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
-            <span className="rounded-full border border-accent/22 bg-white/76 px-3 py-1 text-xs font-bold uppercase text-accent-strong shadow-sm">
+            <span className="rounded-full border border-accent/22 bg-surface/76 px-3 py-1 text-xs font-bold uppercase text-accent-strong shadow-sm">
               Signed in as {playerHandle}
             </span>
             <span className="rounded-full border border-info/28 bg-info-soft/78 px-3 py-1 text-xs font-bold uppercase text-info-strong shadow-sm">
@@ -211,25 +212,25 @@ export default async function ProfilePage() {
             </div>
           </div>
           <dl className="mt-4 grid grid-cols-2 gap-2.5 text-sm">
-            <div className="rounded-[7px] border border-accent/18 bg-white/68 p-2.5">
+            <div className="rounded-[7px] border border-accent/18 bg-surface/68 p-2.5">
               <dt className="text-accent-strong">Best time</dt>
               <dd className="mt-1 font-bold text-foreground">
                 {bestRun ? formatDuration(bestRun.timeSeconds) : '-'}
               </dd>
             </div>
-            <div className="rounded-[7px] border border-info/20 bg-white/68 p-2.5">
+            <div className="rounded-[7px] border border-info/20 bg-surface/68 p-2.5">
               <dt className="text-info-strong">Top level</dt>
               <dd className="mt-1 font-bold text-foreground">
                 {highestCompletedLevel > 0 ? highestCompletedLevel : '-'}
               </dd>
             </div>
-            <div className="rounded-[7px] border border-warning/26 bg-white/68 p-2.5">
+            <div className="rounded-[7px] border border-warning/26 bg-surface/68 p-2.5">
               <dt className="text-warning-strong">Avg moves</dt>
               <dd className="mt-1 font-bold text-foreground">
                 {averageMoves ?? '-'}
               </dd>
             </div>
-            <div className="rounded-[7px] border border-clay/20 bg-white/68 p-2.5">
+            <div className="rounded-[7px] border border-clay/20 bg-surface/68 p-2.5">
               <dt className="text-clay-strong">Saved board</dt>
               <dd className="mt-1 font-bold text-foreground">
                 {gameState ? `Level ${gameState.level}` : 'None'}
@@ -240,7 +241,7 @@ export default async function ProfilePage() {
       </div>
 
       <section
-        className="profile-reveal grid gap-4 rounded-xl border border-accent/16 bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(245,251,239,0.86))] p-4 shadow-panel"
+        className="profile-reveal grid gap-4 rounded-xl border border-accent/16 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-surface)_95%,transparent),color-mix(in_srgb,var(--color-primary-soft)_86%,transparent))] p-4 shadow-panel"
         style={{ animationDelay: '40ms' }}
       >
         <div className="flex items-end justify-between gap-3 border-b border-accent/16 pb-2">
@@ -260,6 +261,8 @@ export default async function ProfilePage() {
 
           <ChangePasswordForm compact />
 
+          <ThemeSettings />
+
           <section className="grid gap-3 rounded-lg border border-info/18 bg-[linear-gradient(160deg,var(--color-info-surface),var(--color-surface))] p-4 min-[980px]:col-span-2">
             <div className="flex items-end justify-between gap-3">
               <h3 className="text-[1.03rem] font-bold">Milestone journey</h3>
@@ -271,7 +274,7 @@ export default async function ProfilePage() {
               {milestoneItems.map((item, index) => (
                 <article
                   className={[
-                    'relative rounded-lg border bg-white/72 p-3',
+                    'relative rounded-lg border bg-surface/72 p-3',
                     index % 4 === 0
                       ? 'border-accent/20'
                       : index % 4 === 1
@@ -299,7 +302,7 @@ export default async function ProfilePage() {
       </section>
 
       <section
-        className="profile-reveal grid gap-5 rounded-xl border border-info/16 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(244,249,255,0.86))] p-4 shadow-panel"
+        className="profile-reveal grid gap-5 rounded-xl border border-info/16 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-surface)_96%,transparent),color-mix(in_srgb,var(--color-info-surface)_86%,transparent))] p-4 shadow-panel"
         style={{ animationDelay: '70ms' }}
       >
         <div className="flex items-end justify-between gap-3 border-b border-info/16 pb-2">
@@ -363,7 +366,7 @@ export default async function ProfilePage() {
               {gameState ? (
                 <>
                   <div className="grid grid-cols-3 gap-2.5 max-[620px]:grid-cols-1">
-                    <div className="rounded-[7px] border border-accent/18 bg-white/65 p-3">
+                    <div className="rounded-[7px] border border-accent/18 bg-surface/65 p-3">
                       <span className="block text-[0.78rem] text-accent-strong">
                         Level
                       </span>
@@ -371,7 +374,7 @@ export default async function ProfilePage() {
                         {gameState.level}
                       </strong>
                     </div>
-                    <div className="rounded-[7px] border border-info/20 bg-white/65 p-3">
+                    <div className="rounded-[7px] border border-info/20 bg-surface/65 p-3">
                       <span className="block text-[0.78rem] text-info-strong">
                         Moves
                       </span>
@@ -379,7 +382,7 @@ export default async function ProfilePage() {
                         {gameState.moves}
                       </strong>
                     </div>
-                    <div className="rounded-[7px] border border-warning/26 bg-white/65 p-3">
+                    <div className="rounded-[7px] border border-warning/26 bg-surface/65 p-3">
                       <span className="block text-[0.78rem] text-warning-strong">
                         Last save
                       </span>
@@ -393,7 +396,7 @@ export default async function ProfilePage() {
                   </p>
                 </>
               ) : (
-                <div className="rounded-[7px] border border-dashed border-line bg-white/45 p-4">
+                <div className="rounded-[7px] border border-dashed border-line bg-surface/45 p-4">
                   <p className="leading-normal text-muted">
                     No saved board yet. Start a signed-in run and your progress
                     will appear here automatically.
@@ -451,7 +454,7 @@ export default async function ProfilePage() {
                             {formatDateTime(run.timestamp)}
                           </p>
                         </div>
-                        <div className="h-2.5 w-full overflow-hidden rounded-full bg-white/72">
+                        <div className="h-2.5 w-full overflow-hidden rounded-full bg-surface/72">
                           <div
                             className="profile-trend-bar h-full rounded-full bg-[linear-gradient(90deg,var(--color-primary),var(--color-primary-strong),var(--color-info))]"
                             style={
@@ -484,7 +487,7 @@ export default async function ProfilePage() {
                 </span>
               </div>
               <div className="grid gap-2.5">
-                <article className="rounded-lg border border-accent/18 bg-white/66 p-3">
+                <article className="rounded-lg border border-accent/18 bg-surface/66 p-3">
                   <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-accent-strong">
                     Fastest clear
                   </p>
@@ -494,7 +497,7 @@ export default async function ProfilePage() {
                       : 'No record yet'}
                   </p>
                 </article>
-                <article className="rounded-lg border border-info/18 bg-white/66 p-3">
+                <article className="rounded-lg border border-info/18 bg-surface/66 p-3">
                   <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-info-strong">
                     Best pace run
                   </p>
@@ -504,7 +507,7 @@ export default async function ProfilePage() {
                       : 'No record yet'}
                   </p>
                 </article>
-                <article className="rounded-lg border border-clay/20 bg-white/66 p-3">
+                <article className="rounded-lg border border-clay/20 bg-surface/66 p-3">
                   <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-clay-strong">
                     Cleanest run
                   </p>
@@ -552,7 +555,7 @@ export default async function ProfilePage() {
                     />
                     <div
                       className={[
-                        'grid gap-2 rounded-lg border bg-white/60 p-3',
+                        'grid gap-2 rounded-lg border bg-surface/60 p-3',
                         index === 0
                           ? 'border-accent/45 shadow-rank-highlight'
                           : index % 3 === 1
@@ -571,13 +574,13 @@ export default async function ProfilePage() {
                         </p>
                       </div>
                       <div className="grid grid-cols-3 gap-2 text-sm max-[620px]:grid-cols-1">
-                        <p className="rounded-md border border-line bg-white/80 px-2 py-1.5">
+                        <p className="rounded-md border border-line bg-surface/80 px-2 py-1.5">
                           Time: {formatDuration(score.timeSeconds)}
                         </p>
-                        <p className="rounded-md border border-line bg-white/80 px-2 py-1.5">
+                        <p className="rounded-md border border-line bg-surface/80 px-2 py-1.5">
                           Moves: {score.moves}
                         </p>
-                        <p className="rounded-md border border-line bg-white/80 px-2 py-1.5">
+                        <p className="rounded-md border border-line bg-surface/80 px-2 py-1.5">
                           Pace: {formatPace(score.timeSeconds, score.level)}
                         </p>
                       </div>
@@ -586,7 +589,7 @@ export default async function ProfilePage() {
                 ))}
               </div>
             ) : (
-              <div className="rounded-[7px] border border-dashed border-line bg-white/45 p-4">
+              <div className="rounded-[7px] border border-dashed border-line bg-surface/45 p-4">
                 <p className="leading-normal text-muted">
                   Completed levels will show up here after your first finished
                   run.

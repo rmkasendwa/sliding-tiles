@@ -14,7 +14,7 @@ export function SettingsDisclosure({
   title,
 }: SettingsDisclosureProps) {
   return (
-    <details className="group w-full rounded-lg border border-line bg-white/62">
+    <details className="group w-full rounded-lg border border-line bg-surface/62">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 marker:content-none">
         <span className="grid gap-0.5">
           <span className="text-[1.03rem] font-bold text-foreground">
@@ -24,7 +24,7 @@ export function SettingsDisclosure({
         </span>
         <span className="inline-flex shrink-0 items-center gap-2 text-[0.72rem] font-semibold uppercase tracking-[0.08em] text-muted">
           <span>{badge}</span>
-          <span className="relative grid h-5 w-5 place-items-center rounded-full border border-line/80 bg-white/80 text-foreground/70">
+          <span className="relative grid h-5 w-5 place-items-center rounded-full border border-line/80 bg-surface/80 text-foreground/70">
             <span className="absolute transition-all duration-200 group-open:translate-y-1 group-open:opacity-0">
               +
             </span>

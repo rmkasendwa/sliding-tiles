@@ -72,10 +72,10 @@ function HomePuzzlePreview({ footerText, label }: HomePuzzlePreviewProps) {
   return (
     <div
       aria-label="Scrambled frog puzzle preview"
-      className="relative mx-auto w-full max-w-md overflow-hidden rounded-[18px] border border-accent/18 bg-[radial-gradient(circle_at_top,rgba(132,200,88,0.2),transparent_52%),linear-gradient(155deg,rgba(255,255,255,0.9),rgba(236,228,211,0.86))] p-4 shadow-panel"
+      className="relative mx-auto w-full max-w-md overflow-hidden rounded-[18px] border border-accent/18 bg-[radial-gradient(circle_at_top,color-mix(in_srgb,var(--color-accent)_20%,transparent),transparent_52%),linear-gradient(155deg,color-mix(in_srgb,var(--color-surface)_90%,transparent),color-mix(in_srgb,var(--color-panel-strong)_86%,transparent))] p-4 shadow-panel"
       role="img"
     >
-      <div className="pointer-events-none absolute right-3 top-3 rounded-full border border-accent/18 bg-white/75 px-2.5 py-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-accent-strong">
+      <div className="pointer-events-none absolute right-3 top-3 rounded-full border border-accent/18 bg-surface/75 px-2.5 py-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-accent-strong">
         {label}
       </div>
       <div className="grid aspect-square grid-cols-3 gap-2 overflow-hidden rounded-[7px]">
@@ -85,7 +85,7 @@ function HomePuzzlePreview({ footerText, label }: HomePuzzlePreviewProps) {
 
           return (
             <div
-              className="min-w-0 rounded-[7px] border border-black/20 bg-no-repeat shadow-tile-preview"
+              className="min-w-0 rounded-[7px] border border-foreground/20 bg-no-repeat shadow-tile-preview"
               key={index}
               style={{
                 background:
@@ -138,12 +138,12 @@ export default async function HomePage() {
     <div className="w-full relative grid gap-0 overflow-x-clip" id="home-page">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-120 bg-[radial-gradient(circle_at_18%_28%,rgba(102,168,78,0.23),transparent_42%),radial-gradient(circle_at_86%_12%,rgba(37,111,90,0.16),transparent_38%)]"
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-120 bg-[radial-gradient(circle_at_18%_28%,color-mix(in_srgb,var(--color-accent)_23%,transparent),transparent_42%),radial-gradient(circle_at_86%_12%,color-mix(in_srgb,var(--color-primary-strong)_16%,transparent),transparent_38%)]"
       />
       <ScrollRevealObserver targetId="home-page" />
       <section className="page-rail mx-auto grid min-h-svh grid-cols-[minmax(0,1.08fr)_minmax(330px,0.92fr)] items-center gap-12 py-10 xl:gap-14 max-[900px]:grid-cols-1">
         <div
-          className="scroll-reveal grid gap-6 rounded-[18px] border border-accent/10 bg-white/38 p-7 shadow-card-lift backdrop-blur-[2px] max-[620px]:p-5"
+          className="scroll-reveal grid gap-6 rounded-[18px] border border-accent/10 bg-surface/38 p-7 shadow-card-lift backdrop-blur-[2px] max-[620px]:p-5"
           style={{ animationDelay: '40ms' }}
         >
           <div className="flex items-center justify-between gap-4 max-[540px]:grid">
@@ -153,7 +153,7 @@ export default async function HomePage() {
                 Sliding Tiles
               </p>
             </div>
-            <span className="inline-flex h-8 items-center rounded-full border border-accent/20 bg-white/72 px-3 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-accent-strong">
+            <span className="inline-flex h-8 items-center rounded-full border border-accent/20 bg-surface/72 px-3 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-accent-strong">
               Calm speedrun puzzle
             </span>
           </div>
@@ -171,7 +171,7 @@ export default async function HomePage() {
             make the pond whole again.
           </p>
           {progressLine && (
-            <p className="max-w-[52ch] rounded-[9px] border border-accent/16 bg-white/55 px-3 py-2 text-sm font-bold text-accent-strong">
+            <p className="max-w-[52ch] rounded-[9px] border border-accent/16 bg-surface/55 px-3 py-2 text-sm font-bold text-accent-strong">
               {progressLine}
             </p>
           )}
@@ -240,7 +240,7 @@ export default async function HomePage() {
           <div className="grid grid-cols-3 gap-4 max-[900px]:grid-cols-1">
             {highlights.map((item, index) => (
               <article
-                className="scroll-reveal rounded-xl border border-white/12 bg-[linear-gradient(170deg,rgba(255,255,255,0.13),rgba(255,255,255,0.05))] p-5 shadow-night-card"
+                className="scroll-reveal rounded-xl border border-surface/12 bg-[linear-gradient(170deg,color-mix(in_srgb,var(--color-surface)_13%,transparent),color-mix(in_srgb,var(--color-surface)_5%,transparent))] p-5 shadow-night-card"
                 key={item.title}
                 style={{ animationDelay: `${160 + index * 30}ms` }}
               >
@@ -276,7 +276,7 @@ export default async function HomePage() {
           <ol className="grid grid-cols-3 gap-4 [counter-reset:step] max-[900px]:grid-cols-1">
             {flow.map((item, index) => (
               <li
-                className="scroll-reveal grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-3 rounded-[11px] border border-accent/16 bg-[linear-gradient(165deg,rgba(255,255,255,0.86),rgba(255,255,255,0.58))] p-3 [counter-increment:step] shadow-card-soft before:grid before:aspect-square before:place-items-center before:rounded-full before:bg-accent before:text-sm before:font-bold before:text-white before:content-[counter(step)]"
+                className="scroll-reveal grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-3 rounded-[11px] border border-accent/16 bg-[linear-gradient(165deg,color-mix(in_srgb,var(--color-surface)_86%,transparent),color-mix(in_srgb,var(--color-surface)_58%,transparent))] p-3 [counter-increment:step] shadow-card-soft before:grid before:aspect-square before:place-items-center before:rounded-full before:bg-accent before:text-sm before:font-bold before:text-white before:content-[counter(step)]"
                 key={item}
                 style={{ animationDelay: `${240 + index * 30}ms` }}
               >
@@ -325,7 +325,7 @@ export default async function HomePage() {
         <div className="grid grid-cols-3 gap-4 max-[760px]:grid-cols-1">
           {playModes.map((item, index) => (
             <div
-              className="scroll-reveal grid gap-2.5 rounded-xl border border-accent/14 bg-[linear-gradient(168deg,rgba(255,255,255,0.96),rgba(244,238,224,0.9))] p-4 shadow-card-soft max-[760px]:grid-cols-[2.8rem_minmax(0,1fr)] max-[760px]:items-center max-[760px]:p-3"
+              className="scroll-reveal grid gap-2.5 rounded-xl border border-accent/14 bg-[linear-gradient(168deg,color-mix(in_srgb,var(--color-surface)_96%,transparent),color-mix(in_srgb,var(--color-panel-strong)_90%,transparent))] p-4 shadow-card-soft max-[760px]:grid-cols-[2.8rem_minmax(0,1fr)] max-[760px]:items-center max-[760px]:p-3"
               key={item.title}
               style={{ animationDelay: `${330 + index * 30}ms` }}
             >

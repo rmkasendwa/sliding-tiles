@@ -16,7 +16,7 @@ export default function ForgotPasswordPage() {
           className="pointer-events-none absolute inset-0 hidden opacity-55 lg:block"
           style={{
             backgroundImage:
-              'radial-gradient(circle at 18% 14%, rgba(23,79,67,0.09), transparent 34%), radial-gradient(circle at 86% 84%, rgba(113,157,186,0.28), transparent 38%)',
+              'radial-gradient(circle at 18% 14%, color-mix(in srgb, var(--color-primary-strong) 9%, transparent), transparent 34%), radial-gradient(circle at 86% 84%, color-mix(in srgb, var(--color-info) 28%, transparent), transparent 38%)',
           }}
         />
         <div
@@ -29,7 +29,7 @@ export default function ForgotPasswordPage() {
         />
 
         <div className="relative grid gap-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,460px)] lg:items-stretch lg:gap-6">
-          <div className="profile-reveal order-2 hidden content-between gap-4 rounded-2xl border border-line/80 bg-linear-to-br from-white/88 via-panel/86 to-surface-auth-cool/92 p-4 sm:p-5 lg:order-1 lg:grid lg:gap-6 lg:p-6">
+          <div className="profile-reveal order-2 hidden content-between gap-4 rounded-2xl border border-line/80 bg-linear-to-br from-surface/88 via-panel/86 to-surface-auth-cool/92 p-4 sm:p-5 lg:order-1 lg:grid lg:gap-6 lg:p-6">
             <div className="grid gap-4">
               <h1 className="auth-display-heading max-w-[14ch] text-foreground">
                 Reset access in a single step.
@@ -41,7 +41,7 @@ export default function ForgotPasswordPage() {
             </div>
 
             <div className="hidden gap-3 lg:grid xl:grid-cols-3">
-              <div className="rounded-xl border border-line/85 bg-white/78 p-3 shadow-inset-highlight">
+              <div className="rounded-xl border border-line/85 bg-surface/78 p-3 shadow-inset-highlight">
                 <p className="inline-flex items-center gap-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
                   <ShieldCheck className="h-3.5 w-3.5 text-accent-strong" />
                   Secure link
@@ -50,7 +50,7 @@ export default function ForgotPasswordPage() {
                   Time-limited and hashed
                 </p>
               </div>
-              <div className="rounded-xl border border-line/85 bg-white/78 p-3 shadow-inset-highlight">
+              <div className="rounded-xl border border-line/85 bg-surface/78 p-3 shadow-inset-highlight">
                 <p className="inline-flex items-center gap-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
                   <Mail className="h-3.5 w-3.5 text-accent-strong" />
                   Fast reply
@@ -59,7 +59,7 @@ export default function ForgotPasswordPage() {
                   Check inbox and spam
                 </p>
               </div>
-              <div className="rounded-xl border border-line/85 bg-white/78 p-3 shadow-inset-highlight">
+              <div className="rounded-xl border border-line/85 bg-surface/78 p-3 shadow-inset-highlight">
                 <p className="inline-flex items-center gap-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
                   <ArrowRight className="h-3.5 w-3.5 text-accent-strong" />
                   Return to login

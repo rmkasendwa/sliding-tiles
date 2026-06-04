@@ -997,11 +997,11 @@ function GameBoardContent({
           })}
           {isCelebrating && (
             <div className="pointer-events-none absolute inset-0 z-30 animate-[celebration-fade-in_700ms_ease-out_both] overflow-hidden">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,250,241,0.18),rgba(37,111,90,0.18)_42%,rgba(32,36,31,0.3))]" />
-              <div className="absolute inset-4 rounded-lg border border-white/60 shadow-[inset_0_0_52px_rgba(255,255,255,0.38),0_0_44px_rgba(243,212,107,0.3)]" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,color-mix(in_srgb,var(--color-panel)_18%,transparent),color-mix(in_srgb,var(--color-primary)_18%,transparent)_42%,color-mix(in_srgb,var(--color-night)_30%,transparent))]" />
+              <div className="absolute inset-4 rounded-lg border border-surface/60 shadow-[inset_0_0_52px_color-mix(in_srgb,var(--color-surface)_38%,transparent),0_0_44px_color-mix(in_srgb,var(--color-celebration)_30%,transparent)]" />
               {CELEBRATION_PARTICLES.map((particle, index) => (
                 <span
-                  className="absolute block animate-[celebration-float_1600ms_ease-out_both] rounded-full bg-celebration shadow-[0_0_26px_rgba(243,212,107,0.9),0_0_8px_rgba(255,255,255,0.9)]"
+                  className="absolute block animate-[celebration-float_1600ms_ease-out_both] rounded-full bg-celebration shadow-[0_0_26px_color-mix(in_srgb,var(--color-celebration)_90%,transparent),0_0_8px_color-mix(in_srgb,var(--color-surface)_90%,transparent)]"
                   key={index}
                   style={{
                     animationDelay: particle.delay,
@@ -1012,7 +1012,7 @@ function GameBoardContent({
                   }}
                 />
               ))}
-              <div className="absolute inset-x-6 bottom-6 rounded-lg border border-white/35 bg-panel/90 px-5 py-4 text-center shadow-panel backdrop-blur">
+              <div className="absolute inset-x-6 bottom-6 rounded-lg border border-surface/35 bg-panel/90 px-5 py-4 text-center shadow-panel backdrop-blur">
                 <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
                   Level complete
                 </p>

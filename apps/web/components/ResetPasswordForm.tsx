@@ -56,7 +56,7 @@ export function ResetPasswordForm() {
             }
             aria-invalid={Boolean(state.errors?.password)}
             autoComplete="new-password"
-            className="min-h-11 w-full rounded-[9px] border border-line bg-white px-3 pr-11 text-foreground placeholder:text-[0.85rem] outline-none transition-[border-color,box-shadow,background-color] focus:border-accent/60 focus:bg-white focus:shadow-focus-primary"
+            className="min-h-11 w-full rounded-[9px] border border-line bg-surface px-3 pr-11 text-foreground placeholder:text-[0.85rem] outline-none transition-[border-color,box-shadow,background-color] focus:border-accent/60 focus:bg-surface focus:shadow-focus-primary"
             id="password"
             minLength={8}
             name="password"
@@ -103,7 +103,7 @@ export function ResetPasswordForm() {
             }
             aria-invalid={Boolean(state.errors?.confirmPassword)}
             autoComplete="new-password"
-            className="min-h-11 w-full rounded-[9px] border border-line bg-white px-3 pr-11 text-foreground placeholder:text-[0.85rem] outline-none transition-[border-color,box-shadow,background-color] focus:border-accent/60 focus:bg-white focus:shadow-focus-primary"
+            className="min-h-11 w-full rounded-[9px] border border-line bg-surface px-3 pr-11 text-foreground placeholder:text-[0.85rem] outline-none transition-[border-color,box-shadow,background-color] focus:border-accent/60 focus:bg-surface focus:shadow-focus-primary"
             id="confirmPassword"
             name="confirmPassword"
             placeholder="Re-enter your password"

@@ -79,6 +79,89 @@
 }
 
 @layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  :root[data-theme='dark'] {
+    color-scheme: dark;
+    --color-background: #0f1714;
+    --color-foreground: #f2f7ef;
+    --color-muted: #a9b8ad;
+    --color-panel: #17231f;
+    --color-panel-strong: #22312b;
+    --color-surface: #121c18;
+    --color-surface-muted: #18231f;
+    --color-surface-raised: #1d2a25;
+    --color-surface-sunken: #0b1210;
+    --color-surface-auth-warm: #201d18;
+    --color-surface-auth-gold: #242016;
+    --color-surface-auth-cool: #162029;
+    --color-surface-auth-cool-soft: #1a2833;
+    --color-surface-meadow: #203420;
+    --color-accent: #7fca62;
+    --color-accent-strong: #b9ef94;
+    --color-primary: #7fca62;
+    --color-primary-strong: #b9ef94;
+    --color-primary-soft: #142419;
+    --color-primary-contrast: #102015;
+    --color-info: #8bb8d8;
+    --color-info-strong: #b6d8ef;
+    --color-info-soft: #142434;
+    --color-info-surface: #172939;
+    --color-warning: #f0c567;
+    --color-warning-strong: #f8dda1;
+    --color-warning-soft: #302615;
+    --color-warning-surface: #261f13;
+    --color-success: #8dd579;
+    --color-success-strong: #b9ef94;
+    --color-success-soft: #142419;
+    --color-clay: #e3a17c;
+    --color-clay-strong: #f3c3a2;
+    --color-clay-soft: #2d1f18;
+    --color-night: #07100d;
+    --color-night-accent: #b9ef94;
+    --color-frog-lime: #d7f78e;
+    --color-celebration: #ffd86d;
+    --color-medal-gold-surface: #332812;
+    --color-medal-gold-border: #80682c;
+    --color-medal-gold-text: #f8dda1;
+    --color-medal-silver-surface: #1f2932;
+    --color-medal-silver-border: #526373;
+    --color-medal-silver-text: #c8d5df;
+    --color-medal-bronze-surface: #302219;
+    --color-medal-bronze-border: #755237;
+    --color-danger: #ff9f9f;
+    --color-danger-soft: rgba(255, 159, 159, 0.1);
+    --color-line: rgba(242, 247, 239, 0.16);
+    --color-line-soft: rgba(242, 247, 239, 0.09);
+    --color-line-inverse: rgba(242, 247, 239, 0.18);
+    --shadow-panel: 0 22px 60px rgba(0, 0, 0, 0.38);
+    --shadow-panel-strong: 0 26px 72px rgba(0, 0, 0, 0.48);
+    --shadow-card-soft: 0 14px 30px rgba(0, 0, 0, 0.26);
+    --shadow-card-lift: 0 18px 44px rgba(0, 0, 0, 0.28);
+    --shadow-board-overlay: 0 10px 28px rgba(0, 0, 0, 0.34);
+    --shadow-game-shell: 0 24px 80px rgba(0, 0, 0, 0.52);
+    --shadow-night-card: 0 16px 34px rgba(0, 0, 0, 0.42);
+    --shadow-featured-stat: inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 14px 34px rgba(0, 0, 0, 0.28);
+    --shadow-rank-highlight: 0 8px 22px rgba(127, 202, 98, 0.18);
+    --shadow-tile: inset 0 -3px 4px rgba(0, 0, 0, 0.38),
+      inset 0 3px 4px rgba(255, 255, 255, 0.18),
+      0 16px 22px rgba(0, 0, 0, 0.36);
+    --shadow-tile-preview: inset 0 -4px 5px rgba(0, 0, 0, 0.34),
+      inset 0 3px 4px rgba(255, 255, 255, 0.14);
+    --shadow-tile-active: 0 18px 30px rgba(0, 0, 0, 0.44);
+    --shadow-solution-preview: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    --shadow-frog-logo: inset 0 -5px 10px rgba(0, 0, 0, 0.24),
+      inset 0 4px 8px rgba(255, 255, 255, 0.14);
+    --shadow-focus-primary: 0 0 0 3px rgba(127, 202, 98, 0.28);
+    --shadow-focus-danger: 0 0 0 3px rgba(255, 159, 159, 0.24);
+    --shadow-button-primary: 0 10px 22px rgba(127, 202, 98, 0.18);
+    --shadow-progress-primary: 0 0 12px rgba(127, 202, 98, 0.5);
+    --shadow-inset-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+
   html,
   body {
     min-height: 100%;
@@ -106,6 +189,11 @@
   button,
   input {
     font: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent-strong);
+    outline-offset: 3px;
   }
 }
 

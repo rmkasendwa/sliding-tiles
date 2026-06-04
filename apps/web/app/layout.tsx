@@ -4,7 +4,9 @@ import { CookieConsentBanner } from '@/components/CookieConsentBanner';
 import { MainFooter } from '@/components/MainFooter';
 import { MainHeader } from '@/components/MainHeader';
 import { RouteProgressBar } from '@/components/RouteProgressBar';
+import { ThemeProvider } from '@/components/ThemeProvider';
 import { pageMetadata, siteUrl } from '@/lib/metadata';
+import { themeInitScript } from '@/lib/theme';
 
 import './globals.css';
 
@@ -32,15 +34,20 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className="min-h-screen">
-        <RouteProgressBar />
-        <div className="flex min-h-screen flex-col">
-          <MainHeader />
-          <main className="flex flex-1 flex-col items-start">{children}</main>
-          <MainFooter />
-        </div>
-        <CookieConsentBanner />
+        <ThemeProvider>
+          <RouteProgressBar />
+          <div className="flex min-h-screen flex-col">
+            <MainHeader />
+            <main className="flex flex-1 flex-col items-start">{children}</main>
+            <MainFooter />
+          </div>
+          <CookieConsentBanner />
+        </ThemeProvider>
       </body>
     </html>
   );

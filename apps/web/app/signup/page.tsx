@@ -22,7 +22,7 @@ export default async function SignupPage() {
           className="pointer-events-none absolute inset-0 hidden opacity-55 lg:block"
           style={{
             backgroundImage:
-              'radial-gradient(circle at 18% 14%, rgba(37,111,90,0.09), transparent 34%), radial-gradient(circle at 86% 84%, rgba(246,207,130,0.35), transparent 32%)',
+              'radial-gradient(circle at 18% 14%, color-mix(in srgb, var(--color-primary-strong) 9%, transparent), transparent 34%), radial-gradient(circle at 86% 84%, color-mix(in srgb, var(--color-warning) 35%, transparent), transparent 32%)',
           }}
         />
         <div
@@ -35,7 +35,7 @@ export default async function SignupPage() {
         />
 
         <div className="relative grid gap-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,500px)] lg:items-stretch lg:gap-6">
-          <div className="profile-reveal order-2 hidden content-between gap-4 rounded-2xl border border-line/80 bg-linear-to-br from-white/88 via-panel/85 to-surface-auth-gold/86 p-4 sm:p-5 lg:order-1 lg:grid lg:gap-6 lg:p-6">
+          <div className="profile-reveal order-2 hidden content-between gap-4 rounded-2xl border border-line/80 bg-linear-to-br from-surface/88 via-panel/85 to-surface-auth-gold/86 p-4 sm:p-5 lg:order-1 lg:grid lg:gap-6 lg:p-6">
             <div className="grid gap-4">
               <p className="inline-flex w-fit items-center rounded-full border border-accent/20 bg-accent/10 px-3 py-1 text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-accent-strong">
                 New challenger
@@ -50,7 +50,7 @@ export default async function SignupPage() {
             </div>
 
             <div className="hidden gap-3 lg:grid xl:grid-cols-3">
-              <div className="rounded-xl border border-line/85 bg-white/78 p-3 shadow-inset-highlight">
+              <div className="rounded-xl border border-line/85 bg-surface/78 p-3 shadow-inset-highlight">
                 <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
                   Instant setup
                 </p>
@@ -58,7 +58,7 @@ export default async function SignupPage() {
                   Under 1 min
                 </p>
               </div>
-              <div className="rounded-xl border border-line/85 bg-white/78 p-3 shadow-inset-highlight">
+              <div className="rounded-xl border border-line/85 bg-surface/78 p-3 shadow-inset-highlight">
                 <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
                   Cloud sync
                 </p>
@@ -66,7 +66,7 @@ export default async function SignupPage() {
                   Any device
                 </p>
               </div>
-              <div className="rounded-xl border border-line/85 bg-white/78 p-3 shadow-inset-highlight">
+              <div className="rounded-xl border border-line/85 bg-surface/78 p-3 shadow-inset-highlight">
                 <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
                   Stats trail
                 </p>

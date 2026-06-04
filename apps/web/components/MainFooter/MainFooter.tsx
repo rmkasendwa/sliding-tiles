@@ -54,9 +54,9 @@ export async function MainFooter() {
   return (
     <footer className="mt-8 border-t border-line bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-panel)_72%,transparent),color-mix(in_srgb,var(--color-background)_96%,transparent))]">
       <section className="page-rail mx-auto -mt-8 pb-6">
-        <div className="rounded-xl border border-warning/32 bg-[radial-gradient(circle_at_10%_20%,rgba(246,207,130,0.35),transparent_30%),linear-gradient(135deg,var(--color-warning-surface),var(--color-primary-soft))] p-4 shadow-panel">
+        <div className="rounded-xl border border-warning/32 bg-[radial-gradient(circle_at_10%_20%,color-mix(in_srgb,var(--color-warning)_35%,transparent),transparent_30%),linear-gradient(135deg,var(--color-warning-surface),var(--color-primary-soft))] p-4 shadow-panel">
           <div className="grid items-center gap-4 min-[760px]:grid-cols-[auto_minmax(0,1fr)_auto]">
-            <div className="grid size-12 place-items-center rounded-lg border border-warning/38 bg-white/72 text-warning-strong shadow-sm">
+            <div className="grid size-12 place-items-center rounded-lg border border-warning/38 bg-surface/72 text-warning-strong shadow-sm">
               <Trophy aria-hidden="true" className="size-6" strokeWidth={2.1} />
             </div>
             <div className="grid gap-2 min-[560px]:grid-cols-[minmax(0,1fr)_auto] min-[560px]:items-center min-[760px]:grid-cols-[minmax(0,1fr)]">
