@@ -41,6 +41,14 @@ function formatPace(timeSeconds: number, level: number) {
   return `${(timeSeconds / safeLevel).toFixed(1)}s/lvl`;
 }
 
+function compareAttempt(a: ApiScore, b: ApiScore) {
+  if (a.timeSeconds !== b.timeSeconds) {
+    return a.timeSeconds - b.timeSeconds;
+  }
+
+  return a.moves - b.moves;
+}
+
 export default async function ProfilePage() {
   const session = await getSession();
   if (!session) {
@@ -53,6 +61,55 @@ export default async function ProfilePage() {
   }>('/profile');
 
   const completedRuns = scores.length;
+  const recentScores = scores.slice(0, 10);
+  const levelRecords = scores.reduce((records, score) => {
+    const existing = records.get(score.level);
+    if (!existing) {
+      records.set(score.level, {
+        bestMoves: score.moves,
+        bestTimeSeconds: score.timeSeconds,
+      });
+      return records;
+    }
+
+    records.set(score.level, {
+      bestMoves: Math.min(existing.bestMoves, score.moves),
+      bestTimeSeconds: Math.min(existing.bestTimeSeconds, score.timeSeconds),
+    });
+    return records;
+  }, new Map<number, { bestMoves: number; bestTimeSeconds: number }>());
+  const replayComparisons = scores.reduce((comparisons, score) => {
+    if (score.attemptType !== 'replay') {
+      return comparisons;
+    }
+
+    const completedAt = new Date(score.completedAt).getTime();
+    const previousAttempts = scores.filter((candidate) => {
+      return (
+        candidate.id !== score.id &&
+        candidate.level === score.level &&
+        new Date(candidate.completedAt).getTime() < completedAt
+      );
+    });
+
+    if (previousAttempts.length === 0) {
+      comparisons.set(score.id, 'First replay baseline');
+      return comparisons;
+    }
+
+    const previousBest = previousAttempts.reduce((best, candidate) =>
+      compareAttempt(candidate, best) < 0 ? candidate : best,
+    );
+    const comparison = compareAttempt(score, previousBest);
+    if (comparison < 0) {
+      comparisons.set(score.id, 'Improved previous best');
+    } else if (comparison > 0) {
+      comparisons.set(score.id, 'Behind previous best');
+    } else {
+      comparisons.set(score.id, 'Matched previous best');
+    }
+    return comparisons;
+  }, new Map<string, string>());
   const bestRun =
     scores.length > 0
       ? scores.reduce((best, score) =>
@@ -73,6 +130,7 @@ export default async function ProfilePage() {
   const firstCompletedRun =
     scores.length > 0 ? scores[scores.length - 1] : null;
   const latestRun = scores[0] ?? null;
+  const latestReplay = scores.find((score) => score.attemptType === 'replay');
   const bestPaceRun =
     scores.length > 0
       ? scores.reduce((best, score) =>
@@ -325,6 +383,25 @@ export default async function ProfilePage() {
                 ? `${formatDuration(latestRun.timeSeconds)} · ${latestRun.moves} moves`
                 : 'No completed runs yet'}
             </p>
+            {latestReplay ? (
+              <p
+                className={[
+                  'mt-2 text-sm font-bold',
+                  replayComparisons.get(latestReplay.id)?.startsWith(
+                    'Improved',
+                  )
+                    ? 'text-primary-strong'
+                    : replayComparisons.get(latestReplay.id)?.startsWith(
+                          'Behind',
+                        )
+                      ? 'text-warning-strong'
+                      : 'text-info-strong',
+                ].join(' ')}
+              >
+                Latest replay:{' '}
+                {replayComparisons.get(latestReplay.id) ?? 'Recorded'}
+              </p>
+            ) : null}
           </article>
           <article className="rounded-lg border border-info/24 bg-[linear-gradient(160deg,var(--color-info-soft),var(--color-surface))] p-4">
             <p className="text-[0.75rem] font-extrabold uppercase text-info-strong">
@@ -525,19 +602,26 @@ export default async function ProfilePage() {
             <div className="flex items-end justify-between gap-3">
               <h2 className="text-[clamp(1.6rem,3vw,2.2rem)]">Recent runs</h2>
               <span className="text-xs font-bold uppercase tracking-[0.08em] text-info-strong">
-                Last {scores.length > 10 ? 10 : scores.length}
+                Last {recentScores.length}
               </span>
             </div>
 
-            {scores.length > 0 ? (
+            {recentScores.length > 0 ? (
               <div className="grid gap-2.5">
-                {scores.map((score, index) => (
+                {recentScores.map((score, index) => {
+                  const levelRecord = levelRecords.get(score.level);
+                  const replayComparison = replayComparisons.get(score.id);
+                  const canReplay = Boolean(score.puzzleConfig);
+
+                  return (
                   <article className="relative pl-4" key={score.id}>
                     <span
                       aria-hidden="true"
                       className={[
                         'absolute left-0 top-5 h-[calc(100%-8px)] w-0.5',
-                        index === scores.length - 1 ? 'hidden' : 'bg-line/70',
+                        index === recentScores.length - 1
+                          ? 'hidden'
+                          : 'bg-line/70',
                       ].join(' ')}
                     />
                     <span
@@ -565,13 +649,27 @@ export default async function ProfilePage() {
                               : 'border-line',
                       ].join(' ')}
                     >
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="text-sm font-bold text-foreground">
-                          Level {score.level}
-                        </p>
-                        <p className="text-xs font-semibold uppercase text-muted">
-                          {formatDateTime(score.completedAt)}
-                        </p>
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                          <p className="text-sm font-bold text-foreground">
+                            Level {score.level}
+                          </p>
+                          <p className="mt-0.5 text-xs font-semibold uppercase text-muted">
+                            {formatDateTime(score.completedAt)}
+                          </p>
+                        </div>
+                        <span
+                          className={[
+                            'rounded-full border px-2.5 py-1 text-[0.7rem] font-extrabold uppercase',
+                            score.attemptType === 'replay'
+                              ? 'border-info/26 bg-info-soft/80 text-info-strong'
+                              : 'border-accent/22 bg-primary-soft/76 text-accent-strong',
+                          ].join(' ')}
+                        >
+                          {score.attemptType === 'replay'
+                            ? 'Replay'
+                            : 'Original'}
+                        </span>
                       </div>
                       <div className="grid grid-cols-3 gap-2 text-sm max-[620px]:grid-cols-1">
                         <p className="rounded-md border border-line bg-surface/80 px-2 py-1.5">
@@ -584,9 +682,48 @@ export default async function ProfilePage() {
                           Pace: {formatPace(score.timeSeconds, score.level)}
                         </p>
                       </div>
+                      <div className="grid gap-2 rounded-md border border-line bg-surface/70 px-2.5 py-2 text-xs text-muted">
+                        <p>
+                          Level best:{' '}
+                          <span className="font-bold text-foreground">
+                            {levelRecord
+                              ? `${formatDuration(levelRecord.bestTimeSeconds)} · ${levelRecord.bestMoves} moves`
+                              : 'Pending'}
+                          </span>
+                        </p>
+                        {replayComparison ? (
+                          <p
+                            className={[
+                              'font-bold',
+                              replayComparison.startsWith('Improved')
+                                ? 'text-primary-strong'
+                                : replayComparison.startsWith('Behind')
+                                  ? 'text-warning-strong'
+                                  : 'text-info-strong',
+                            ].join(' ')}
+                          >
+                            Replay result: {replayComparison}
+                          </p>
+                        ) : null}
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {canReplay ? (
+                          <Link
+                            className="inline-flex min-h-9 items-center justify-center rounded-[7px] border border-primary bg-primary px-3 text-sm font-bold text-primary-contrast shadow-button-primary transition-colors hover:bg-primary-strong"
+                            href={`${routes.play}?replay=${encodeURIComponent(score.id)}`}
+                          >
+                            Replay Level
+                          </Link>
+                        ) : (
+                          <span className="inline-flex min-h-9 items-center justify-center rounded-[7px] border border-line bg-surface/70 px-3 text-sm font-bold text-muted">
+                            Replay unavailable
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </article>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="rounded-[7px] border border-dashed border-line bg-surface/45 p-4">

@@ -13,7 +13,6 @@ export class ProfileService {
       }),
       this.prisma.leaderboard.findMany({
         orderBy: [{ completedAt: 'desc' }],
-        take: 10,
         where: { userId },
       }),
     ]);

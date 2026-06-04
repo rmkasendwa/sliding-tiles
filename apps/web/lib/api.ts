@@ -49,10 +49,13 @@ export type ApiGameState = {
 };
 
 export type ApiScore = {
+  attemptType: 'original' | 'replay';
   completedAt: string;
   id: string;
   level: number;
   moves: number;
+  puzzleConfig?: BoardState | null;
+  replayOfId?: string | null;
   timeSeconds: number;
   user?: {
     avatarUrl: string;

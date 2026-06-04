@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { useId } from 'react';
 
 import { routes } from '@/lib/routes';
 
@@ -8,24 +9,38 @@ import { SolutionPreview } from './SolutionPreview';
 export type GameInfoPanelProps = {
   columns: number;
   gameModeLabel: string;
+  highestReachedLevel: number;
   isModal?: boolean;
+  isLevelSelectDisabled?: boolean;
   playerAvatarUrl?: string | null;
   playerName?: string;
   isSignedIn: boolean;
+  level: number;
   onClose?: () => void;
+  onSelectLevel: (level: number) => void;
   rows: number;
 };
 
 export function GameInfoPanel({
   columns,
   gameModeLabel,
+  highestReachedLevel,
   isModal = false,
+  isLevelSelectDisabled = false,
   playerAvatarUrl,
   playerName,
   isSignedIn,
+  level,
   onClose,
+  onSelectLevel,
   rows,
 }: GameInfoPanelProps) {
+  const levelSelectId = useId();
+  const levelOptions = Array.from(
+    { length: Math.max(highestReachedLevel, level) },
+    (_, index) => index + 1,
+  );
+
   return (
     <div
       className={[
@@ -103,6 +118,39 @@ export function GameInfoPanel({
         }
       >
         <SolutionPreview columns={columns} isCompact={isModal} rows={rows} />
+        <form
+          className="grid gap-2 rounded-lg border border-accent/18 bg-primary-soft/55 p-3"
+          onSubmit={(event) => event.preventDefault()}
+        >
+          <div className="flex items-end justify-between gap-3">
+            <label
+              className="text-[0.74rem] font-extrabold uppercase text-accent-strong"
+              htmlFor={levelSelectId}
+            >
+              Level select
+            </label>
+            <span className="text-xs font-bold text-muted">
+              Max {Math.max(highestReachedLevel, level)}
+            </span>
+          </div>
+          <select
+            className="min-h-10 w-full cursor-pointer rounded-[7px] border border-line bg-surface px-3 text-sm font-bold text-foreground shadow-inset-highlight disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={isLevelSelectDisabled}
+            id={levelSelectId}
+            onChange={(event) => onSelectLevel(Number(event.target.value))}
+            value={level}
+          >
+            {levelOptions.map((levelOption) => (
+              <option key={levelOption} value={levelOption}>
+                Level {levelOption}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs leading-5 text-muted">
+            Jumping levels starts a fresh puzzle and resets the timer and move
+            counter.
+          </p>
+        </form>
         <p className="rounded-lg border border-line bg-surface/40 p-3 text-sm leading-6 text-muted">
           Use arrow keys or WASD. Click movable tiles to slide them, or click a
           locked tile to flash where it belongs.

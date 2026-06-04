@@ -31,6 +31,18 @@ export function normalizeBoardState(
   };
 }
 
+export function resetBoardAttempt(
+  board: BoardState,
+  startedAt = new Date().toISOString(),
+): BoardState {
+  return {
+    ...board,
+    elapsedTimeMs: 0,
+    moves: 0,
+    startedAt,
+  };
+}
+
 export const BASE_GRID_DIMENSIONS: Slot = [3, 2];
 
 export function slotKey(slot: Slot) {
@@ -89,6 +101,16 @@ export function isTileGridInOrder(tileGrid: TileGrid): boolean {
 
 export function nextGridDimensions([columns, rows]: Slot): Slot {
   return rows >= columns ? [columns + 1, rows] : [columns, rows + 1];
+}
+
+export function getDimensionsForLevel(level: number) {
+  let dimensions = BASE_GRID_DIMENSIONS;
+
+  for (let currentLevel = 1; currentLevel < level; currentLevel++) {
+    dimensions = nextGridDimensions(dimensions);
+  }
+
+  return dimensions;
 }
 
 export function createSolvedTileGrid([columnCount, rowCount]: Slot): TileGrid {

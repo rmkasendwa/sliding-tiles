@@ -8,6 +8,7 @@ import {
   Volume2,
   VolumeX,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import type {
   ButtonHTMLAttributes,
   PointerEvent,
@@ -17,14 +18,16 @@ import type {
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
-import { recordCompletedLevel, saveGameState } from '@/app/actions/game';
+import { recordLevelAttempt, saveGameState } from '@/app/actions/game';
 import {
   BoardState,
   Slot,
   createBoardState,
+  getDimensionsForLevel,
   isTileGridInOrder,
   moveBoardTile,
   nextGridDimensions,
+  resetBoardAttempt,
   slotKey,
   slotsEqual,
 } from '@/lib/board';
@@ -52,6 +55,7 @@ export type GameBoardProps = {
   isSignedIn: boolean;
   playerAvatarUrl?: string | null;
   playerName?: string;
+  replayOfId?: string | null;
   soundEnabled?: boolean;
 };
 
@@ -188,7 +192,9 @@ function GameBoardContent({
   isSignedIn,
   playerAvatarUrl,
   playerName,
+  replayOfId,
 }: GameBoardProps) {
+  const router = useRouter();
   const {
     isEnabled: isSoundEnabled,
     isMuted,
@@ -199,6 +205,15 @@ function GameBoardContent({
   } = useSound();
   const SoundIcon = isMuted ? VolumeX : Volume2;
   const [board, setBoard] = useState<BoardState>(initialBoard);
+  const [highestReachedLevel, setHighestReachedLevel] = useState(
+    initialBoard.level,
+  );
+  const [attemptStartBoard, setAttemptStartBoard] = useState<BoardState>(() =>
+    resetBoardAttempt(initialBoard, initialBoard.startedAt),
+  );
+  const [activeReplayOfId, setActiveReplayOfId] = useState<string | null>(
+    replayOfId ?? null,
+  );
   const [hintedSlot, setHintedSlot] = useState<string | null>(null);
   const [isCelebrating, setIsCelebrating] = useState(false);
   const [isShowingSolvedHint, setIsShowingSolvedHint] = useState(false);
@@ -315,7 +330,7 @@ function GameBoardContent({
       elapsedTimeMs,
     };
 
-    if (isSignedIn) {
+    if (isSignedIn && !activeReplayOfId) {
       const timeout = window.setTimeout(() => {
         void saveGameState(boardWithElapsed);
       }, 350);
@@ -326,7 +341,7 @@ function GameBoardContent({
       LOCAL_STORAGE_KEY,
       JSON.stringify(boardWithElapsed),
     );
-  }, [board, clockNowMs, isSignedIn, levelStartedAtMs]);
+  }, [activeReplayOfId, board, clockNowMs, isSignedIn, levelStartedAtMs]);
 
   const movableSlotKeys = useMemo(() => {
     return new Set(board.movableSlots.map(slotKey));
@@ -444,9 +459,14 @@ function GameBoardContent({
       setIsClockRunning(false);
       setHintedSlot(null);
       if (isSignedIn) {
-        void recordCompletedLevel({
-          ...completedBoard,
-          elapsedTimeMs: completedElapsedTimeMs,
+        void recordLevelAttempt({
+          attemptType: activeReplayOfId ? 'replay' : 'original',
+          board: {
+            ...completedBoard,
+            elapsedTimeMs: completedElapsedTimeMs,
+          },
+          puzzleConfig: attemptStartBoard,
+          replayOfId: activeReplayOfId,
         });
       }
 
@@ -469,12 +489,21 @@ function GameBoardContent({
           setIsBoardEntering(true);
           setBoardEntryAnimationKey((key) => key + 1);
           setTileRotationSeed((seed) => seed + 1);
-          setBoard(
-            createBoardState(
-              completedBoard.level + 1,
-              nextGridDimensions(completedBoard.dimensions),
-            ),
+          setHighestReachedLevel((highestLevel) =>
+            Math.max(highestLevel, completedBoard.level + 1),
           );
+          if (activeReplayOfId) {
+            router.replace('/play', { scroll: false });
+          }
+          setActiveReplayOfId(null);
+          const nextBoard = createBoardState(
+            completedBoard.level + 1,
+            nextGridDimensions(completedBoard.dimensions),
+          );
+          setAttemptStartBoard(
+            resetBoardAttempt(nextBoard, nextBoard.startedAt),
+          );
+          setBoard(nextBoard);
           setIsCelebrating(false);
           setIsShowingSolvedHint(false);
           setIsShowingHintPlaceholder(false);
@@ -482,7 +511,16 @@ function GameBoardContent({
         }, LEVEL_COMPLETE_ADVANCE_DELAY_MS);
       }, LEVEL_COMPLETE_CELEBRATION_DELAY_MS);
     },
-    [isSignedIn, levelStartedAtMs, playSound, resetClock, scheduleLockInSound],
+    [
+      activeReplayOfId,
+      attemptStartBoard,
+      isSignedIn,
+      levelStartedAtMs,
+      playSound,
+      resetClock,
+      router,
+      scheduleLockInSound,
+    ],
   );
 
   const moveTile = useCallback(
@@ -839,6 +877,79 @@ function GameBoardContent({
     [clearBoardHintFromPointer, moveTileAtClientPoint],
   );
 
+  const selectLevel = useCallback(
+    (level: number) => {
+      const targetLevel = Math.trunc(level);
+      const maxLevel = Math.max(highestReachedLevel, board.level);
+
+      if (
+        !Number.isFinite(targetLevel) ||
+        targetLevel < 1 ||
+        targetLevel > maxLevel ||
+        targetLevel === board.level ||
+        shuffleInProgressRef.current ||
+        isShuffleAnimationRunning
+      ) {
+        return;
+      }
+
+      shuffleInProgressRef.current = true;
+      setIsShuffleInProgress(true);
+      clearBoardHint();
+      if (boardEntryTimeoutRef.current !== null) {
+        window.clearTimeout(boardEntryTimeoutRef.current);
+        boardEntryTimeoutRef.current = null;
+      }
+      if (levelAdvanceTimeoutRef.current !== null) {
+        window.clearTimeout(levelAdvanceTimeoutRef.current);
+        levelAdvanceTimeoutRef.current = null;
+      }
+      if (celebrationTimeoutRef.current !== null) {
+        window.clearTimeout(celebrationTimeoutRef.current);
+        celebrationTimeoutRef.current = null;
+      }
+
+      setIsCelebrating(false);
+      setIsShowingSolvedHint(false);
+      setIsShowingHintPlaceholder(false);
+      playSound('shuffle');
+      scheduleLockInSound(RESET_GATHER_DELAY_MS + TILE_ENTRY_LOCK_IN_DELAY_MS);
+      setTileRotationSeed((seed) => seed + 1);
+      setIsResetting(true);
+
+      resetTimeoutRef.current = window.setTimeout(() => {
+        resetClock();
+        if (activeReplayOfId) {
+          router.replace('/play', { scroll: false });
+        }
+        const selectedBoard = createBoardState(
+          targetLevel,
+          getDimensionsForLevel(targetLevel),
+        );
+        setActiveReplayOfId(null);
+        setAttemptStartBoard(
+          resetBoardAttempt(selectedBoard, selectedBoard.startedAt),
+        );
+        setIsBoardEntering(true);
+        setBoardEntryAnimationKey((key) => key + 1);
+        setBoard(selectedBoard);
+        setIsResetting(false);
+        resetTimeoutRef.current = null;
+      }, RESET_GATHER_DELAY_MS);
+    },
+    [
+      activeReplayOfId,
+      board.level,
+      clearBoardHint,
+      highestReachedLevel,
+      isShuffleAnimationRunning,
+      playSound,
+      resetClock,
+      router,
+      scheduleLockInSound,
+    ],
+  );
+
   const restartLevel = useCallback(() => {
     if (shuffleInProgressRef.current || isShuffleAnimationRunning) {
       return;
@@ -866,13 +977,23 @@ function GameBoardContent({
     setIsResetting(true);
     resetTimeoutRef.current = window.setTimeout(() => {
       resetClock();
+      const nextBoard = activeReplayOfId
+        ? resetBoardAttempt(attemptStartBoard)
+        : createBoardState(board.level, board.dimensions);
+
+      if (!activeReplayOfId) {
+        setAttemptStartBoard(resetBoardAttempt(nextBoard, nextBoard.startedAt));
+      }
+
       setIsBoardEntering(true);
       setBoardEntryAnimationKey((key) => key + 1);
-      setBoard(createBoardState(board.level, board.dimensions));
+      setBoard(nextBoard);
       setIsResetting(false);
       resetTimeoutRef.current = null;
     }, RESET_GATHER_DELAY_MS);
   }, [
+    activeReplayOfId,
+    attemptStartBoard,
     board.dimensions,
     board.level,
     clearBoardHint,
@@ -882,7 +1003,11 @@ function GameBoardContent({
     scheduleLockInSound,
   ]);
 
-  const gameModeLabel = isSignedIn ? 'Saved run' : 'Anonymous run';
+  const gameModeLabel = activeReplayOfId
+    ? 'Replay run'
+    : isSignedIn
+      ? 'Saved run'
+      : 'Anonymous run';
   const exitBoardFullscreen = useCallback(async () => {
     const boardFrame = boardFrameRef.current;
 
@@ -1140,7 +1265,11 @@ function GameBoardContent({
         <GameInfoPanel
           columns={columns}
           gameModeLabel={gameModeLabel}
+          highestReachedLevel={highestReachedLevel}
+          isLevelSelectDisabled={isShuffleAnimationRunning || isCelebrating}
           isSignedIn={isSignedIn}
+          level={board.level}
+          onSelectLevel={selectLevel}
           playerAvatarUrl={playerAvatarUrl}
           playerName={playerName}
           rows={rows}
@@ -1154,9 +1283,13 @@ function GameBoardContent({
           <GameInfoPanel
             columns={columns}
             gameModeLabel={gameModeLabel}
+            highestReachedLevel={highestReachedLevel}
+            isLevelSelectDisabled={isShuffleAnimationRunning || isCelebrating}
             isModal
             isSignedIn={isSignedIn}
+            level={board.level}
             onClose={closeInfoModal}
+            onSelectLevel={selectLevel}
             playerAvatarUrl={playerAvatarUrl}
             playerName={playerName}
             rows={rows}
@@ -1172,6 +1305,7 @@ export function GameBoard({
   isSignedIn,
   playerAvatarUrl,
   playerName,
+  replayOfId,
   soundEnabled = true,
 }: GameBoardProps) {
   return (
@@ -1181,6 +1315,7 @@ export function GameBoard({
         isSignedIn={isSignedIn}
         playerAvatarUrl={playerAvatarUrl}
         playerName={playerName}
+        replayOfId={replayOfId}
       />
     </SoundProvider>
   );

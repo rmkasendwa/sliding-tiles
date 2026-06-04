@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Post, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 
 import { AuthGuard } from '../session/auth.guard';
 import { getAuthenticatedUser } from '../session/get-authenticated-user';
@@ -25,7 +34,20 @@ export class LeaderboardController {
     @Req() request: AuthenticatedRequest,
   ) {
     const user = getAuthenticatedUser(request);
-    const { board } = parseBody(completedLevelSchema, body);
-    return this.leaderboardService.recordCompletedLevel(user.id, board);
+    const completedLevel = parseBody(completedLevelSchema, body);
+    return this.leaderboardService.recordCompletedLevel(
+      user.id,
+      completedLevel,
+    );
+  }
+
+  @Get('completions/:completionId/replay')
+  @UseGuards(AuthGuard)
+  getReplayBoard(
+    @Param('completionId') completionId: string,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    const user = getAuthenticatedUser(request);
+    return this.leaderboardService.getReplayBoard(user.id, completionId);
   }
 }

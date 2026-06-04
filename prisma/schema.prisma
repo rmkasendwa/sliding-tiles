@@ -42,10 +42,14 @@ model Leaderboard {
   level           Int
   moves           Int
   timeSeconds     Int      @map("time_seconds")
+  attemptType     String   @default("original") @map("attempt_type")
+  replayOfId      String?  @map("replay_of_id")
+  puzzleConfig    Json?    @map("puzzle_config")
   completedAt     DateTime @default(now()) @map("completed_at")
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "leaderboards_user_id_fkey")
 
   @@index([level, timeSeconds, moves], map: "leaderboards_level_time_seconds_moves_idx")
+  @@index([replayOfId], map: "leaderboards_replay_of_id_idx")
   @@index([userId, completedAt], map: "leaderboards_user_id_completed_at_idx")
   @@map("leaderboards")
 }

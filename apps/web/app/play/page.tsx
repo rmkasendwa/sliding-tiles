@@ -6,13 +6,27 @@ import { getSession } from '@/lib/session';
 
 export const metadata = pageMetadata.play;
 
-export default async function PlayPage() {
+type PlayPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function PlayPage({ searchParams }: PlayPageProps) {
   const session = await getSession();
-  const savedState = session
+  const params = (await searchParams) ?? {};
+  const replayParam = params.replay;
+  const replayId = Array.isArray(replayParam) ? replayParam[0] : replayParam;
+  const replayState =
+    session && replayId
+      ? await apiRequest<{ board: BoardState; replayOfId: string }>(
+          `/leaderboard/completions/${encodeURIComponent(replayId)}/replay`,
+        )
+      : null;
+  const savedState = session && !replayState
     ? await apiRequest<{ gameState: ApiGameState | null }>('/game-state')
     : null;
   const initialBoard = normalizeBoardState(
-    (savedState?.gameState?.board as BoardState | undefined) ??
+    replayState?.board ??
+      (savedState?.gameState?.board as BoardState | undefined) ??
       createBoardState(),
   );
 
@@ -23,6 +37,7 @@ export default async function PlayPage() {
         isSignedIn={Boolean(session)}
         playerAvatarUrl={session?.avatarUrl}
         playerName={session?.name}
+        replayOfId={replayState?.replayOfId}
       />
     </section>
   );

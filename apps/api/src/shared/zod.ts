@@ -130,5 +130,8 @@ export const saveGameStateSchema = z.object({
 });
 
 export const completedLevelSchema = z.object({
+  attemptType: z.enum(['original', 'replay']).default('original'),
   board: boardStateSchema,
+  puzzleConfig: boardStateSchema.optional(),
+  replayOfId: z.string().trim().min(1).optional(),
 });
