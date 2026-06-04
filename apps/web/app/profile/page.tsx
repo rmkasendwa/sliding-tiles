@@ -5,9 +5,12 @@ import { ChangePasswordForm } from '@/components/ChangePasswordForm';
 import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { ProfileSettingsForm } from '@/components/ProfileSettingsForm';
 import { ApiGameState, ApiScore, apiRequest } from '@/lib/api';
+import { pageMetadata } from '@/lib/metadata';
 import { routes } from '@/lib/routes';
 import { getSession } from '@/lib/session';
 import { getUserDisplayName } from '@/lib/user-display';
+
+export const metadata = pageMetadata.profile;
 
 function formatDuration(totalSeconds: number) {
   const safeSeconds = Math.max(0, Math.floor(totalSeconds));

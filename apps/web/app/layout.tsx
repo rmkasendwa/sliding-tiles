@@ -4,13 +4,13 @@ import { CookieConsentBanner } from '@/components/CookieConsentBanner';
 import { MainFooter } from '@/components/MainFooter';
 import { MainHeader } from '@/components/MainHeader';
 import { RouteProgressBar } from '@/components/RouteProgressBar';
-import { siteConfig } from '@/lib/site';
+import { pageMetadata, siteUrl } from '@/lib/metadata';
 
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: siteConfig.name,
-  description: siteConfig.description,
+  ...pageMetadata.home,
+  metadataBase: siteUrl,
   manifest: '/manifest.json',
   icons: {
     icon: [

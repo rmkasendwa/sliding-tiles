@@ -1,10 +1,13 @@
 import Link from 'next/link';
 
+import { CurrentUserBadge } from '@/components/CurrentUserBadge';
 import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { ApiScore, apiRequest, getApiMessage } from '@/lib/api';
+import { pageMetadata } from '@/lib/metadata';
 import { routes } from '@/lib/routes';
 import { getSession } from '@/lib/session';
-import { CurrentUserBadge } from '@/components/CurrentUserBadge';
+
+export const metadata = pageMetadata.leaderboard;
 
 function formatDuration(totalSeconds: number) {
   const safeSeconds = Math.max(0, Math.floor(totalSeconds));

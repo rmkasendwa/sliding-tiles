@@ -4,8 +4,11 @@ import Link from 'next/link';
 import { FrogLogo } from '@/components/FrogLogo';
 import { ScrollRevealObserver } from '@/components/ScrollRevealObserver';
 import { ApiGameState, apiRequest } from '@/lib/api';
+import { pageMetadata } from '@/lib/metadata';
 import { routes } from '@/lib/routes';
 import { getSession } from '@/lib/session';
+
+export const metadata = pageMetadata.home;
 
 const heroTiles = [2, 0, 5, 3, 8, 1, 6, 4, null] as const;
 

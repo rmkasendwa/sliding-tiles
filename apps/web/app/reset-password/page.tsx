@@ -3,7 +3,10 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 
 import { ResetPasswordForm } from '@/components/ResetPasswordForm';
+import { pageMetadata } from '@/lib/metadata';
 import { routes } from '@/lib/routes';
+
+export const metadata = pageMetadata.resetPassword;
 
 export default function ResetPasswordPage() {
   return (

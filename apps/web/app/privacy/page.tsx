@@ -1,13 +1,10 @@
-import type { Metadata } from 'next';
 import Link from 'next/link';
 
+import { pageMetadata } from '@/lib/metadata';
 import { routes } from '@/lib/routes';
 import { siteConfig } from '@/lib/site';
 
-export const metadata: Metadata = {
-  title: `Privacy Policy | ${siteConfig.name}`,
-  description: `How ${siteConfig.name} handles account and gameplay information.`,
-};
+export const metadata = pageMetadata.privacy;
 
 const sections = [
   {

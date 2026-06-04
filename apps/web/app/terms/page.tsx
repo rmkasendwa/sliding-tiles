@@ -1,11 +1,7 @@
-import type { Metadata } from 'next';
-
+import { pageMetadata } from '@/lib/metadata';
 import { siteConfig } from '@/lib/site';
 
-export const metadata: Metadata = {
-  title: `Terms of Service | ${siteConfig.name}`,
-  description: `Clear terms for playing ${siteConfig.name}.`,
-};
+export const metadata = pageMetadata.terms;
 
 const sections = [
   {

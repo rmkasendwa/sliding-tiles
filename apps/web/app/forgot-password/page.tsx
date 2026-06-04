@@ -2,7 +2,10 @@ import { ArrowRight, Mail, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 
 import { ForgotPasswordForm } from '@/components/ForgotPasswordForm';
+import { pageMetadata } from '@/lib/metadata';
 import { routes } from '@/lib/routes';
+
+export const metadata = pageMetadata.forgotPassword;
 
 export default function ForgotPasswordPage() {
   return (

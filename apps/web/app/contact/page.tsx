@@ -1,12 +1,9 @@
-import type { Metadata } from 'next';
 import { ExternalLink, GitFork, Mail } from 'lucide-react';
 
+import { pageMetadata } from '@/lib/metadata';
 import { siteConfig } from '@/lib/site';
 
-export const metadata: Metadata = {
-  title: `Contact | ${siteConfig.name}`,
-  description: `Contact ${siteConfig.name} for support, bugs, and ideas.`,
-};
+export const metadata = pageMetadata.contact;
 
 export default function ContactPage() {
   return (

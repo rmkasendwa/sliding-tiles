@@ -3,8 +3,11 @@ import { redirect } from 'next/navigation';
 import { Lock } from 'lucide-react';
 
 import { AuthForm } from '@/components/AuthForm';
+import { pageMetadata } from '@/lib/metadata';
 import { routes } from '@/lib/routes';
 import { getSession } from '@/lib/session';
+
+export const metadata = pageMetadata.login;
 
 export default async function LoginPage() {
   const session = await getSession();

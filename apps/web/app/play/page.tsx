@@ -1,7 +1,10 @@
 import { GameBoard } from '@/components/GameBoard';
 import { ApiGameState, apiRequest } from '@/lib/api';
 import { BoardState, createBoardState, normalizeBoardState } from '@/lib/board';
+import { pageMetadata } from '@/lib/metadata';
 import { getSession } from '@/lib/session';
+
+export const metadata = pageMetadata.play;
 
 export default async function PlayPage() {
   const session = await getSession();
