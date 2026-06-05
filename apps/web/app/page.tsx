@@ -137,7 +137,7 @@ export default async function HomePage() {
     <div className="w-full relative grid gap-0 overflow-x-clip" id="home-page">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-120 bg-[radial-gradient(circle_at_18%_28%,color-mix(in_srgb,var(--color-accent)_23%,transparent),transparent_42%),radial-gradient(circle_at_86%_12%,color-mix(in_srgb,var(--color-primary-strong)_16%,transparent),transparent_38%)]"
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[50vh] bg-[radial-gradient(circle_at_18%_28%,color-mix(in_srgb,var(--color-accent)_23%,transparent),transparent_42%),radial-gradient(circle_at_86%_12%,color-mix(in_srgb,var(--color-primary-strong)_16%,transparent),transparent_38%)]"
       />
       <ScrollRevealObserver targetId="home-page" />
       <section className="page-rail mx-auto grid min-h-svh grid-cols-[minmax(0,1.08fr)_minmax(330px,0.92fr)] items-center gap-12 py-10 xl:gap-14 max-[900px]:grid-cols-1">
