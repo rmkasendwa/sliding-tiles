@@ -41,8 +41,10 @@ import {
   BOARD_SIZE,
   BOARD_SURFACE_BACKGROUND,
   CELEBRATION_PARTICLES,
+  CONFETTI_PARTICLES,
   LEVEL_COMPLETE_ADVANCE_DELAY_MS,
   LEVEL_COMPLETE_CELEBRATION_DELAY_MS,
+  LEVEL_COMPLETE_CONFETTI_DURATION_MS,
   LOCAL_STORAGE_KEY,
   RESET_GATHER_DELAY_MS,
   TILE_ENTRY_ANIMATION_MS,
@@ -217,6 +219,9 @@ function GameBoardContent({
   } = useSound();
   const SoundIcon = isMuted ? VolumeX : Volume2;
   const [board, setBoard] = useState<BoardState>(initialBoard);
+  const [confettiBurstKey, setConfettiBurstKey] = useState<number | null>(null);
+  const [isCompletionImageVisible, setIsCompletionImageVisible] =
+    useState(false);
   const [highestReachedLevel, setHighestReachedLevel] = useState(
     initialBoard.level,
   );
@@ -255,6 +260,8 @@ function GameBoardContent({
   const boardHintTimeoutRef = useRef<number | null>(null);
   const placeholderRevealTimeoutRef = useRef<number | null>(null);
   const celebrationTimeoutRef = useRef<number | null>(null);
+  const confettiTimeoutRef = useRef<number | null>(null);
+  const completedPuzzleKeyRef = useRef<string | null>(null);
   const levelAdvanceTimeoutRef = useRef<number | null>(null);
   const boardEntryTimeoutRef = useRef<number | null>(null);
   const lockInTimeoutRef = useRef<number | null>(null);
@@ -459,6 +466,27 @@ function GameBoardContent({
 
   const isShuffleAnimationRunning = isResetting || isShuffleInProgress;
 
+  const launchCompletionConfetti = useCallback((completedBoard: BoardState) => {
+    const puzzleKey = `${completedBoard.level}:${completedBoard.startedAt}`;
+    if (
+      completedPuzzleKeyRef.current === puzzleKey ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
+      return;
+    }
+
+    completedPuzzleKeyRef.current = puzzleKey;
+    if (confettiTimeoutRef.current !== null) {
+      window.clearTimeout(confettiTimeoutRef.current);
+    }
+
+    setConfettiBurstKey((key) => (key ?? 0) + 1);
+    confettiTimeoutRef.current = window.setTimeout(() => {
+      setConfettiBurstKey(null);
+      confettiTimeoutRef.current = null;
+    }, LEVEL_COMPLETE_CONFETTI_DURATION_MS);
+  }, []);
+
   const completeLevel = useCallback(
     (completedBoard: BoardState) => {
       const completedAtMs = Date.now();
@@ -466,10 +494,14 @@ function GameBoardContent({
         0,
         completedAtMs - levelStartedAtMs,
       );
+      launchCompletionConfetti(completedBoard);
       playSound('complete');
       setClockNowMs(completedAtMs);
       setIsClockRunning(false);
       setHintedSlot(null);
+      setIsCompletionImageVisible(true);
+      setIsShowingSolvedHint(true);
+      setIsShowingHintPlaceholder(true);
       if (isSignedIn) {
         void recordLevelAttempt({
           attemptType: activeReplayOfId ? 'replay' : 'original',
@@ -491,8 +523,6 @@ function GameBoardContent({
 
       celebrationTimeoutRef.current = window.setTimeout(() => {
         setIsCelebrating(true);
-        setIsShowingSolvedHint(true);
-        setIsShowingHintPlaceholder(true);
         celebrationTimeoutRef.current = null;
 
         levelAdvanceTimeoutRef.current = window.setTimeout(() => {
@@ -516,6 +546,7 @@ function GameBoardContent({
             resetBoardAttempt(nextBoard, nextBoard.startedAt),
           );
           setBoard(nextBoard);
+          setIsCompletionImageVisible(false);
           setIsCelebrating(false);
           setIsShowingSolvedHint(false);
           setIsShowingHintPlaceholder(false);
@@ -527,6 +558,7 @@ function GameBoardContent({
       activeReplayOfId,
       attemptStartBoard,
       isSignedIn,
+      launchCompletionConfetti,
       levelStartedAtMs,
       playSound,
       resetClock,
@@ -666,6 +698,9 @@ function GameBoardContent({
       clearEntryMotionSoundTimers();
       if (celebrationTimeoutRef.current !== null) {
         window.clearTimeout(celebrationTimeoutRef.current);
+      }
+      if (confettiTimeoutRef.current !== null) {
+        window.clearTimeout(confettiTimeoutRef.current);
       }
       if (levelAdvanceTimeoutRef.current !== null) {
         window.clearTimeout(levelAdvanceTimeoutRef.current);
@@ -929,6 +964,7 @@ function GameBoardContent({
       }
 
       setIsCelebrating(false);
+      setIsCompletionImageVisible(false);
       setIsShowingSolvedHint(false);
       setIsShowingHintPlaceholder(false);
       playSound('shuffle');
@@ -992,6 +1028,7 @@ function GameBoardContent({
       }
 
       setIsCelebrating(false);
+      setIsCompletionImageVisible(false);
       setIsShowingSolvedHint(false);
       setIsShowingHintPlaceholder(false);
       playSound('shuffle');
@@ -1195,6 +1232,39 @@ function GameBoardContent({
               />
             );
           })}
+          {isCompletionImageVisible ? (
+            <div
+              aria-label="Completed puzzle image"
+              className="completion-image-reveal pointer-events-none absolute inset-0 z-20 bg-[url('/frog.svg')] bg-cover bg-center bg-no-repeat"
+              role="img"
+            />
+          ) : null}
+          {confettiBurstKey !== null ? (
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 z-40 overflow-hidden"
+              key={confettiBurstKey}
+            >
+              {CONFETTI_PARTICLES.map((particle, index) => (
+                <span
+                  className="completion-confetti-piece absolute top-1/2 block"
+                  key={index}
+                  style={
+                    {
+                      '--confetti-color': particle.color,
+                      '--confetti-delay': particle.delay,
+                      '--confetti-drift': particle.drift,
+                      '--confetti-drift-mid': particle.driftMid,
+                      '--confetti-rotation': particle.rotation,
+                      '--confetti-rotation-mid': particle.rotationMid,
+                      '--confetti-size': particle.size,
+                      left: particle.left,
+                    } as React.CSSProperties
+                  }
+                />
+              ))}
+            </div>
+          ) : null}
           {isCelebrating && (
             <div className="pointer-events-none absolute inset-0 z-30 animate-[celebration-fade-in_700ms_ease-out_both] overflow-hidden">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,color-mix(in_srgb,var(--color-panel)_18%,transparent),color-mix(in_srgb,var(--color-primary)_18%,transparent)_42%,color-mix(in_srgb,var(--color-night)_30%,transparent))]" />
