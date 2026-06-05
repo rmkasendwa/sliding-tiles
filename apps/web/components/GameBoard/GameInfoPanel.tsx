@@ -134,7 +134,7 @@ export function GameInfoPanel({
             </span>
           </div>
           <select
-            className="min-h-10 w-full cursor-pointer rounded-[7px] border border-line bg-surface px-3 text-sm font-bold text-foreground shadow-inset-highlight disabled:cursor-not-allowed disabled:opacity-60"
+            className="min-h-10 w-full cursor-pointer rounded-[7px] border border-line bg-surface px-3 text-sm font-bold text-foreground disabled:cursor-not-allowed disabled:opacity-60"
             disabled={isLevelSelectDisabled}
             id={levelSelectId}
             onChange={(event) => onSelectLevel(Number(event.target.value))}

@@ -52,7 +52,7 @@ export default async function LoginPage() {
             </div>
 
             <div className="hidden gap-3 lg:grid xl:grid-cols-3">
-              <div className="rounded-xl border border-line/85 bg-surface/78 p-3 shadow-inset-highlight">
+              <div className="rounded-xl border border-line/85 bg-surface/78 p-3">
                 <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
                   Save state
                 </p>
@@ -60,7 +60,7 @@ export default async function LoginPage() {
                   Always on
                 </p>
               </div>
-              <div className="rounded-xl border border-line/85 bg-surface/78 p-3 shadow-inset-highlight">
+              <div className="rounded-xl border border-line/85 bg-surface/78 p-3">
                 <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
                   Leaderboards
                 </p>
@@ -68,7 +68,7 @@ export default async function LoginPage() {
                   Live stats
                 </p>
               </div>
-              <div className="rounded-xl border border-line/85 bg-surface/78 p-3 shadow-inset-highlight">
+              <div className="rounded-xl border border-line/85 bg-surface/78 p-3">
                 <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
                   Progress
                 </p>

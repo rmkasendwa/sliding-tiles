@@ -42,7 +42,7 @@ export default function ResetPasswordPage() {
             </div>
 
             <div className="hidden gap-3 lg:grid xl:grid-cols-3">
-              <div className="rounded-xl border border-line/85 bg-surface/78 p-3 shadow-inset-highlight">
+              <div className="rounded-xl border border-line/85 bg-surface/78 p-3">
                 <p className="inline-flex items-center gap-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
                   <ShieldCheck className="h-3.5 w-3.5 text-accent-strong" />
                   Protected
@@ -51,7 +51,7 @@ export default function ResetPasswordPage() {
                   One-time reset link
                 </p>
               </div>
-              <div className="rounded-xl border border-line/85 bg-surface/78 p-3 shadow-inset-highlight">
+              <div className="rounded-xl border border-line/85 bg-surface/78 p-3">
                 <p className="inline-flex items-center gap-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
                   <LockKeyhole className="h-3.5 w-3.5 text-accent-strong" />
                   Password
@@ -60,7 +60,7 @@ export default function ResetPasswordPage() {
                   Strong and private
                 </p>
               </div>
-              <div className="rounded-xl border border-line/85 bg-surface/78 p-3 shadow-inset-highlight">
+              <div className="rounded-xl border border-line/85 bg-surface/78 p-3">
                 <p className="inline-flex items-center gap-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
                   <ArrowRight className="h-3.5 w-3.5 text-accent-strong" />
                   Next step

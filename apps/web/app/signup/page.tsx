@@ -50,7 +50,7 @@ export default async function SignupPage() {
             </div>
 
             <div className="hidden gap-3 lg:grid xl:grid-cols-3">
-              <div className="rounded-xl border border-line/85 bg-surface/78 p-3 shadow-inset-highlight">
+              <div className="rounded-xl border border-line/85 bg-surface/78 p-3">
                 <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
                   Instant setup
                 </p>
@@ -58,7 +58,7 @@ export default async function SignupPage() {
                   Under 1 min
                 </p>
               </div>
-              <div className="rounded-xl border border-line/85 bg-surface/78 p-3 shadow-inset-highlight">
+              <div className="rounded-xl border border-line/85 bg-surface/78 p-3">
                 <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
                   Cloud sync
                 </p>
@@ -66,7 +66,7 @@ export default async function SignupPage() {
                   Any device
                 </p>
               </div>
-              <div className="rounded-xl border border-line/85 bg-surface/78 p-3 shadow-inset-highlight">
+              <div className="rounded-xl border border-line/85 bg-surface/78 p-3">
                 <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-muted">
                   Stats trail
                 </p>
