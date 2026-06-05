@@ -4,6 +4,7 @@ import {
   Maximize2,
   Minimize2,
   Search,
+  Shuffle,
   RotateCcw,
   Volume2,
   VolumeX,
@@ -61,6 +62,17 @@ export type GameBoardProps = {
 
 const INFO_MODAL_TRANSITION_MS = 180;
 const PEEK_BUTTON_PREVIEW_DELAY_MS = 120;
+
+function isEditableKeyboardTarget(target: EventTarget | null) {
+  return (
+    target instanceof HTMLElement &&
+    Boolean(
+      target.closest(
+        'input, textarea, select, [contenteditable="true"], [contenteditable=""], [role="textbox"]',
+      ),
+    )
+  );
+}
 
 type GameToolButtonProps = Omit<
   ButtonHTMLAttributes<HTMLButtonElement>,
@@ -553,13 +565,21 @@ function GameBoardContent({
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (
+        isEditableKeyboardTarget(event.target) ||
+        !window.matchMedia('(hover: hover) and (pointer: fine)').matches
+      ) {
+        return;
+      }
+
       const [row, column] = board.emptySlot;
       if (isCelebrating || isShuffleAnimationRunning) {
         return;
       }
 
+      const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
       const slotToMove: Slot | null = (() => {
-        switch (event.key) {
+        switch (key) {
           case 'ArrowUp':
           case 'w':
             return [row + 1, column];
@@ -567,7 +587,6 @@ function GameBoardContent({
           case 'd':
             return [row, column - 1];
           case 'ArrowDown':
-          case 's':
             return [row - 1, column];
           case 'ArrowLeft':
           case 'a':
@@ -950,57 +969,80 @@ function GameBoardContent({
     ],
   );
 
-  const restartLevel = useCallback(() => {
-    if (shuffleInProgressRef.current || isShuffleAnimationRunning) {
-      return;
-    }
-
-    shuffleInProgressRef.current = true;
-    setIsShuffleInProgress(true);
-    clearBoardHint();
-    if (boardEntryTimeoutRef.current !== null) {
-      window.clearTimeout(boardEntryTimeoutRef.current);
-      boardEntryTimeoutRef.current = null;
-    }
-    if (levelAdvanceTimeoutRef.current !== null) {
-      window.clearTimeout(levelAdvanceTimeoutRef.current);
-      levelAdvanceTimeoutRef.current = null;
-    }
-    if (celebrationTimeoutRef.current !== null) {
-      window.clearTimeout(celebrationTimeoutRef.current);
-      celebrationTimeoutRef.current = null;
-    }
-    setIsCelebrating(false);
-    playSound('shuffle');
-    scheduleLockInSound(RESET_GATHER_DELAY_MS + TILE_ENTRY_LOCK_IN_DELAY_MS);
-    setTileRotationSeed((seed) => seed + 1);
-    setIsResetting(true);
-    resetTimeoutRef.current = window.setTimeout(() => {
-      resetClock();
-      const nextBoard = activeReplayOfId
-        ? resetBoardAttempt(attemptStartBoard)
-        : createBoardState(board.level, board.dimensions);
-
-      if (!activeReplayOfId) {
-        setAttemptStartBoard(resetBoardAttempt(nextBoard, nextBoard.startedAt));
+  const refreshBoard = useCallback(
+    (createNextBoard: () => BoardState, exitReplay: boolean) => {
+      if (shuffleInProgressRef.current || isShuffleAnimationRunning) {
+        return;
       }
 
-      setIsBoardEntering(true);
-      setBoardEntryAnimationKey((key) => key + 1);
-      setBoard(nextBoard);
-      setIsResetting(false);
-      resetTimeoutRef.current = null;
-    }, RESET_GATHER_DELAY_MS);
+      shuffleInProgressRef.current = true;
+      setIsShuffleInProgress(true);
+      clearBoardHint();
+      if (boardEntryTimeoutRef.current !== null) {
+        window.clearTimeout(boardEntryTimeoutRef.current);
+        boardEntryTimeoutRef.current = null;
+      }
+      if (levelAdvanceTimeoutRef.current !== null) {
+        window.clearTimeout(levelAdvanceTimeoutRef.current);
+        levelAdvanceTimeoutRef.current = null;
+      }
+      if (celebrationTimeoutRef.current !== null) {
+        window.clearTimeout(celebrationTimeoutRef.current);
+        celebrationTimeoutRef.current = null;
+      }
+
+      setIsCelebrating(false);
+      setIsShowingSolvedHint(false);
+      setIsShowingHintPlaceholder(false);
+      playSound('shuffle');
+      scheduleLockInSound(RESET_GATHER_DELAY_MS + TILE_ENTRY_LOCK_IN_DELAY_MS);
+      setTileRotationSeed((seed) => seed + 1);
+      setIsResetting(true);
+      resetTimeoutRef.current = window.setTimeout(() => {
+        resetClock();
+        const nextBoard = createNextBoard();
+
+        if (exitReplay && activeReplayOfId) {
+          router.replace('/play', { scroll: false });
+        }
+        if (exitReplay) {
+          setActiveReplayOfId(null);
+        }
+
+        setAttemptStartBoard(
+          resetBoardAttempt(nextBoard, nextBoard.startedAt),
+        );
+        setIsBoardEntering(true);
+        setBoardEntryAnimationKey((key) => key + 1);
+        setBoard(nextBoard);
+        setIsResetting(false);
+        resetTimeoutRef.current = null;
+      }, RESET_GATHER_DELAY_MS);
+    },
+    [
+      activeReplayOfId,
+      clearBoardHint,
+      isShuffleAnimationRunning,
+      playSound,
+      resetClock,
+      router,
+      scheduleLockInSound,
+    ],
+  );
+
+  const resetLevel = useCallback(() => {
+    refreshBoard(() => resetBoardAttempt(attemptStartBoard), false);
+  }, [attemptStartBoard, refreshBoard]);
+
+  const shuffleLevel = useCallback(() => {
+    refreshBoard(
+      () => createBoardState(board.level, board.dimensions),
+      true,
+    );
   }, [
-    activeReplayOfId,
-    attemptStartBoard,
     board.dimensions,
     board.level,
-    clearBoardHint,
-    isShuffleAnimationRunning,
-    playSound,
-    resetClock,
-    scheduleLockInSound,
+    refreshBoard,
   ]);
 
   const gameModeLabel = activeReplayOfId
@@ -1052,6 +1094,39 @@ function GameBoardContent({
       }
     }
   }, [exitBoardFullscreen, isBoardFullscreen]);
+
+  useEffect(() => {
+    const handleShortcut = (event: KeyboardEvent) => {
+      if (
+        event.repeat ||
+        event.altKey ||
+        event.ctrlKey ||
+        event.metaKey ||
+        isEditableKeyboardTarget(event.target) ||
+        !window.matchMedia('(hover: hover) and (pointer: fine)').matches
+      ) {
+        return;
+      }
+
+      switch (event.key.toLowerCase()) {
+        case 'r':
+          event.preventDefault();
+          resetLevel();
+          break;
+        case 's':
+          event.preventDefault();
+          shuffleLevel();
+          break;
+        case 'f':
+          event.preventDefault();
+          void toggleBoardFullscreen();
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleShortcut);
+    return () => window.removeEventListener('keydown', handleShortcut);
+  }, [resetLevel, shuffleLevel, toggleBoardFullscreen]);
 
   return (
     <div className="play-shell-reveal grid min-h-full w-full grid-cols-[minmax(0,1fr)_320px] items-start gap-5 max-[900px]:grid-cols-1">
@@ -1165,15 +1240,15 @@ function GameBoardContent({
           <GameToolButton
             aria-label={
               isShuffleAnimationRunning
-                ? 'Level is shuffling'
-                : 'Restart level'
+                ? 'Puzzle is updating'
+                : 'Reset current puzzle'
             }
             className={
               isShuffleAnimationRunning
                 ? 'disabled:cursor-wait'
                 : undefined
             }
-            description="Return the current puzzle to its starting state."
+            description="Return the current puzzle to its starting configuration."
             disabled={isShuffleAnimationRunning}
             icon={
               <RotateCcw
@@ -1189,11 +1264,39 @@ function GameBoardContent({
                 strokeWidth={2.2}
               />
             }
-            onClick={restartLevel}
+            onClick={resetLevel}
+            tooltip={
+              isShuffleAnimationRunning
+                ? 'Updating the puzzle'
+                : 'Reset the current puzzle (R)'
+            }
+            type="button"
+          />
+          <GameToolButton
+            aria-label={
+              isShuffleAnimationRunning
+                ? 'Puzzle is shuffling'
+                : 'Shuffle puzzle'
+            }
+            className={
+              isShuffleAnimationRunning
+                ? 'disabled:cursor-wait'
+                : undefined
+            }
+            description="Create a new puzzle configuration for this level."
+            disabled={isShuffleAnimationRunning}
+            icon={
+              <Shuffle
+                aria-hidden="true"
+                className="size-4"
+                strokeWidth={2.2}
+              />
+            }
+            onClick={shuffleLevel}
             tooltip={
               isShuffleAnimationRunning
                 ? 'Shuffling the puzzle'
-                : 'Reset the current puzzle'
+                : 'Shuffle the puzzle (S)'
             }
             type="button"
           />
@@ -1254,7 +1357,9 @@ function GameBoardContent({
             }
             onClick={toggleBoardFullscreen}
             tooltip={
-              isBoardFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'
+              isBoardFullscreen
+                ? 'Exit fullscreen (F)'
+                : 'Enter fullscreen (F)'
             }
             type="button"
           />

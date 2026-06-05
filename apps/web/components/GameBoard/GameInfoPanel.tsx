@@ -152,9 +152,42 @@ export function GameInfoPanel({
           </p>
         </form>
         <p className="rounded-lg border border-line bg-surface/40 p-3 text-sm leading-6 text-muted">
-          Use arrow keys or WASD. Click movable tiles to slide them, or click a
-          locked tile to flash where it belongs.
+          Use the arrow keys to move tiles. Click movable tiles to slide them,
+          or click a locked tile to flash where it belongs.
         </p>
+        {!isModal ? (
+          <section
+            aria-labelledby="game-shortcuts-heading"
+            className="grid gap-2 rounded-lg border border-info/18 bg-info-surface p-3"
+          >
+            <p
+              className="text-[0.74rem] font-extrabold uppercase text-info-strong"
+              id="game-shortcuts-heading"
+            >
+              Keyboard shortcuts
+            </p>
+            <dl className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2 text-sm">
+              <dt>
+                <kbd className="inline-grid min-w-7 place-items-center rounded-md border border-line bg-surface px-1.5 py-0.5 font-bold text-foreground shadow-sm">
+                  R
+                </kbd>
+              </dt>
+              <dd className="text-muted">Reset current puzzle</dd>
+              <dt>
+                <kbd className="inline-grid min-w-7 place-items-center rounded-md border border-line bg-surface px-1.5 py-0.5 font-bold text-foreground shadow-sm">
+                  S
+                </kbd>
+              </dt>
+              <dd className="text-muted">Shuffle puzzle</dd>
+              <dt>
+                <kbd className="inline-grid min-w-7 place-items-center rounded-md border border-line bg-surface px-1.5 py-0.5 font-bold text-foreground shadow-sm">
+                  F
+                </kbd>
+              </dt>
+              <dd className="text-muted">Toggle fullscreen</dd>
+            </dl>
+          </section>
+        ) : null}
         {!isSignedIn && (
           <p className="leading-normal text-muted">
             Anonymous progress stays in this browser. Sign in to sync your board
