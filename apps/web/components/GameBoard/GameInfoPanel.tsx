@@ -120,34 +120,42 @@ export function GameInfoPanel({
             : 'grid content-start gap-4'
         }
       >
-        <div
-          className={
-            isExpanded ? '' : 'mx-auto w-full max-w-44 sm:max-w-52'
-          }
-        >
+        <div>
           <SolutionPreview
             columns={columns}
-            isCompact={isModal || !isExpanded}
+            isCompact={isModal}
             rows={rows}
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
-          <div className="rounded-[7px] border border-accent/18 bg-primary-soft/55 px-3 py-2">
-            <p className="text-[0.7rem] font-extrabold uppercase text-accent-strong">
-              Current
-            </p>
-            <p className="mt-0.5 text-sm font-bold text-foreground">
-              Level {level}
-            </p>
-          </div>
-          <div className="rounded-[7px] border border-info/18 bg-info-surface px-3 py-2">
-            <p className="text-[0.7rem] font-extrabold uppercase text-info-strong">
-              Reached
-            </p>
-            <p className="mt-0.5 text-sm font-bold text-foreground">
-              Level {Math.max(highestReachedLevel, level)}
-            </p>
+        <div
+          aria-hidden={isExpanded}
+          className={[
+            'grid transition-[grid-template-rows,opacity,margin] duration-300 ease-out motion-reduce:transition-none',
+            isExpanded
+              ? '-mb-4 grid-rows-[0fr] opacity-0'
+              : 'grid-rows-[1fr] opacity-100',
+          ].join(' ')}
+        >
+          <div className="min-h-0 overflow-hidden">
+            <div className="grid grid-cols-2 gap-2">
+              <div className="rounded-[7px] border border-accent/18 bg-primary-soft/55 px-3 py-2">
+                <p className="text-[0.7rem] font-extrabold uppercase text-accent-strong">
+                  Current
+                </p>
+                <p className="mt-0.5 text-sm font-bold text-foreground">
+                  Level {level}
+                </p>
+              </div>
+              <div className="rounded-[7px] border border-info/18 bg-info-surface px-3 py-2">
+                <p className="text-[0.7rem] font-extrabold uppercase text-info-strong">
+                  Reached
+                </p>
+                <p className="mt-0.5 text-sm font-bold text-foreground">
+                  Level {Math.max(highestReachedLevel, level)}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -176,85 +184,93 @@ export function GameInfoPanel({
         </button>
 
         <div
-          className={isExpanded ? 'grid gap-4' : 'hidden'}
+          aria-hidden={!isExpanded}
+          className={[
+            'grid transition-[grid-template-rows,opacity,margin] duration-300 ease-out motion-reduce:transition-none',
+            isExpanded
+              ? 'grid-rows-[1fr] opacity-100'
+              : '-mt-4 grid-rows-[0fr] opacity-0',
+          ].join(' ')}
           id={detailsId}
         >
-          <form
-            className="grid gap-2 rounded-lg border border-accent/18 bg-primary-soft/55 p-3"
-            onSubmit={(event) => event.preventDefault()}
-          >
-            <div className="flex items-end justify-between gap-3">
-              <label
-                className="text-[0.74rem] font-extrabold uppercase text-accent-strong"
-                htmlFor={levelSelectId}
-              >
-                Level select
-              </label>
-              <span className="text-xs font-bold text-muted">
-                Max {Math.max(highestReachedLevel, level)}
-              </span>
-            </div>
-            <select
-              className="min-h-10 w-full cursor-pointer rounded-[7px] border border-line bg-surface px-3 text-sm font-bold text-foreground disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={isLevelSelectDisabled}
-              id={levelSelectId}
-              onChange={(event) => onSelectLevel(Number(event.target.value))}
-              value={level}
+          <div className="grid min-h-0 gap-4 overflow-hidden">
+            <form
+              className="grid gap-2 rounded-lg border border-accent/18 bg-primary-soft/55 p-3"
+              onSubmit={(event) => event.preventDefault()}
             >
-              {levelOptions.map((levelOption) => (
-                <option key={levelOption} value={levelOption}>
-                  Level {levelOption}
-                </option>
-              ))}
-            </select>
-            <p className="text-xs leading-5 text-muted">
-              Jumping levels starts a fresh puzzle and resets the timer and move
-              counter.
-            </p>
-          </form>
-          <p className="rounded-lg border border-line bg-surface/40 p-3 text-sm leading-6 text-muted">
-            Use the arrow keys to move tiles. Click movable tiles to slide them,
-            or click a locked tile to flash where it belongs.
-          </p>
-          {!isModal ? (
-            <section
-              aria-labelledby="game-shortcuts-heading"
-              className="grid gap-2 rounded-lg border border-info/18 bg-info-surface p-3"
-            >
-              <p
-                className="text-[0.74rem] font-extrabold uppercase text-info-strong"
-                id="game-shortcuts-heading"
+              <div className="flex items-end justify-between gap-3">
+                <label
+                  className="text-[0.74rem] font-extrabold uppercase text-accent-strong"
+                  htmlFor={levelSelectId}
+                >
+                  Level select
+                </label>
+                <span className="text-xs font-bold text-muted">
+                  Max {Math.max(highestReachedLevel, level)}
+                </span>
+              </div>
+              <select
+                className="min-h-10 w-full cursor-pointer rounded-[7px] border border-line bg-surface px-3 text-sm font-bold text-foreground disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={isLevelSelectDisabled || !isExpanded}
+                id={levelSelectId}
+                onChange={(event) => onSelectLevel(Number(event.target.value))}
+                value={level}
               >
-                Keyboard shortcuts
+                {levelOptions.map((levelOption) => (
+                  <option key={levelOption} value={levelOption}>
+                    Level {levelOption}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs leading-5 text-muted">
+                Jumping levels starts a fresh puzzle and resets the timer and
+                move counter.
               </p>
-              <dl className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2 text-sm">
-                <dt>
-                  <kbd className="inline-grid min-w-7 place-items-center rounded-md border border-line bg-surface px-1.5 py-0.5 font-bold text-foreground shadow-sm">
-                    R
-                  </kbd>
-                </dt>
-                <dd className="text-muted">Reset current puzzle</dd>
-                <dt>
-                  <kbd className="inline-grid min-w-7 place-items-center rounded-md border border-line bg-surface px-1.5 py-0.5 font-bold text-foreground shadow-sm">
-                    S
-                  </kbd>
-                </dt>
-                <dd className="text-muted">Shuffle puzzle</dd>
-                <dt>
-                  <kbd className="inline-grid min-w-7 place-items-center rounded-md border border-line bg-surface px-1.5 py-0.5 font-bold text-foreground shadow-sm">
-                    F
-                  </kbd>
-                </dt>
-                <dd className="text-muted">Toggle fullscreen</dd>
-              </dl>
-            </section>
-          ) : null}
-          {!isSignedIn && (
-            <p className="leading-normal text-muted">
-              Anonymous progress stays in this browser. Sign in to sync your
-              board and post leaderboard times.
+            </form>
+            <p className="rounded-lg border border-line bg-surface/40 p-3 text-sm leading-6 text-muted">
+              Use the arrow keys to move tiles. Click movable tiles to slide
+              them, or click a locked tile to flash where it belongs.
             </p>
-          )}
+            {!isModal ? (
+              <section
+                aria-labelledby="game-shortcuts-heading"
+                className="grid gap-2 rounded-lg border border-info/18 bg-info-surface p-3"
+              >
+                <p
+                  className="text-[0.74rem] font-extrabold uppercase text-info-strong"
+                  id="game-shortcuts-heading"
+                >
+                  Keyboard shortcuts
+                </p>
+                <dl className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2 text-sm">
+                  <dt>
+                    <kbd className="inline-grid min-w-7 place-items-center rounded-md border border-line bg-surface px-1.5 py-0.5 font-bold text-foreground shadow-sm">
+                      R
+                    </kbd>
+                  </dt>
+                  <dd className="text-muted">Reset current puzzle</dd>
+                  <dt>
+                    <kbd className="inline-grid min-w-7 place-items-center rounded-md border border-line bg-surface px-1.5 py-0.5 font-bold text-foreground shadow-sm">
+                      S
+                    </kbd>
+                  </dt>
+                  <dd className="text-muted">Shuffle puzzle</dd>
+                  <dt>
+                    <kbd className="inline-grid min-w-7 place-items-center rounded-md border border-line bg-surface px-1.5 py-0.5 font-bold text-foreground shadow-sm">
+                      F
+                    </kbd>
+                  </dt>
+                  <dd className="text-muted">Toggle fullscreen</dd>
+                </dl>
+              </section>
+            ) : null}
+            {!isSignedIn && (
+              <p className="leading-normal text-muted">
+                Anonymous progress stays in this browser. Sign in to sync your
+                board and post leaderboard times.
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>
