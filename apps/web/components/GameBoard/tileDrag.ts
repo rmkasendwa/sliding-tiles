@@ -2,7 +2,7 @@ import { Slot } from '@/lib/board';
 
 export type SwipeDirection = 'left' | 'right' | 'up' | 'down';
 
-export type TouchPoint = {
+export type DragPoint = {
   x: number;
   y: number;
 };
@@ -11,8 +11,8 @@ export const TILE_SWIPE_THRESHOLD_PX = 30;
 export const TILE_DRAG_COMMIT_RATIO = 0.4;
 
 export function getSwipeDirection(
-  start: TouchPoint,
-  end: TouchPoint,
+  start: DragPoint,
+  end: DragPoint,
   threshold = TILE_SWIPE_THRESHOLD_PX,
 ): SwipeDirection | null {
   const deltaX = end.x - start.x;

@@ -5,7 +5,7 @@ import {
   useState,
   type CSSProperties,
   type MutableRefObject,
-  type TouchEvent,
+  type PointerEvent,
 } from 'react';
 
 import {
@@ -22,16 +22,17 @@ import {
   isSwipeTowardEmptySlot,
   TILE_DRAG_COMMIT_RATIO,
   TILE_SWIPE_THRESHOLD_PX,
+  type DragPoint,
   type SwipeDirection,
-  type TouchPoint,
-} from './touchSwipe';
+} from './tileDrag';
 
 const TILE_DRAG_SETTLE_MS = 160;
 
 type TileDragSession = {
   direction: SwipeDirection;
   maxDistancePx: number;
-  start: TouchPoint;
+  pointerId: number;
+  start: DragPoint;
 };
 
 export type BoardTileProps = {
@@ -74,6 +75,7 @@ export function BoardTile({
   tileWidth,
 }: BoardTileProps) {
   const tileDragSessionRef = useRef<TileDragSession | null>(null);
+  const clickSuppressionTimeoutRef = useRef<number | null>(null);
   const pendingMoveTimeoutRef = useRef<number | null>(null);
   const transitionRestoreFrameRef = useRef<number | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -94,6 +96,9 @@ export function BoardTile({
     () => () => {
       if (pendingMoveTimeoutRef.current !== null) {
         window.clearTimeout(pendingMoveTimeoutRef.current);
+      }
+      if (clickSuppressionTimeoutRef.current !== null) {
+        window.clearTimeout(clickSuppressionTimeoutRef.current);
       }
       if (transitionRestoreFrameRef.current !== null) {
         window.cancelAnimationFrame(transitionRestoreFrameRef.current);
@@ -119,8 +124,15 @@ export function BoardTile({
       onHint(slotKey(tile.homeSlot));
     }
   };
-  const startTileSwipe = (event: TouchEvent<HTMLButtonElement>) => {
+  const startTileDrag = (event: PointerEvent<HTMLButtonElement>) => {
     if (pendingMoveTimeoutRef.current !== null) {
+      return;
+    }
+
+    if (
+      !event.isPrimary ||
+      (event.pointerType === 'mouse' && event.button !== 0)
+    ) {
       return;
     }
 
@@ -134,12 +146,6 @@ export function BoardTile({
       return;
     }
 
-    const touch = event.touches[0];
-    if (!touch) {
-      tileDragSessionRef.current = null;
-      return;
-    }
-
     const tileBounds = event.currentTarget.getBoundingClientRect();
 
     tileDragSessionRef.current = {
@@ -148,19 +154,20 @@ export function BoardTile({
         allowedDirection === 'left' || allowedDirection === 'right'
           ? tileBounds.width
           : tileBounds.height,
+      pointerId: event.pointerId,
       start: {
-        x: touch.clientX,
-        y: touch.clientY,
+        x: event.clientX,
+        y: event.clientY,
       },
     };
+    event.currentTarget.setPointerCapture(event.pointerId);
     setDragOffset({ x: 0, y: 0 });
     setIsDraggingTile(false);
   };
-  const preventSwipeScroll = (event: TouchEvent<HTMLButtonElement>) => {
+  const updateTileDrag = (event: PointerEvent<HTMLButtonElement>) => {
     const dragSession = tileDragSessionRef.current;
-    const touch = event.touches[0];
 
-    if (!dragSession || !touch) {
+    if (!dragSession || dragSession.pointerId !== event.pointerId) {
       return;
     }
 
@@ -168,8 +175,8 @@ export function BoardTile({
 
     const nextOffset = getConstrainedDragOffset(
       dragSession.direction,
-      touch.clientX - dragSession.start.x,
-      touch.clientY - dragSession.start.y,
+      event.clientX - dragSession.start.x,
+      event.clientY - dragSession.start.y,
       dragSession.maxDistancePx,
     );
 
@@ -182,22 +189,26 @@ export function BoardTile({
       setIsDraggingTile(true);
     }
   };
-  const finishTileSwipe = (event: TouchEvent<HTMLButtonElement>) => {
+  const finishTileDrag = (event: PointerEvent<HTMLButtonElement>) => {
     const dragSession = tileDragSessionRef.current;
-    tileDragSessionRef.current = null;
 
-    if (!dragSession || !isMovable || isHintPlaceholder) {
+    if (
+      !dragSession ||
+      dragSession.pointerId !== event.pointerId ||
+      !isMovable ||
+      isHintPlaceholder
+    ) {
       return;
     }
 
-    const touch = event.changedTouches[0];
-    if (!touch) {
-      return;
+    tileDragSessionRef.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
     }
 
     const endPoint = {
-      x: touch.clientX,
-      y: touch.clientY,
+      x: event.clientX,
+      y: event.clientY,
     };
     const direction = getSwipeDirection(dragSession.start, endPoint);
     const finalOffset = getConstrainedDragOffset(
@@ -219,6 +230,10 @@ export function BoardTile({
     event.preventDefault();
     event.stopPropagation();
     suppressNextClickRef.current = true;
+    clickSuppressionTimeoutRef.current = window.setTimeout(() => {
+      clickSuppressionTimeoutRef.current = null;
+      suppressNextClickRef.current = false;
+    }, 0);
     setIsDraggingTile(false);
 
     const shouldCommitMove =
@@ -273,10 +288,18 @@ export function BoardTile({
 
     setDragOffset({ x: 0, y: 0 });
   };
-  const cancelTileSwipe = () => {
+  const cancelTileDrag = (event: PointerEvent<HTMLButtonElement>) => {
+    const dragSession = tileDragSessionRef.current;
+    if (!dragSession || dragSession.pointerId !== event.pointerId) {
+      return;
+    }
+
     if (pendingMoveTimeoutRef.current !== null) {
       window.clearTimeout(pendingMoveTimeoutRef.current);
       pendingMoveTimeoutRef.current = null;
+    }
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
     }
     tileDragSessionRef.current = null;
     setIsDraggingTile(false);
@@ -310,10 +333,15 @@ export function BoardTile({
         }
       }}
       onMouseLeave={() => onHint(null)}
-      onTouchCancel={cancelTileSwipe}
-      onTouchEnd={finishTileSwipe}
-      onTouchMove={preventSwipeScroll}
-      onTouchStart={startTileSwipe}
+      onLostPointerCapture={cancelTileDrag}
+      onPointerCancel={cancelTileDrag}
+      onPointerDown={(event) => {
+        event.stopPropagation();
+        startTileDrag(event);
+      }}
+      onPointerMove={updateTileDrag}
+      onPointerUp={finishTileDrag}
+      onDragStart={(event) => event.preventDefault()}
       style={
         {
           width: `${(tileWidth / BOARD_SIZE) * 100}%`,
@@ -328,6 +356,7 @@ export function BoardTile({
           opacity: isHintPlaceholder && !isHintPlaceholderVisible ? 0 : 1,
           WebkitTapHighlightColor: 'transparent',
           touchAction: isMovable ? 'none' : 'manipulation',
+          userSelect: 'none',
           transform:
             dragOffset.x !== 0 || dragOffset.y !== 0
               ? `translate3d(${dragOffset.x}px, ${dragOffset.y}px, 0)`

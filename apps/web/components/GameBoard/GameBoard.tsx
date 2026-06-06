@@ -14,7 +14,6 @@ import type {
   ButtonHTMLAttributes,
   PointerEvent,
   ReactNode,
-  TouchEvent,
 } from 'react';
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -30,7 +29,6 @@ import {
   nextGridDimensions,
   resetBoardAttempt,
   slotKey,
-  slotsEqual,
 } from '@/lib/board';
 
 import { SoundProvider, useSound } from '../SoundProvider';
@@ -868,69 +866,6 @@ function GameBoardContent({
     [hideFullImagePreview],
   );
 
-  const moveTileAtClientPoint = useCallback(
-    (clientX: number, clientY: number) => {
-      const boardSurface = boardSurfaceRef.current;
-      if (!boardSurface || isCelebrating || isShuffleAnimationRunning) {
-        return;
-      }
-
-      const rect = boardSurface.getBoundingClientRect();
-      const x = clientX - rect.left;
-      const y = clientY - rect.top;
-
-      if (x < 0 || y < 0 || x > rect.width || y > rect.height) {
-        return;
-      }
-
-      const column = Math.min(
-        columns - 1,
-        Math.floor((x / rect.width) * columns),
-      );
-      const row = Math.min(rows - 1, Math.floor((y / rect.height) * rows));
-      const tappedSlot: Slot = [row, column];
-
-      if (!movableSlotKeys.has(slotKey(tappedSlot))) {
-        playSound('invalid');
-        const tappedTile = board.tileGrid
-          .flat()
-          .find((tile) => slotsEqual(tile.slot, tappedSlot));
-
-        if (tappedTile && tappedTile.type !== 'PLACEHOLDER') {
-          setHintedSlot(slotKey(tappedTile.homeSlot));
-        }
-
-        return;
-      }
-
-      moveTile(tappedSlot);
-    },
-    [
-      board.tileGrid,
-      columns,
-      isCelebrating,
-      isShuffleAnimationRunning,
-      movableSlotKeys,
-      moveTile,
-      playSound,
-      rows,
-    ],
-  );
-
-  const moveTileFromTouch = useCallback(
-    (event: TouchEvent<HTMLDivElement>) => {
-      const touch = event.changedTouches[0];
-      if (!touch) {
-        return;
-      }
-
-      event.preventDefault();
-      clearBoardHintFromPointer();
-      moveTileAtClientPoint(touch.clientX, touch.clientY);
-    },
-    [clearBoardHintFromPointer, moveTileAtClientPoint],
-  );
-
   const selectLevel = useCallback(
     (level: number) => {
       const targetLevel = Math.trunc(level);
@@ -1194,7 +1129,6 @@ function GameBoardContent({
           onPointerDown={startBoardHint}
           onPointerLeave={clearBoardHintFromPointer}
           onPointerUp={clearBoardHintFromPointer}
-          onTouchEnd={moveTileFromTouch}
           style={{
             background: BOARD_SURFACE_BACKGROUND,
             touchAction: 'none',
