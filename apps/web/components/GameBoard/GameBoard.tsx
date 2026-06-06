@@ -328,6 +328,7 @@ function GameBoardContent({
   const [isClockRunning, setIsClockRunning] = useState(
     () => initialBoard.moves > 0,
   );
+  const [isFocusPaused, setIsFocusPaused] = useState(false);
   const [tileRotationSeed, setTileRotationSeed] = useState(0);
   const [isResetting, setIsResetting] = useState(false);
   const [isShuffleInProgress, setIsShuffleInProgress] = useState(false);
@@ -355,6 +356,8 @@ function GameBoardContent({
   const boardHintMouseUpRef = useRef<(() => void) | null>(null);
   const suppressNextClickRef = useRef(false);
   const hasPlayedInitialEntrySoundRef = useRef(false);
+  const isClockRunningRef = useRef(initialBoard.moves > 0);
+  const isGameCompleteRef = useRef(false);
 
   const showInfoModal = useCallback(() => {
     if (infoModalTransitionTimeoutRef.current !== null) {
@@ -423,6 +426,34 @@ function GameBoardContent({
       window.clearInterval(interval);
     };
   }, [isClockRunning]);
+
+  useEffect(() => {
+    const pauseClockForFocusLoss = () => {
+      if (!isClockRunningRef.current || isGameCompleteRef.current) {
+        return;
+      }
+
+      const pausedAt = Date.now();
+      isClockRunningRef.current = false;
+      setClockNowMs(pausedAt);
+      setIsClockRunning(false);
+      setIsFocusPaused(true);
+    };
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        pauseClockForFocusLoss();
+      }
+    };
+
+    window.addEventListener('blur', pauseClockForFocusLoss);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    handleVisibilityChange();
+
+    return () => {
+      window.removeEventListener('blur', pauseClockForFocusLoss);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
 
   useEffect(() => {
     const elapsedTimeMs = Math.max(0, clockNowMs - levelStartedAtMs);
@@ -533,18 +564,30 @@ function GameBoardContent({
     setLevelStartedAtMs(levelStart);
     setClockNowMs(levelStart);
     setIsClockRunning(false);
+    setIsFocusPaused(false);
+    isClockRunningRef.current = false;
+    isGameCompleteRef.current = false;
   }, []);
 
-  const startClockIfNeeded = useCallback(() => {
-    if (isClockRunning) {
-      return;
+  const startClockForValidMove = useCallback(() => {
+    if (isClockRunningRef.current) {
+      return levelStartedAtMs;
     }
 
-    const levelStart = Date.now();
+    const moveTime = Date.now();
+    const preservedElapsedTimeMs = isFocusPaused
+      ? Math.max(0, clockNowMs - levelStartedAtMs)
+      : 0;
+    const levelStart = moveTime - preservedElapsedTimeMs;
+
     setLevelStartedAtMs(levelStart);
-    setClockNowMs(levelStart);
+    setClockNowMs(moveTime);
     setIsClockRunning(true);
-  }, [isClockRunning]);
+    setIsFocusPaused(false);
+    isClockRunningRef.current = true;
+
+    return levelStart;
+  }, [clockNowMs, isFocusPaused, levelStartedAtMs]);
 
   const isShuffleAnimationRunning = isResetting || isShuffleInProgress;
 
@@ -570,16 +613,19 @@ function GameBoardContent({
   }, []);
 
   const completeLevel = useCallback(
-    (completedBoard: BoardState) => {
+    (completedBoard: BoardState, effectiveLevelStartedAtMs: number) => {
       const completedAtMs = Date.now();
       const completedElapsedTimeMs = Math.max(
         0,
-        completedAtMs - levelStartedAtMs,
+        completedAtMs - effectiveLevelStartedAtMs,
       );
+      isGameCompleteRef.current = true;
+      isClockRunningRef.current = false;
       launchCompletionConfetti(completedBoard);
       playSound('complete');
       setClockNowMs(completedAtMs);
       setIsClockRunning(false);
+      setIsFocusPaused(false);
       setHintedSlot(null);
       setIsCompletionImageVisible(true);
       setIsShowingSolvedHint(true);
@@ -641,7 +687,6 @@ function GameBoardContent({
       attemptStartBoard,
       isSignedIn,
       launchCompletionConfetti,
-      levelStartedAtMs,
       playSound,
       resetClock,
       router,
@@ -659,12 +704,12 @@ function GameBoardContent({
       setBoard(nextBoard);
 
       if (nextBoard !== board) {
-        startClockIfNeeded();
+        const effectiveLevelStartedAtMs = startClockForValidMove();
         playSound('move');
-      }
 
-      if (nextBoard !== board && isTileGridInOrder(nextBoard.tileGrid)) {
-        completeLevel(nextBoard);
+        if (isTileGridInOrder(nextBoard.tileGrid)) {
+          completeLevel(nextBoard, effectiveLevelStartedAtMs);
+        }
       }
     },
     [
@@ -673,7 +718,7 @@ function GameBoardContent({
       isCelebrating,
       isShuffleAnimationRunning,
       playSound,
-      startClockIfNeeded,
+      startClockForValidMove,
     ],
   );
 
@@ -983,6 +1028,10 @@ function GameBoardContent({
       setIsCompletionImageVisible(false);
       setIsShowingSolvedHint(false);
       setIsShowingHintPlaceholder(false);
+      setIsClockRunning(false);
+      setIsFocusPaused(false);
+      isClockRunningRef.current = false;
+      isGameCompleteRef.current = false;
       playSound('shuffle');
       scheduleLockInSound(RESET_GATHER_DELAY_MS + TILE_ENTRY_LOCK_IN_DELAY_MS);
       setTileRotationSeed((seed) => seed + 1);
@@ -1047,6 +1096,10 @@ function GameBoardContent({
       setIsCompletionImageVisible(false);
       setIsShowingSolvedHint(false);
       setIsShowingHintPlaceholder(false);
+      setIsClockRunning(false);
+      setIsFocusPaused(false);
+      isClockRunningRef.current = false;
+      isGameCompleteRef.current = false;
       playSound('shuffle');
       scheduleLockInSound(RESET_GATHER_DELAY_MS + TILE_ENTRY_LOCK_IN_DELAY_MS);
       setTileRotationSeed((seed) => seed + 1);
@@ -1305,6 +1358,15 @@ function GameBoardContent({
         >
           Level {board.level} · {columns}x{rows}
         </div>
+        {isFocusPaused ? (
+          <div
+            aria-live="polite"
+            className="board-overlay absolute bottom-[4.5rem] left-1/2 z-40 -translate-x-1/2 whitespace-nowrap rounded-[7px] border px-3 py-2 text-center text-xs font-bold text-foreground max-[480px]:bottom-[8.25rem] max-[480px]:max-w-[calc(100%-2rem)] max-[480px]:whitespace-normal"
+            role="status"
+          >
+            Game paused. Make your next move to continue.
+          </div>
+        ) : null}
         <div className="absolute inset-x-4 bottom-4 z-40 flex items-end justify-between gap-2 max-[480px]:flex-col max-[480px]:items-stretch">
           <div className="contents max-[480px]:flex max-[480px]:items-center max-[480px]:justify-center max-[480px]:gap-2">
             <div
