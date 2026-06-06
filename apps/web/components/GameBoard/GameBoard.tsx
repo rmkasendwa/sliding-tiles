@@ -104,7 +104,7 @@ function GameToolButton({
         {...buttonProps}
         aria-describedby={describedBy}
         className={[
-          'grid h-8 w-8 cursor-pointer place-items-center rounded-md border border-line transition-colors hover:bg-accent/10 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent',
+          'grid h-8 w-8 cursor-pointer place-items-center rounded-md border border-line transition-colors hover:bg-accent/10 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent max-[480px]:h-11 max-[480px]:w-11',
           className,
         ]
           .filter(Boolean)
@@ -1299,140 +1299,146 @@ function GameBoardContent({
         >
           Level {board.level} · {columns}x{rows}
         </div>
-        <div
-          aria-label={`${board.moves} ${board.moves === 1 ? 'move' : 'moves'}, elapsed time ${elapsedTimeLabel}`}
-          className="play-overlay-float board-overlay absolute bottom-4 left-4 z-40 rounded-[7px] border px-3 py-2 text-sm font-bold text-accent-strong"
-        >
-          {board.moves} {board.moves === 1 ? 'move' : 'moves'} ·{' '}
-          {elapsedTimeLabel}
-        </div>
-        <div className="board-overlay absolute bottom-4 right-4 z-40 flex gap-1 rounded-[7px] border p-1 text-accent-strong">
-          <GameToolButton
-            aria-label={
-              isShuffleAnimationRunning
-                ? 'Puzzle is updating'
-                : 'Reset current puzzle'
-            }
-            className={
-              isShuffleAnimationRunning
-                ? 'disabled:cursor-wait'
-                : undefined
-            }
-            description="Return the current puzzle to its starting configuration."
-            disabled={isShuffleAnimationRunning}
-            icon={
-              <RotateCcw
-                aria-hidden="true"
-                className={[
-                  'size-4',
-                  isShuffleAnimationRunning
-                    ? 'animate-spin motion-reduce:animate-none'
-                    : '',
-                ]
-                  .filter(Boolean)
-                  .join(' ')}
-                strokeWidth={2.2}
-              />
-            }
-            onClick={resetLevel}
-            tooltip={
-              isShuffleAnimationRunning
-                ? 'Updating the puzzle'
-                : 'Reset the current puzzle (R)'
-            }
-            type="button"
-          />
-          <GameToolButton
-            aria-label={
-              isShuffleAnimationRunning
-                ? 'Puzzle is shuffling'
-                : 'Shuffle puzzle'
-            }
-            className={
-              isShuffleAnimationRunning
-                ? 'disabled:cursor-wait'
-                : undefined
-            }
-            description="Create a new puzzle configuration for this level."
-            disabled={isShuffleAnimationRunning}
-            icon={
-              <Shuffle
-                aria-hidden="true"
-                className="size-4"
-                strokeWidth={2.2}
-              />
-            }
-            onClick={shuffleLevel}
-            tooltip={
-              isShuffleAnimationRunning
-                ? 'Shuffling the puzzle'
-                : 'Shuffle the puzzle (S)'
-            }
-            type="button"
-          />
-          {isSoundEnabled ? (
+        <div className="absolute inset-x-4 bottom-4 z-40 flex items-end justify-between gap-2 max-[480px]:flex-col max-[480px]:items-stretch">
+          <div
+            aria-label={`${board.moves} ${board.moves === 1 ? 'move' : 'moves'}, elapsed time ${elapsedTimeLabel}`}
+            className="play-overlay-float board-overlay self-start whitespace-nowrap rounded-[7px] border px-3 py-2 text-sm font-bold text-accent-strong max-[480px]:self-center"
+          >
+            {board.moves} {board.moves === 1 ? 'move' : 'moves'} ·{' '}
+            {elapsedTimeLabel}
+          </div>
+          <div className="board-overlay flex shrink-0 self-end gap-1 rounded-[7px] border p-1 text-accent-strong max-[480px]:self-center">
             <GameToolButton
-              aria-label={isMuted ? 'Turn sound on' : 'Turn sound off'}
-              aria-pressed={!isMuted}
-              description={
-                isMuted
-                  ? 'Enable music and game sound effects.'
-                  : 'Mute music and game sound effects.'
+              aria-label={
+                isShuffleAnimationRunning
+                  ? 'Puzzle is updating'
+                  : 'Reset current puzzle'
               }
+              className={
+                isShuffleAnimationRunning
+                  ? 'disabled:cursor-wait'
+                  : undefined
+              }
+              description="Return the current puzzle to its starting configuration."
+              disabled={isShuffleAnimationRunning}
               icon={
-                <SoundIcon
+                <RotateCcw
+                  aria-hidden="true"
+                  className={[
+                    'size-4',
+                    isShuffleAnimationRunning
+                      ? 'animate-spin motion-reduce:animate-none'
+                      : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
+                  strokeWidth={2.2}
+                />
+              }
+              onClick={resetLevel}
+              tooltip={
+                isShuffleAnimationRunning
+                  ? 'Updating the puzzle'
+                  : 'Reset the current puzzle (R)'
+              }
+              type="button"
+            />
+            <GameToolButton
+              aria-label={
+                isShuffleAnimationRunning
+                  ? 'Puzzle is shuffling'
+                  : 'Shuffle puzzle'
+              }
+              className={
+                isShuffleAnimationRunning
+                  ? 'disabled:cursor-wait'
+                  : undefined
+              }
+              description="Create a new puzzle configuration for this level."
+              disabled={isShuffleAnimationRunning}
+              icon={
+                <Shuffle
                   aria-hidden="true"
                   className="size-4"
                   strokeWidth={2.2}
                 />
               }
-              onClick={toggleMuted}
-              tooltip={isMuted ? 'Enable game sounds' : 'Mute game sounds'}
+              onClick={shuffleLevel}
+              tooltip={
+                isShuffleAnimationRunning
+                  ? 'Shuffling the puzzle'
+                  : 'Shuffle the puzzle (S)'
+              }
               type="button"
             />
-          ) : null}
-          <GameToolButton
-            aria-label="Peek full image"
-            className="active:bg-accent/15"
-            description="Temporarily reveal the complete puzzle image while pressed."
-            disabled={isCelebrating || isShuffleAnimationRunning}
-            icon={
-              <Search aria-hidden="true" className="size-4" strokeWidth={2.2} />
-            }
-            onClick={(event) => event.preventDefault()}
-            onPointerCancel={stopPeekButtonPreview}
-            onPointerDown={startPeekButtonPreview}
-            onPointerLeave={stopPeekButtonPreview}
-            onPointerUp={stopPeekButtonPreview}
-            tooltip="Hold to preview the full image"
-            type="button"
-          />
-          <GameToolButton
-            aria-label={
-              isBoardFullscreen
-                ? 'Exit fullscreen board'
-                : 'Enter fullscreen board'
-            }
-            description={
-              isBoardFullscreen
-                ? 'Return the board to the page layout.'
-                : 'Expand the board to fill the screen.'
-            }
-            icon={
-              <FullscreenIcon
-                aria-hidden="true"
-                className="size-4"
-                strokeWidth={2.2}
+            {isSoundEnabled ? (
+              <GameToolButton
+                aria-label={isMuted ? 'Turn sound on' : 'Turn sound off'}
+                aria-pressed={!isMuted}
+                description={
+                  isMuted
+                    ? 'Enable music and game sound effects.'
+                    : 'Mute music and game sound effects.'
+                }
+                icon={
+                  <SoundIcon
+                    aria-hidden="true"
+                    className="size-4"
+                    strokeWidth={2.2}
+                  />
+                }
+                onClick={toggleMuted}
+                tooltip={isMuted ? 'Enable game sounds' : 'Mute game sounds'}
+                type="button"
               />
-            }
-            onClick={toggleBoardFullscreen}
-            tooltip={
-              isBoardFullscreen
-                ? 'Exit fullscreen (F)'
-                : 'Enter fullscreen (F)'
-            }
-            type="button"
-          />
+            ) : null}
+            <GameToolButton
+              aria-label="Peek full image"
+              className="active:bg-accent/15"
+              description="Temporarily reveal the complete puzzle image while pressed."
+              disabled={isCelebrating || isShuffleAnimationRunning}
+              icon={
+                <Search
+                  aria-hidden="true"
+                  className="size-4"
+                  strokeWidth={2.2}
+                />
+              }
+              onClick={(event) => event.preventDefault()}
+              onPointerCancel={stopPeekButtonPreview}
+              onPointerDown={startPeekButtonPreview}
+              onPointerLeave={stopPeekButtonPreview}
+              onPointerUp={stopPeekButtonPreview}
+              tooltip="Hold to preview the full image"
+              type="button"
+            />
+            <GameToolButton
+              aria-label={
+                isBoardFullscreen
+                  ? 'Exit fullscreen board'
+                  : 'Enter fullscreen board'
+              }
+              description={
+                isBoardFullscreen
+                  ? 'Return the board to the page layout.'
+                  : 'Expand the board to fill the screen.'
+              }
+              icon={
+                <FullscreenIcon
+                  aria-hidden="true"
+                  className="size-4"
+                  strokeWidth={2.2}
+                />
+              }
+              onClick={toggleBoardFullscreen}
+              tooltip={
+                isBoardFullscreen
+                  ? 'Exit fullscreen (F)'
+                  : 'Enter fullscreen (F)'
+              }
+              type="button"
+            />
+          </div>
         </div>
       </section>
 
