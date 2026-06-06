@@ -10,12 +10,15 @@ import {
   VolumeX,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import type {
-  ButtonHTMLAttributes,
-  PointerEvent,
-  ReactNode,
+import type { ButtonHTMLAttributes, PointerEvent, ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
 } from 'react';
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { recordLevelAttempt, saveGameState } from '@/app/actions/game';
@@ -84,20 +87,50 @@ type GameToolButtonProps = Omit<
 };
 
 function GameToolButton({
+  'aria-describedby': ariaDescribedBy,
   className = '',
   description,
   icon,
+  onBlur,
+  onFocus,
+  onPointerCancel,
+  onPointerDown,
+  onPointerEnter,
+  onPointerLeave,
+  onPointerUp,
   tooltip,
   ...buttonProps
 }: GameToolButtonProps) {
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const isTouchInteractionRef = useRef(false);
+  const [tooltipPosition, setTooltipPosition] = useState<{
+    left: number;
+    top: number;
+  } | null>(null);
   const descriptionId = useId();
   const tooltipId = useId();
-  const describedBy = [descriptionId, tooltipId, buttonProps['aria-describedby']]
+  const describedBy = [descriptionId, ariaDescribedBy]
     .filter(Boolean)
     .join(' ');
+  const showTooltip = () => {
+    const button = buttonRef.current;
+    if (!button) {
+      return;
+    }
+
+    const bounds = button.getBoundingClientRect();
+    setTooltipPosition({
+      left: Math.min(
+        window.innerWidth - 112,
+        Math.max(112, bounds.left + bounds.width / 2),
+      ),
+      top: bounds.top - 8,
+    });
+  };
+  const hideTooltip = () => setTooltipPosition(null);
 
   return (
-    <span className="group/tool relative inline-grid">
+    <span className="relative inline-grid">
       <button
         {...buttonProps}
         aria-describedby={describedBy}
@@ -107,19 +140,70 @@ function GameToolButton({
         ]
           .filter(Boolean)
           .join(' ')}
+        onBlur={(event) => {
+          hideTooltip();
+          isTouchInteractionRef.current = false;
+          onBlur?.(event);
+        }}
+        onFocus={(event) => {
+          if (!isTouchInteractionRef.current) {
+            showTooltip();
+          }
+          onFocus?.(event);
+        }}
+        onPointerCancel={(event) => {
+          hideTooltip();
+          onPointerCancel?.(event);
+        }}
+        onPointerDown={(event) => {
+          isTouchInteractionRef.current = event.pointerType !== 'mouse';
+          if (isTouchInteractionRef.current) {
+            hideTooltip();
+          }
+          onPointerDown?.(event);
+        }}
+        onPointerEnter={(event) => {
+          if (event.pointerType === 'mouse') {
+            isTouchInteractionRef.current = false;
+            showTooltip();
+          }
+          onPointerEnter?.(event);
+        }}
+        onPointerLeave={(event) => {
+          if (event.pointerType === 'mouse') {
+            hideTooltip();
+          }
+          onPointerLeave?.(event);
+        }}
+        onPointerUp={(event) => {
+          if (event.pointerType !== 'mouse') {
+            hideTooltip();
+          }
+          onPointerUp?.(event);
+        }}
+        ref={buttonRef}
       >
         {icon}
         <span className="sr-only" id={descriptionId}>
           {description}
         </span>
       </button>
-      <span
-        className="pointer-events-none absolute bottom-full right-0 z-50 mb-2 w-max max-w-52 translate-y-1 rounded-md border border-line bg-panel px-2.5 py-1.5 text-xs font-bold leading-snug text-foreground opacity-0 shadow-panel transition-[opacity,transform] duration-150 group-active/tool:translate-y-0 group-active/tool:opacity-100 group-focus-within/tool:translate-y-0 group-focus-within/tool:opacity-100 group-hover/tool:translate-y-0 group-hover/tool:opacity-100 motion-reduce:transition-none"
-        id={tooltipId}
-        role="tooltip"
-      >
-        {tooltip}
-      </span>
+      {tooltipPosition
+        ? createPortal(
+            <span
+              className="pointer-events-none fixed z-100 w-max max-w-52 -translate-x-1/2 -translate-y-full rounded-md border border-line bg-panel px-2.5 py-1.5 text-xs font-bold leading-snug text-foreground shadow-panel"
+              id={tooltipId}
+              role="tooltip"
+              style={{
+                left: tooltipPosition.left,
+                top: tooltipPosition.top,
+              }}
+            >
+              {tooltip}
+            </span>,
+            document.body,
+          )
+        : null}
     </span>
   );
 }
@@ -849,10 +933,7 @@ function GameBoardContent({
         return;
       }
 
-      if (
-        event &&
-        event.currentTarget.hasPointerCapture(event.pointerId)
-      ) {
+      if (event && event.currentTarget.hasPointerCapture(event.pointerId)) {
         event.currentTarget.releasePointerCapture(event.pointerId);
       }
 
@@ -981,9 +1062,7 @@ function GameBoardContent({
           setActiveReplayOfId(null);
         }
 
-        setAttemptStartBoard(
-          resetBoardAttempt(nextBoard, nextBoard.startedAt),
-        );
+        setAttemptStartBoard(resetBoardAttempt(nextBoard, nextBoard.startedAt));
         setIsBoardEntering(true);
         setBoardEntryAnimationKey((key) => key + 1);
         setBoard(nextBoard);
@@ -1007,15 +1086,8 @@ function GameBoardContent({
   }, [attemptStartBoard, refreshBoard]);
 
   const shuffleLevel = useCallback(() => {
-    refreshBoard(
-      () => createBoardState(board.level, board.dimensions),
-      true,
-    );
-  }, [
-    board.dimensions,
-    board.level,
-    refreshBoard,
-  ]);
+    refreshBoard(() => createBoardState(board.level, board.dimensions), true);
+  }, [board.dimensions, board.level, refreshBoard]);
 
   const gameModeLabel = activeReplayOfId
     ? 'Replay run'
@@ -1257,9 +1329,7 @@ function GameBoardContent({
                   : 'Reset current puzzle'
               }
               className={
-                isShuffleAnimationRunning
-                  ? 'disabled:cursor-wait'
-                  : undefined
+                isShuffleAnimationRunning ? 'disabled:cursor-wait' : undefined
               }
               description="Return the current puzzle to its starting configuration."
               disabled={isShuffleAnimationRunning}
@@ -1292,9 +1362,7 @@ function GameBoardContent({
                   : 'Shuffle puzzle'
               }
               className={
-                isShuffleAnimationRunning
-                  ? 'disabled:cursor-wait'
-                  : undefined
+                isShuffleAnimationRunning ? 'disabled:cursor-wait' : undefined
               }
               description="Create a new puzzle configuration for this level."
               disabled={isShuffleAnimationRunning}
