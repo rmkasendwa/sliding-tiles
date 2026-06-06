@@ -1295,17 +1295,25 @@ function GameBoardContent({
         </div>
         <div
           aria-label={`Level ${board.level}, ${columns} by ${rows} grid`}
-          className="play-overlay-float board-overlay absolute left-4 top-4 z-40 rounded-[7px] border px-3 py-2 text-sm font-bold text-accent-strong"
+          className="play-overlay-float board-overlay absolute left-4 top-4 z-40 rounded-[7px] border px-3 py-2 text-sm font-bold text-accent-strong max-[480px]:hidden"
         >
           Level {board.level} · {columns}x{rows}
         </div>
         <div className="absolute inset-x-4 bottom-4 z-40 flex items-end justify-between gap-2 max-[480px]:flex-col max-[480px]:items-stretch">
-          <div
-            aria-label={`${board.moves} ${board.moves === 1 ? 'move' : 'moves'}, elapsed time ${elapsedTimeLabel}`}
-            className="play-overlay-float board-overlay self-start whitespace-nowrap rounded-[7px] border px-3 py-2 text-sm font-bold text-accent-strong max-[480px]:self-center"
-          >
-            {board.moves} {board.moves === 1 ? 'move' : 'moves'} ·{' '}
-            {elapsedTimeLabel}
+          <div className="contents max-[480px]:flex max-[480px]:items-center max-[480px]:justify-center max-[480px]:gap-2">
+            <div
+              aria-label={`Level ${board.level}, ${columns} by ${rows} grid`}
+              className="board-overlay hidden whitespace-nowrap rounded-[7px] border px-2.5 py-2 text-xs font-bold text-accent-strong max-[480px]:block"
+            >
+              Level {board.level} · {columns}x{rows}
+            </div>
+            <div
+              aria-label={`${board.moves} ${board.moves === 1 ? 'move' : 'moves'}, elapsed time ${elapsedTimeLabel}`}
+              className="play-overlay-float board-overlay self-start whitespace-nowrap rounded-[7px] border px-3 py-2 text-sm font-bold text-accent-strong max-[480px]:self-auto max-[480px]:px-2.5 max-[480px]:text-xs"
+            >
+              {board.moves} {board.moves === 1 ? 'move' : 'moves'} ·{' '}
+              {elapsedTimeLabel}
+            </div>
           </div>
           <div className="board-overlay flex shrink-0 self-end gap-1 rounded-[7px] border p-1 text-accent-strong max-[480px]:self-center">
             <GameToolButton
