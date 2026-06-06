@@ -11,6 +11,7 @@ export type AnonymousTimerStatus = 'idle' | 'paused' | 'running';
 export type AnonymousGameProgress = {
   attemptStartBoard: BoardState;
   board: BoardState;
+  highestReachedLevel: number;
   timerStatus: AnonymousTimerStatus;
   version: typeof ANONYMOUS_GAME_STORAGE_VERSION;
 };
@@ -38,6 +39,7 @@ const boardSchema = z.object({
 const anonymousGameProgressSchema = z.object({
   attemptStartBoard: boardSchema,
   board: boardSchema,
+  highestReachedLevel: z.number().int().positive().optional(),
   timerStatus: z.enum(['idle', 'paused', 'running']),
   version: z.literal(ANONYMOUS_GAME_STORAGE_VERSION),
 });
@@ -93,7 +95,13 @@ export function parseAnonymousGameProgress(
       return null;
     }
 
-    return result.data;
+    return {
+      ...result.data,
+      highestReachedLevel: Math.max(
+        result.data.highestReachedLevel ?? result.data.board.level,
+        result.data.board.level,
+      ),
+    };
   } catch {
     return null;
   }

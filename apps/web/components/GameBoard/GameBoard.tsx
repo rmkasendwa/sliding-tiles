@@ -9,7 +9,6 @@ import {
   Volume2,
   VolumeX,
 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import type { ButtonHTMLAttributes, PointerEvent, ReactNode } from 'react';
 import {
   useCallback,
@@ -72,25 +71,8 @@ export type GameBoardProps = {
 const INFO_MODAL_TRANSITION_MS = 180;
 const PEEK_BUTTON_PREVIEW_DELAY_MS = 120;
 const LEGACY_ANONYMOUS_GAME_STORAGE_KEY = 'sliding-tiles:anonymous-board';
-
-function getAnonymousGameStorageSnapshot() {
-  return window.localStorage.getItem(ANONYMOUS_GAME_STORAGE_KEY);
-}
-
-function getServerAnonymousGameStorageSnapshot() {
-  return null;
-}
-
-function subscribeToAnonymousGameStorage(onStoreChange: () => void) {
-  const handleStorage = (event: StorageEvent) => {
-    if (event.key === ANONYMOUS_GAME_STORAGE_KEY) {
-      onStoreChange();
-    }
-  };
-
-  window.addEventListener('storage', handleStorage);
-  return () => window.removeEventListener('storage', handleStorage);
-}
+const HIGHEST_REACHED_LEVEL_STORAGE_KEY =
+  'sliding-tiles:highest-reached-level';
 
 function subscribeToClientReady() {
   return () => undefined;
@@ -102,6 +84,18 @@ function getClientReadySnapshot() {
 
 function getServerClientReadySnapshot() {
   return false;
+}
+
+function getAnonymousProgressSnapshot() {
+  return window.localStorage.getItem(ANONYMOUS_GAME_STORAGE_KEY);
+}
+
+function getHighestReachedLevelSnapshot() {
+  return window.localStorage.getItem(HIGHEST_REACHED_LEVEL_STORAGE_KEY);
+}
+
+function getServerStorageSnapshot() {
+  return null;
 }
 
 function isEditableKeyboardTarget(target: EventTarget | null) {
@@ -324,6 +318,7 @@ function formatElapsedTime(milliseconds: number) {
 function GameBoardContent({
   initialAttemptStartBoard,
   initialBoard,
+  initialHighestReachedLevel,
   initialTimerStatus,
   isSignedIn,
   playerAvatarUrl,
@@ -331,9 +326,9 @@ function GameBoardContent({
   replayOfId,
 }: GameBoardProps & {
   initialAttemptStartBoard?: BoardState;
+  initialHighestReachedLevel?: number;
   initialTimerStatus?: AnonymousTimerStatus;
 }) {
-  const router = useRouter();
   const {
     isEnabled: isSoundEnabled,
     isMuted,
@@ -348,7 +343,10 @@ function GameBoardContent({
   const [isCompletionImageVisible, setIsCompletionImageVisible] =
     useState(false);
   const [highestReachedLevel, setHighestReachedLevel] = useState(
-    initialBoard.level,
+    Math.max(
+      initialHighestReachedLevel ?? initialBoard.level,
+      initialBoard.level,
+    ),
   );
   const [attemptStartBoard, setAttemptStartBoard] = useState<BoardState>(() =>
     initialAttemptStartBoard ??
@@ -409,6 +407,17 @@ function GameBoardContent({
       (initialTimerStatus === undefined && initialBoard.moves > 0),
   );
   const isGameCompleteRef = useRef(false);
+  const exitReplayMode = useCallback(() => {
+    window.history.replaceState(window.history.state, '', '/play');
+    setActiveReplayOfId(null);
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(
+      HIGHEST_REACHED_LEVEL_STORAGE_KEY,
+      String(highestReachedLevel),
+    );
+  }, [highestReachedLevel]);
 
   const showInfoModal = useCallback(() => {
     if (infoModalTransitionTimeoutRef.current !== null) {
@@ -539,6 +548,7 @@ function GameBoardContent({
         serializeAnonymousGameProgress({
           attemptStartBoard,
           board: boardWithElapsed,
+          highestReachedLevel,
           timerStatus,
         }),
       );
@@ -548,6 +558,7 @@ function GameBoardContent({
     attemptStartBoard,
     board,
     clockNowMs,
+    highestReachedLevel,
     isClockRunning,
     isFocusPaused,
     isSignedIn,
@@ -733,18 +744,17 @@ function GameBoardContent({
         celebrationTimeoutRef.current = null;
 
         levelAdvanceTimeoutRef.current = window.setTimeout(() => {
-          scheduleLockInSound();
           resetClock();
-          setIsBoardEntering(true);
-          setBoardEntryAnimationKey((key) => key + 1);
-          setTileRotationSeed((seed) => seed + 1);
+          setIsBoardEntering(false);
           setHighestReachedLevel((highestLevel) =>
             Math.max(highestLevel, completedBoard.level + 1),
           );
           if (activeReplayOfId) {
-            router.replace('/play', { scroll: false });
+            exitReplayMode();
           }
-          setActiveReplayOfId(null);
+          if (!activeReplayOfId) {
+            setActiveReplayOfId(null);
+          }
           const nextBoard = createBoardState(
             completedBoard.level + 1,
             nextGridDimensions(completedBoard.dimensions),
@@ -764,12 +774,11 @@ function GameBoardContent({
     [
       activeReplayOfId,
       attemptStartBoard,
+      exitReplayMode,
       isSignedIn,
       launchCompletionConfetti,
       playSound,
       resetClock,
-      router,
-      scheduleLockInSound,
     ],
   );
 
@@ -1088,6 +1097,9 @@ function GameBoardContent({
       }
 
       shuffleInProgressRef.current = true;
+      setHighestReachedLevel((highestLevel) =>
+        Math.max(highestLevel, board.level),
+      );
       setIsShuffleInProgress(true);
       clearBoardHint();
       if (boardEntryTimeoutRef.current !== null) {
@@ -1119,7 +1131,7 @@ function GameBoardContent({
       resetTimeoutRef.current = window.setTimeout(() => {
         resetClock();
         if (activeReplayOfId) {
-          router.replace('/play', { scroll: false });
+          exitReplayMode();
         }
         const selectedBoard = createBoardState(
           targetLevel,
@@ -1129,8 +1141,7 @@ function GameBoardContent({
         setAttemptStartBoard(
           resetBoardAttempt(selectedBoard, selectedBoard.startedAt),
         );
-        setIsBoardEntering(true);
-        setBoardEntryAnimationKey((key) => key + 1);
+        setIsBoardEntering(false);
         setBoard(selectedBoard);
         setIsResetting(false);
         resetTimeoutRef.current = null;
@@ -1140,11 +1151,11 @@ function GameBoardContent({
       activeReplayOfId,
       board.level,
       clearBoardHint,
+      exitReplayMode,
       highestReachedLevel,
       isShuffleAnimationRunning,
       playSound,
       resetClock,
-      router,
       scheduleLockInSound,
     ],
   );
@@ -1188,7 +1199,7 @@ function GameBoardContent({
         const nextBoard = createNextBoard();
 
         if (exitReplay && activeReplayOfId) {
-          router.replace('/play', { scroll: false });
+          exitReplayMode();
         }
         if (exitReplay) {
           setActiveReplayOfId(null);
@@ -1205,10 +1216,10 @@ function GameBoardContent({
     [
       activeReplayOfId,
       clearBoardHint,
+      exitReplayMode,
       isShuffleAnimationRunning,
       playSound,
       resetClock,
-      router,
       scheduleLockInSound,
     ],
   );
@@ -1646,9 +1657,14 @@ export function GameBoard({
     isSignedIn ? getClientReadySnapshot : getServerClientReadySnapshot,
   );
   const storedProgressValue = useSyncExternalStore(
-    subscribeToAnonymousGameStorage,
-    getAnonymousGameStorageSnapshot,
-    getServerAnonymousGameStorageSnapshot,
+    subscribeToClientReady,
+    getAnonymousProgressSnapshot,
+    getServerStorageSnapshot,
+  );
+  const storedHighestLevelValue = useSyncExternalStore(
+    subscribeToClientReady,
+    getHighestReachedLevelSnapshot,
+    getServerStorageSnapshot,
   );
   const restoredProgress = useMemo(
     () =>
@@ -1657,6 +1673,16 @@ export function GameBoard({
         : parseAnonymousGameProgress(storedProgressValue),
     [isSignedIn, replayOfId, storedProgressValue],
   );
+  const storedHighestReachedLevel = useMemo(() => {
+    if (isSignedIn || replayOfId) {
+      return undefined;
+    }
+
+    const storedLevel = Number.parseInt(storedHighestLevelValue ?? '', 10);
+    return Number.isFinite(storedLevel) && storedLevel > 0
+      ? storedLevel
+      : undefined;
+  }, [isSignedIn, replayOfId, storedHighestLevelValue]);
 
   if (!isAnonymousStorageReady) {
     return (
@@ -1671,18 +1697,20 @@ export function GameBoard({
   }
 
   const activeInitialBoard = restoredProgress?.board ?? initialBoard;
-  const gameInstanceKey = restoredProgress
-    ? `restored:${restoredProgress.board.startedAt}`
-    : `initial:${initialBoard.startedAt}`;
+  const initialHighestReachedLevel = Math.max(
+    activeInitialBoard.level,
+    restoredProgress?.highestReachedLevel ?? 1,
+    storedHighestReachedLevel ?? 1,
+  );
 
   return (
     <SoundProvider enabled={soundEnabled}>
       <GameBoardContent
         initialAttemptStartBoard={restoredProgress?.attemptStartBoard}
         initialBoard={activeInitialBoard}
+        initialHighestReachedLevel={initialHighestReachedLevel}
         initialTimerStatus={restoredProgress?.timerStatus}
         isSignedIn={isSignedIn}
-        key={gameInstanceKey}
         playerAvatarUrl={playerAvatarUrl}
         playerName={playerName}
         replayOfId={replayOfId}
