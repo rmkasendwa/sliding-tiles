@@ -223,6 +223,13 @@ export function GameInfoPanel({
           )}
         </button>
 
+        {!isSignedIn && (
+          <p className="text-sm leading-6 text-muted">
+            Anonymous progress stays in this browser. Sign in to sync your board
+            and post leaderboard times.
+          </p>
+        )}
+
         <div
           aria-hidden={!isExpanded}
           className={[
@@ -304,12 +311,6 @@ export function GameInfoPanel({
                 </dl>
               </section>
             ) : null}
-            {!isSignedIn && (
-              <p className="leading-normal text-muted">
-                Anonymous progress stays in this browser. Sign in to sync your
-                board and post leaderboard times.
-              </p>
-            )}
           </div>
         </div>
       </div>
