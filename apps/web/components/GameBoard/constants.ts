@@ -1,4 +1,3 @@
-export const LOCAL_STORAGE_KEY = 'sliding-tiles:anonymous-board';
 export const BOARD_SIZE = 999;
 export const BOARD_HINT_DELAY_MS = 500;
 export const BOARD_HINT_TILE_REVEAL_DELAY_MS = 220;

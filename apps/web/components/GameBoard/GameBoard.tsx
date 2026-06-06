@@ -18,10 +18,17 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
 } from 'react';
 import { createPortal } from 'react-dom';
 
 import { recordLevelAttempt, saveGameState } from '@/app/actions/game';
+import {
+  ANONYMOUS_GAME_STORAGE_KEY,
+  parseAnonymousGameProgress,
+  serializeAnonymousGameProgress,
+  type AnonymousTimerStatus,
+} from '@/lib/anonymousGameStorage';
 import {
   BoardState,
   Slot,
@@ -46,7 +53,6 @@ import {
   LEVEL_COMPLETE_ADVANCE_DELAY_MS,
   LEVEL_COMPLETE_CELEBRATION_DELAY_MS,
   LEVEL_COMPLETE_CONFETTI_DURATION_MS,
-  LOCAL_STORAGE_KEY,
   RESET_GATHER_DELAY_MS,
   TILE_ENTRY_ANIMATION_MS,
   TILE_ENTRY_LOCK_IN_DELAY_MS,
@@ -65,6 +71,38 @@ export type GameBoardProps = {
 
 const INFO_MODAL_TRANSITION_MS = 180;
 const PEEK_BUTTON_PREVIEW_DELAY_MS = 120;
+const LEGACY_ANONYMOUS_GAME_STORAGE_KEY = 'sliding-tiles:anonymous-board';
+
+function getAnonymousGameStorageSnapshot() {
+  return window.localStorage.getItem(ANONYMOUS_GAME_STORAGE_KEY);
+}
+
+function getServerAnonymousGameStorageSnapshot() {
+  return null;
+}
+
+function subscribeToAnonymousGameStorage(onStoreChange: () => void) {
+  const handleStorage = (event: StorageEvent) => {
+    if (event.key === ANONYMOUS_GAME_STORAGE_KEY) {
+      onStoreChange();
+    }
+  };
+
+  window.addEventListener('storage', handleStorage);
+  return () => window.removeEventListener('storage', handleStorage);
+}
+
+function subscribeToClientReady() {
+  return () => undefined;
+}
+
+function getClientReadySnapshot() {
+  return true;
+}
+
+function getServerClientReadySnapshot() {
+  return false;
+}
 
 function isEditableKeyboardTarget(target: EventTarget | null) {
   return (
@@ -284,12 +322,17 @@ function formatElapsedTime(milliseconds: number) {
 }
 
 function GameBoardContent({
+  initialAttemptStartBoard,
   initialBoard,
+  initialTimerStatus,
   isSignedIn,
   playerAvatarUrl,
   playerName,
   replayOfId,
-}: GameBoardProps) {
+}: GameBoardProps & {
+  initialAttemptStartBoard?: BoardState;
+  initialTimerStatus?: AnonymousTimerStatus;
+}) {
   const router = useRouter();
   const {
     isEnabled: isSoundEnabled,
@@ -308,6 +351,7 @@ function GameBoardContent({
     initialBoard.level,
   );
   const [attemptStartBoard, setAttemptStartBoard] = useState<BoardState>(() =>
+    initialAttemptStartBoard ??
     resetBoardAttempt(initialBoard, initialBoard.startedAt),
   );
   const [activeReplayOfId, setActiveReplayOfId] = useState<string | null>(
@@ -326,9 +370,13 @@ function GameBoardContent({
   });
   const [clockNowMs, setClockNowMs] = useState(() => Date.now());
   const [isClockRunning, setIsClockRunning] = useState(
-    () => initialBoard.moves > 0,
+    () =>
+      initialTimerStatus === 'running' ||
+      (initialTimerStatus === undefined && initialBoard.moves > 0),
   );
-  const [isFocusPaused, setIsFocusPaused] = useState(false);
+  const [isFocusPaused, setIsFocusPaused] = useState(
+    initialTimerStatus === 'paused',
+  );
   const [tileRotationSeed, setTileRotationSeed] = useState(0);
   const [isResetting, setIsResetting] = useState(false);
   const [isShuffleInProgress, setIsShuffleInProgress] = useState(false);
@@ -356,7 +404,10 @@ function GameBoardContent({
   const boardHintMouseUpRef = useRef<(() => void) | null>(null);
   const suppressNextClickRef = useRef(false);
   const hasPlayedInitialEntrySoundRef = useRef(false);
-  const isClockRunningRef = useRef(initialBoard.moves > 0);
+  const isClockRunningRef = useRef(
+    initialTimerStatus === 'running' ||
+      (initialTimerStatus === undefined && initialBoard.moves > 0),
+  );
   const isGameCompleteRef = useRef(false);
 
   const showInfoModal = useCallback(() => {
@@ -469,11 +520,39 @@ function GameBoardContent({
       return () => window.clearTimeout(timeout);
     }
 
-    window.localStorage.setItem(
-      LOCAL_STORAGE_KEY,
-      JSON.stringify(boardWithElapsed),
-    );
-  }, [activeReplayOfId, board, clockNowMs, isSignedIn, levelStartedAtMs]);
+    if (!isSignedIn) {
+      window.localStorage.removeItem(LEGACY_ANONYMOUS_GAME_STORAGE_KEY);
+
+      if (isGameCompleteRef.current || isTileGridInOrder(board.tileGrid)) {
+        window.localStorage.removeItem(ANONYMOUS_GAME_STORAGE_KEY);
+        return;
+      }
+
+      const timerStatus: AnonymousTimerStatus = isFocusPaused
+        ? 'paused'
+        : isClockRunning
+          ? 'running'
+          : 'idle';
+
+      window.localStorage.setItem(
+        ANONYMOUS_GAME_STORAGE_KEY,
+        serializeAnonymousGameProgress({
+          attemptStartBoard,
+          board: boardWithElapsed,
+          timerStatus,
+        }),
+      );
+    }
+  }, [
+    activeReplayOfId,
+    attemptStartBoard,
+    board,
+    clockNowMs,
+    isClockRunning,
+    isFocusPaused,
+    isSignedIn,
+    levelStartedAtMs,
+  ]);
 
   const movableSlotKeys = useMemo(() => {
     return new Set(board.movableSlots.map(slotKey));
@@ -1561,11 +1640,49 @@ export function GameBoard({
   replayOfId,
   soundEnabled = true,
 }: GameBoardProps) {
+  const isAnonymousStorageReady = useSyncExternalStore(
+    subscribeToClientReady,
+    getClientReadySnapshot,
+    isSignedIn ? getClientReadySnapshot : getServerClientReadySnapshot,
+  );
+  const storedProgressValue = useSyncExternalStore(
+    subscribeToAnonymousGameStorage,
+    getAnonymousGameStorageSnapshot,
+    getServerAnonymousGameStorageSnapshot,
+  );
+  const restoredProgress = useMemo(
+    () =>
+      isSignedIn || replayOfId
+        ? null
+        : parseAnonymousGameProgress(storedProgressValue),
+    [isSignedIn, replayOfId, storedProgressValue],
+  );
+
+  if (!isAnonymousStorageReady) {
+    return (
+      <div
+        aria-label="Loading saved game"
+        className="grid min-h-[calc(100svh-36px)] w-full place-items-center rounded-lg bg-night text-sm font-bold text-surface"
+        role="status"
+      >
+        Loading game...
+      </div>
+    );
+  }
+
+  const activeInitialBoard = restoredProgress?.board ?? initialBoard;
+  const gameInstanceKey = restoredProgress
+    ? `restored:${restoredProgress.board.startedAt}`
+    : `initial:${initialBoard.startedAt}`;
+
   return (
     <SoundProvider enabled={soundEnabled}>
       <GameBoardContent
-        initialBoard={initialBoard}
+        initialAttemptStartBoard={restoredProgress?.attemptStartBoard}
+        initialBoard={activeInitialBoard}
+        initialTimerStatus={restoredProgress?.timerStatus}
         isSignedIn={isSignedIn}
+        key={gameInstanceKey}
         playerAvatarUrl={playerAvatarUrl}
         playerName={playerName}
         replayOfId={replayOfId}
