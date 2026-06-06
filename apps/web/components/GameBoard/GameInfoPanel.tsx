@@ -76,6 +76,7 @@ export function GameInfoPanel({
   const isExpanded =
     panelPreference === 'expanded' || (panelPreference === null && isModal);
   const detailsId = useId();
+  const compactLevelSelectId = useId();
   const levelSelectId = useId();
   const levelOptions = Array.from(
     { length: Math.max(highestReachedLevel, level) },
@@ -177,13 +178,29 @@ export function GameInfoPanel({
         >
           <div className="min-h-0 overflow-hidden">
             <div className="grid grid-cols-2 gap-2">
-              <div className="rounded-[7px] border border-accent/18 bg-primary-soft/55 px-3 py-2">
-                <p className="text-[0.7rem] font-extrabold uppercase text-accent-strong">
+              <div className="grid gap-0.5 rounded-[7px] border border-accent/18 bg-primary-soft/55 px-3 py-2">
+                <label
+                  className="text-[0.7rem] font-extrabold uppercase text-accent-strong"
+                  htmlFor={compactLevelSelectId}
+                >
                   Current
-                </p>
-                <p className="mt-0.5 text-sm font-bold text-foreground">
-                  Level {level}
-                </p>
+                </label>
+                <select
+                  aria-label="Current level"
+                  className="-ml-1 min-h-6 w-[calc(100%+0.25rem)] cursor-pointer appearance-auto border-0 bg-transparent px-1 text-sm font-bold text-foreground outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={isLevelSelectDisabled || isExpanded}
+                  id={compactLevelSelectId}
+                  onChange={(event) =>
+                    onSelectLevel(Number(event.target.value))
+                  }
+                  value={level}
+                >
+                  {levelOptions.map((levelOption) => (
+                    <option key={levelOption} value={levelOption}>
+                      Level {levelOption}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="rounded-[7px] border border-info/18 bg-info-surface px-3 py-2">
                 <p className="text-[0.7rem] font-extrabold uppercase text-info-strong">
