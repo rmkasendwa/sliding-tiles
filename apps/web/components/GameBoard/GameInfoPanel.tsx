@@ -1,11 +1,43 @@
 import { ChevronDown, ChevronUp, SlidersHorizontal } from 'lucide-react';
 import Link from 'next/link';
-import { useId, useState } from 'react';
+import { useId, useSyncExternalStore } from 'react';
 
 import { routes } from '@/lib/routes';
 
 import { ProfileAvatar } from '../ProfileAvatar';
 import { SolutionPreview } from './SolutionPreview';
+
+const INFO_PANEL_STORAGE_KEY = 'sliding-tiles:info-panel';
+const INFO_PANEL_CHANGE_EVENT = 'sliding-tiles:info-panel-change';
+
+type InfoPanelPreference = 'compact' | 'expanded' | null;
+
+function getInfoPanelSnapshot(): InfoPanelPreference {
+  const storedPreference = window.localStorage.getItem(INFO_PANEL_STORAGE_KEY);
+
+  return storedPreference === 'compact' || storedPreference === 'expanded'
+    ? storedPreference
+    : null;
+}
+
+function getServerInfoPanelSnapshot(): InfoPanelPreference {
+  return null;
+}
+
+function subscribeToInfoPanelPreference(onStoreChange: () => void) {
+  window.addEventListener('storage', onStoreChange);
+  window.addEventListener(INFO_PANEL_CHANGE_EVENT, onStoreChange);
+
+  return () => {
+    window.removeEventListener('storage', onStoreChange);
+    window.removeEventListener(INFO_PANEL_CHANGE_EVENT, onStoreChange);
+  };
+}
+
+function setInfoPanelPreference(preference: Exclude<InfoPanelPreference, null>) {
+  window.localStorage.setItem(INFO_PANEL_STORAGE_KEY, preference);
+  window.dispatchEvent(new Event(INFO_PANEL_CHANGE_EVENT));
+}
 
 export type GameInfoPanelProps = {
   columns: number;
@@ -36,7 +68,13 @@ export function GameInfoPanel({
   onSelectLevel,
   rows,
 }: GameInfoPanelProps) {
-  const [isExpanded, setIsExpanded] = useState(isModal);
+  const panelPreference = useSyncExternalStore(
+    subscribeToInfoPanelPreference,
+    getInfoPanelSnapshot,
+    getServerInfoPanelSnapshot,
+  );
+  const isExpanded =
+    panelPreference === 'expanded' || (panelPreference === null && isModal);
   const detailsId = useId();
   const levelSelectId = useId();
   const levelOptions = Array.from(
@@ -163,7 +201,9 @@ export function GameInfoPanel({
           aria-controls={detailsId}
           aria-expanded={isExpanded}
           className="inline-flex min-h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-[7px] border border-line bg-surface px-3 text-sm font-bold text-foreground transition-colors hover:bg-accent/8"
-          onClick={() => setIsExpanded((expanded) => !expanded)}
+          onClick={() =>
+            setInfoPanelPreference(isExpanded ? 'compact' : 'expanded')
+          }
           type="button"
         >
           <SlidersHorizontal
