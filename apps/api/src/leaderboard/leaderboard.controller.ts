@@ -41,6 +41,29 @@ export class LeaderboardController {
     );
   }
 
+  @Get('mine')
+  @UseGuards(AuthGuard)
+  listForUser(
+    @Query('attemptType') attemptType: string | undefined,
+    @Query('cursor') cursor: string | undefined,
+    @Query('take') take: string | undefined,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    const user = getAuthenticatedUser(request);
+    const parsedTake = Number(take ?? 12);
+
+    return this.leaderboardService.listForUser(user.id, {
+      attemptType:
+        attemptType === 'original' || attemptType === 'replay'
+          ? attemptType
+          : undefined,
+      cursor,
+      take: Number.isFinite(parsedTake)
+        ? Math.min(Math.max(parsedTake, 1), 30)
+        : 12,
+    });
+  }
+
   @Get('completions/:completionId/replay')
   @UseGuards(AuthGuard)
   getReplayBoard(

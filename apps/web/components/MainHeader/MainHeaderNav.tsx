@@ -1,6 +1,6 @@
 'use client';
 
-import { LogOut, Trophy, User } from 'lucide-react';
+import { History, LogOut, Trophy, User } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -258,6 +258,24 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
               />
             ) : null}
           </Link>
+          <Link
+            aria-current={
+              isRouteActive(pathname, routes.runs) ? 'page' : undefined
+            }
+            className={getDrawerLinkClass(
+              isRouteActive(pathname, routes.runs),
+            )}
+            href={routes.runs}
+            onClick={closeDrawer}
+          >
+            <span>Run History</span>
+            {isRouteActive(pathname, routes.runs) ? (
+              <span
+                className="h-2 w-2 rounded-full bg-accent"
+                aria-hidden="true"
+              />
+            ) : null}
+          </Link>
           <form action={logout}>
             <button
               className="flex min-h-12 w-full cursor-pointer items-center rounded-[7px] px-3 text-left text-[1.05rem] font-bold text-danger transition-colors hover:bg-danger/8"
@@ -393,6 +411,18 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
                     >
                       <User className="h-4 w-4 text-muted" aria-hidden="true" />
                       Profile
+                    </Link>
+                    <Link
+                      className="flex min-h-11 items-center gap-2.5 rounded-[10px] px-3 text-[0.95rem] transition-colors hover:bg-accent/8"
+                      href={routes.runs}
+                      onClick={closeAccountMenu}
+                      role="menuitem"
+                    >
+                      <History
+                        className="h-4 w-4 text-muted"
+                        aria-hidden="true"
+                      />
+                      Run History
                     </Link>
                     <Link
                       className="flex min-h-11 items-center gap-2.5 rounded-[10px] px-3 text-[0.95rem] transition-colors hover:bg-accent/8"

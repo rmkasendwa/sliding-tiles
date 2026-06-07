@@ -88,6 +88,12 @@ export const pageMetadataConfig = {
     path: routes.resetPassword,
     title: 'Reset Password',
   },
+  runs: {
+    description:
+      'Review your complete Sliding Tiles run history, compare original and replay attempts, and replay previous puzzle configurations.',
+    path: routes.runs,
+    title: 'Run History',
+  },
   signup: {
     description:
       'Create a Sliding Tiles account to save puzzle progress, track runs, and climb the competitive leaderboard.',

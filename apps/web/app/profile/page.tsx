@@ -4,8 +4,14 @@ import { redirect } from 'next/navigation';
 import { ChangePasswordForm } from '@/components/ChangePasswordForm';
 import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { ProfileSettingsForm } from '@/components/ProfileSettingsForm';
+import { RunHistoryList } from '@/components/RunHistoryList';
 import { ThemeSettings } from '@/components/ThemeSettings';
-import { ApiGameState, ApiScore, apiRequest } from '@/lib/api';
+import {
+  ApiGameState,
+  ApiRunPage,
+  ApiScore,
+  apiRequest,
+} from '@/lib/api';
 import { pageMetadata } from '@/lib/metadata';
 import { routes } from '@/lib/routes';
 import { getSession } from '@/lib/session';
@@ -55,29 +61,15 @@ export default async function ProfilePage() {
     redirect(routes.login);
   }
 
-  const { gameState, scores } = await apiRequest<{
-    gameState: ApiGameState | null;
-    scores: ApiScore[];
-  }>('/profile');
+  const [{ gameState, scores }, { scores: recentRuns }] = await Promise.all([
+    apiRequest<{
+      gameState: ApiGameState | null;
+      scores: ApiScore[];
+    }>('/profile'),
+    apiRequest<ApiRunPage>('/leaderboard/mine?take=4'),
+  ]);
 
   const completedRuns = scores.length;
-  const recentScores = scores.slice(0, 10);
-  const levelRecords = scores.reduce((records, score) => {
-    const existing = records.get(score.level);
-    if (!existing) {
-      records.set(score.level, {
-        bestMoves: score.moves,
-        bestTimeSeconds: score.timeSeconds,
-      });
-      return records;
-    }
-
-    records.set(score.level, {
-      bestMoves: Math.min(existing.bestMoves, score.moves),
-      bestTimeSeconds: Math.min(existing.bestTimeSeconds, score.timeSeconds),
-    });
-    return records;
-  }, new Map<number, { bestMoves: number; bestTimeSeconds: number }>());
   const replayComparisons = scores.reduce((comparisons, score) => {
     if (score.attemptType !== 'replay') {
       return comparisons;
@@ -601,130 +593,16 @@ export default async function ProfilePage() {
           <section className="grid gap-4 rounded-lg border border-info/18 bg-[linear-gradient(160deg,var(--color-info-surface),var(--color-surface))] p-4">
             <div className="flex items-end justify-between gap-3">
               <h2 className="text-[clamp(1.6rem,3vw,2.2rem)]">Recent runs</h2>
-              <span className="text-xs font-bold uppercase tracking-[0.08em] text-info-strong">
-                Last {recentScores.length}
-              </span>
+              <Link
+                className="text-sm font-bold text-info-strong underline-offset-4 hover:underline"
+                href={routes.runs}
+              >
+                View All Runs
+              </Link>
             </div>
 
-            {recentScores.length > 0 ? (
-              <div className="grid gap-2.5">
-                {recentScores.map((score, index) => {
-                  const levelRecord = levelRecords.get(score.level);
-                  const replayComparison = replayComparisons.get(score.id);
-                  const canReplay = Boolean(score.puzzleConfig);
-
-                  return (
-                  <article className="relative pl-4" key={score.id}>
-                    <span
-                      aria-hidden="true"
-                      className={[
-                        'absolute left-0 top-5 h-[calc(100%-8px)] w-0.5',
-                        index === recentScores.length - 1
-                          ? 'hidden'
-                          : 'bg-line/70',
-                      ].join(' ')}
-                    />
-                    <span
-                      aria-hidden="true"
-                      className={[
-                        'absolute -left-1 top-2 h-2.5 w-2.5 rounded-full border',
-                        index === 0
-                          ? 'border-primary bg-primary'
-                          : index % 3 === 1
-                            ? 'border-info bg-info'
-                            : index % 3 === 2
-                              ? 'border-warning bg-warning'
-                              : 'border-line bg-panel',
-                      ].join(' ')}
-                    />
-                    <div
-                      className={[
-                        'grid gap-2 rounded-lg border bg-surface/60 p-3',
-                        index === 0
-                          ? 'border-accent/45 shadow-rank-highlight'
-                          : index % 3 === 1
-                            ? 'border-info/22 bg-info-surface'
-                            : index % 3 === 2
-                              ? 'border-warning/26 bg-warning-surface'
-                              : 'border-line',
-                      ].join(' ')}
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div>
-                          <p className="text-sm font-bold text-foreground">
-                            Level {score.level}
-                          </p>
-                          <p className="mt-0.5 text-xs font-semibold uppercase text-muted">
-                            {formatDateTime(score.completedAt)}
-                          </p>
-                        </div>
-                        <span
-                          className={[
-                            'rounded-full border px-2.5 py-1 text-[0.7rem] font-extrabold uppercase',
-                            score.attemptType === 'replay'
-                              ? 'border-info/26 bg-info-soft/80 text-info-strong'
-                              : 'border-accent/22 bg-primary-soft/76 text-accent-strong',
-                          ].join(' ')}
-                        >
-                          {score.attemptType === 'replay'
-                            ? 'Replay'
-                            : 'Original'}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 text-sm max-[620px]:grid-cols-1">
-                        <p className="rounded-md border border-line bg-surface/80 px-2 py-1.5">
-                          Time: {formatDuration(score.timeSeconds)}
-                        </p>
-                        <p className="rounded-md border border-line bg-surface/80 px-2 py-1.5">
-                          Moves: {score.moves}
-                        </p>
-                        <p className="rounded-md border border-line bg-surface/80 px-2 py-1.5">
-                          Pace: {formatPace(score.timeSeconds, score.level)}
-                        </p>
-                      </div>
-                      <div className="grid gap-2 rounded-md border border-line bg-surface/70 px-2.5 py-2 text-xs text-muted">
-                        <p>
-                          Level best:{' '}
-                          <span className="font-bold text-foreground">
-                            {levelRecord
-                              ? `${formatDuration(levelRecord.bestTimeSeconds)} · ${levelRecord.bestMoves} moves`
-                              : 'Pending'}
-                          </span>
-                        </p>
-                        {replayComparison ? (
-                          <p
-                            className={[
-                              'font-bold',
-                              replayComparison.startsWith('Improved')
-                                ? 'text-primary-strong'
-                                : replayComparison.startsWith('Behind')
-                                  ? 'text-warning-strong'
-                                  : 'text-info-strong',
-                            ].join(' ')}
-                          >
-                            Replay result: {replayComparison}
-                          </p>
-                        ) : null}
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {canReplay ? (
-                          <Link
-                            className="inline-flex min-h-9 items-center justify-center rounded-[7px] border border-primary bg-primary px-3 text-sm font-bold text-primary-contrast shadow-button-primary transition-colors hover:bg-primary-strong"
-                            href={`${routes.play}?replay=${encodeURIComponent(score.id)}`}
-                          >
-                            Replay Level
-                          </Link>
-                        ) : (
-                          <span className="inline-flex min-h-9 items-center justify-center rounded-[7px] border border-line bg-surface/70 px-3 text-sm font-bold text-muted">
-                            Replay unavailable
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </article>
-                  );
-                })}
-              </div>
+            {recentRuns.length > 0 ? (
+              <RunHistoryList runs={recentRuns} />
             ) : (
               <div className="rounded-[7px] border border-dashed border-line bg-surface/45 p-4">
                 <p className="leading-normal text-muted">

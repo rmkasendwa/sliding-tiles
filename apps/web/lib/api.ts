@@ -64,6 +64,20 @@ export type ApiScore = {
   userId: string;
 };
 
+export type ApiRun = Omit<ApiScore, 'puzzleConfig'> & {
+  canReplay: boolean;
+  levelBest: {
+    moves: number;
+    timeSeconds: number;
+  } | null;
+  replayComparison: string | null;
+};
+
+export type ApiRunPage = {
+  nextCursor: string | null;
+  scores: ApiRun[];
+};
+
 function getApiBaseUrl() {
   return (process.env.API_BASE_URL ?? 'http://localhost:4001/api').replace(
     /\/$/,

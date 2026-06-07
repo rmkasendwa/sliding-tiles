@@ -13,6 +13,135 @@ type CompletedLevelDto = z.infer<typeof completedLevelSchema>;
 export class LeaderboardService {
   constructor(private readonly prisma: PrismaService) {}
 
+  async listForUser(
+    userId: string,
+    {
+      attemptType,
+      cursor,
+      take = 12,
+    }: {
+      attemptType?: 'original' | 'replay';
+      cursor?: string;
+      take?: number;
+    },
+  ) {
+    const scores = await this.prisma.leaderboard.findMany({
+      cursor: cursor ? { id: cursor } : undefined,
+      orderBy: [{ completedAt: 'desc' }, { id: 'desc' }],
+      select: {
+        attemptType: true,
+        completedAt: true,
+        id: true,
+        level: true,
+        moves: true,
+        puzzleConfig: true,
+        replayOfId: true,
+        timeSeconds: true,
+        userId: true,
+      },
+      skip: cursor ? 1 : 0,
+      take: take + 1,
+      where: {
+        attemptType,
+        userId,
+      },
+    });
+    const hasMore = scores.length > take;
+    const pageScores = hasMore ? scores.slice(0, take) : scores;
+    const levels = [...new Set(pageScores.map((score) => score.level))];
+    const replayRootIds = [
+      ...new Set(
+        pageScores
+          .filter((score) => score.attemptType === 'replay')
+          .map((score) => score.replayOfId)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    ];
+    const [levelAttempts, replayAttempts] = await Promise.all([
+      levels.length
+        ? this.prisma.leaderboard.findMany({
+            select: { level: true, moves: true, timeSeconds: true },
+            where: { level: { in: levels }, userId },
+          })
+        : [],
+      replayRootIds.length
+        ? this.prisma.leaderboard.findMany({
+            orderBy: [{ completedAt: 'asc' }, { id: 'asc' }],
+            where: {
+              userId,
+              OR: [
+                { id: { in: replayRootIds } },
+                { replayOfId: { in: replayRootIds } },
+              ],
+            },
+          })
+        : [],
+    ]);
+    const levelBests = new Map<
+      number,
+      { moves: number; timeSeconds: number }
+    >();
+
+    levelAttempts.forEach((attempt) => {
+      const current = levelBests.get(attempt.level);
+      levelBests.set(attempt.level, {
+        moves: Math.min(current?.moves ?? attempt.moves, attempt.moves),
+        timeSeconds: Math.min(
+          current?.timeSeconds ?? attempt.timeSeconds,
+          attempt.timeSeconds,
+        ),
+      });
+    });
+
+    return {
+      nextCursor: hasMore ? pageScores.at(-1)?.id ?? null : null,
+      scores: pageScores.map(({ puzzleConfig, ...score }) => {
+        const previousAttempts =
+          score.attemptType === 'replay' && score.replayOfId
+            ? replayAttempts.filter(
+                (attempt) =>
+                  (attempt.id === score.replayOfId ||
+                    attempt.replayOfId === score.replayOfId) &&
+                  attempt.id !== score.id &&
+                  attempt.completedAt.getTime() < score.completedAt.getTime(),
+              )
+            : [];
+        const previousBest = previousAttempts.reduce<
+          (typeof previousAttempts)[number] | null
+        >((best, attempt) => {
+          if (!best) {
+            return attempt;
+          }
+          return attempt.timeSeconds < best.timeSeconds ||
+            (attempt.timeSeconds === best.timeSeconds &&
+              attempt.moves < best.moves)
+            ? attempt
+            : best;
+        }, null);
+        const replayComparison =
+          score.attemptType !== 'replay'
+            ? null
+            : !previousBest
+              ? 'First replay baseline'
+              : score.timeSeconds < previousBest.timeSeconds ||
+                  (score.timeSeconds === previousBest.timeSeconds &&
+                    score.moves < previousBest.moves)
+                ? 'Improved previous best'
+                : score.timeSeconds === previousBest.timeSeconds &&
+                    score.moves === previousBest.moves
+                  ? 'Matched previous best'
+                  : 'Behind previous best';
+
+        return {
+          ...score,
+          canReplay: Boolean(puzzleConfig),
+          levelBest: levelBests.get(score.level) ?? null,
+          replayComparison,
+        };
+      }),
+    };
+  }
+
   async list(take = 20) {
     const scores = await this.prisma.leaderboard.findMany({
       select: {
