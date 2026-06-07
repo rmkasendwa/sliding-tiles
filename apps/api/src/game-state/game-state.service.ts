@@ -12,11 +12,21 @@ export class GameStateService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getForUser(userId: string) {
-    const gameState = await this.prisma.gameState.findUnique({
-      where: { userId },
-    });
+    const [gameState, highestOriginalCompletion] = await Promise.all([
+      this.prisma.gameState.findUnique({
+        where: { userId },
+      }),
+      this.prisma.leaderboard.aggregate({
+        _max: { level: true },
+        where: { attemptType: 'original', userId },
+      }),
+    ]);
+    const highestReachedLevel = Math.max(
+      gameState?.level ?? 1,
+      (highestOriginalCompletion._max.level ?? 0) + 1,
+    );
 
-    return { gameState };
+    return { gameState, highestReachedLevel };
   }
 
   async saveForUser(userId: string, board: BoardStateDto) {

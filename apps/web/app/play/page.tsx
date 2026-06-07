@@ -27,7 +27,10 @@ export default async function PlayPage({ searchParams }: PlayPageProps) {
         )
       : null;
   const savedState = session
-    ? await apiRequest<{ gameState: ApiGameState | null }>('/game-state')
+    ? await apiRequest<{
+        gameState: ApiGameState | null;
+        highestReachedLevel: number;
+      }>('/game-state')
     : null;
   const savedBoard = savedState?.gameState?.board as BoardState | undefined;
   const initialBoard = normalizeBoardState(
@@ -38,7 +41,7 @@ export default async function PlayPage({ searchParams }: PlayPageProps) {
     <section className="page-rail-wide mx-auto grid min-h-svh py-4">
       <GameBoard
         initialBoard={initialBoard}
-        initialHighestReachedLevel={savedBoard?.level}
+        initialHighestReachedLevel={savedState?.highestReachedLevel}
         isSignedIn={Boolean(session)}
         playerAvatarUrl={session?.avatarUrl}
         playerName={session?.name}
