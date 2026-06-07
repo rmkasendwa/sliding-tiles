@@ -17,7 +17,12 @@ export default async function PlayPage({ searchParams }: PlayPageProps) {
   const replayId = Array.isArray(replayParam) ? replayParam[0] : replayParam;
   const replayState =
     session && replayId
-      ? await apiRequest<{ board: BoardState; replayOfId: string }>(
+      ? await apiRequest<{
+          bestMoves: number;
+          bestTimeSeconds: number;
+          board: BoardState;
+          replayOfId: string;
+        }>(
           `/leaderboard/completions/${encodeURIComponent(replayId)}/replay`,
         )
       : null;
@@ -37,6 +42,14 @@ export default async function PlayPage({ searchParams }: PlayPageProps) {
         isSignedIn={Boolean(session)}
         playerAvatarUrl={session?.avatarUrl}
         playerName={session?.name}
+        replayBest={
+          replayState
+            ? {
+                moves: replayState.bestMoves,
+                timeSeconds: replayState.bestTimeSeconds,
+              }
+            : undefined
+        }
         replayOfId={replayState?.replayOfId}
       />
     </section>

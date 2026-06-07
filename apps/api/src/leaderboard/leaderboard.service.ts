@@ -71,16 +71,30 @@ export class LeaderboardService {
       );
     }
     const board = parsedBoard.data;
+    const replayRootId = score.replayOfId ?? score.id;
+    const attempts = await this.prisma.leaderboard.findMany({
+      where: {
+        userId,
+        OR: [{ id: replayRootId }, { replayOfId: replayRootId }],
+      },
+      select: {
+        moves: true,
+        timeSeconds: true,
+      },
+    });
 
     return {
+      bestMoves: Math.min(...attempts.map((attempt) => attempt.moves)),
+      bestTimeSeconds: Math.min(
+        ...attempts.map((attempt) => attempt.timeSeconds),
+      ),
       board: {
         ...board,
         elapsedTimeMs: 0,
         moves: 0,
         startedAt: new Date().toISOString(),
       } satisfies BoardStateDto,
-      replayOfId: score.replayOfId ?? score.id,
-      sourceScore: score,
+      replayOfId: replayRootId,
     };
   }
 

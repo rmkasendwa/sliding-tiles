@@ -13,6 +13,10 @@ import { BOARD_SIZE, BOARD_SURFACE_BACKGROUND } from './constants';
 import { CompletionEffects } from './CompletionEffects';
 import { GameHud } from './GameHud';
 import { GameToolbar } from './GameToolbar';
+import {
+  ReplayResultPanel,
+  type ReplayResult,
+} from './ReplayResultPanel';
 
 type GameStageProps = {
   board: BoardState;
@@ -20,6 +24,7 @@ type GameStageProps = {
   boardFrameRef: RefObject<HTMLElement | null>;
   columns: number;
   confettiBurstKey: number | null;
+  continueLevel: number;
   elapsedTimeLabel: string;
   hintedSlot: string | null;
   isBoardEntering: boolean;
@@ -37,6 +42,7 @@ type GameStageProps = {
   onBoardPointerDown: PointerEventHandler<HTMLDivElement>;
   onBoardPointerLeave: PointerEventHandler<HTMLDivElement>;
   onBoardPointerUp: PointerEventHandler<HTMLDivElement>;
+  onContinueReplay: () => void;
   onHint: (slot: string | null) => void;
   onInvalidMove: () => void;
   onMove: (slot: Slot) => void;
@@ -46,9 +52,11 @@ type GameStageProps = {
   onPeekLeave: PointerEventHandler<HTMLButtonElement>;
   onPeekUp: PointerEventHandler<HTMLButtonElement>;
   onReset: () => void;
+  onReplayAgain: () => void;
   onShuffle: () => void;
   onToggleFullscreen: () => void;
   onToggleMuted: () => void;
+  replayResult: ReplayResult | null;
   rows: number;
   suppressNextClickRef: MutableRefObject<boolean>;
   tileRotationSeed: number;
@@ -60,6 +68,7 @@ export function GameStage({
   boardFrameRef,
   columns,
   confettiBurstKey,
+  continueLevel,
   elapsedTimeLabel,
   hintedSlot,
   isBoardEntering,
@@ -77,6 +86,7 @@ export function GameStage({
   onBoardPointerDown,
   onBoardPointerLeave,
   onBoardPointerUp,
+  onContinueReplay,
   onHint,
   onInvalidMove,
   onMove,
@@ -86,9 +96,11 @@ export function GameStage({
   onPeekLeave,
   onPeekUp,
   onReset,
+  onReplayAgain,
   onShuffle,
   onToggleFullscreen,
   onToggleMuted,
+  replayResult,
   rows,
   suppressNextClickRef,
   tileRotationSeed,
@@ -185,6 +197,14 @@ export function GameStage({
         onToggleMuted={onToggleMuted}
         rows={rows}
       />
+      {replayResult ? (
+        <ReplayResultPanel
+          continueLevel={continueLevel}
+          onContinue={onContinueReplay}
+          onReplayAgain={onReplayAgain}
+          result={replayResult}
+        />
+      ) : null}
     </section>
   );
 }

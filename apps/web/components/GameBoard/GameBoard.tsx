@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import {
   useCallback,
   useEffect,
@@ -32,6 +33,10 @@ import {
   TILE_ENTRY_LOCK_IN_DELAY_MS,
 } from './constants';
 import { GameStage } from './GameStage';
+import type {
+  ReplayPerformance,
+  ReplayResult,
+} from './ReplayResultPanel';
 import { ResponsiveGameInfoPanel } from './ResponsiveGameInfoPanel';
 import { useBoardFullscreen } from './useBoardFullscreen';
 import { useBoardPreview } from './useBoardPreview';
@@ -47,6 +52,7 @@ export type GameBoardProps = {
   isSignedIn: boolean;
   playerAvatarUrl?: string | null;
   playerName?: string;
+  replayBest?: ReplayPerformance;
   replayOfId?: string | null;
   soundEnabled?: boolean;
 };
@@ -59,11 +65,13 @@ function GameBoardContent({
   isSignedIn,
   playerAvatarUrl,
   playerName,
+  replayBest,
   replayOfId,
 }: GameBoardProps & {
   initialAttemptStartBoard?: BoardState;
   initialTimerStatus?: AnonymousTimerStatus;
 }) {
+  const router = useRouter();
   const {
     isEnabled: isSoundEnabled,
     isMuted,
@@ -112,6 +120,9 @@ function GameBoardContent({
   const [activeReplayOfId, setActiveReplayOfId] = useState<string | null>(
     replayOfId ?? null,
   );
+  const [currentReplayBest, setCurrentReplayBest] =
+    useState<ReplayPerformance | null>(replayBest ?? null);
+  const [replayResult, setReplayResult] = useState<ReplayResult | null>(null);
   const [isCelebrating, setIsCelebrating] = useState(false);
   const [boardEntryAnimationKey, setBoardEntryAnimationKey] = useState(0);
   const [isBoardEntering, setIsBoardEntering] = useState(true);
@@ -133,7 +144,8 @@ function GameBoardContent({
     stopPeekButtonPreview,
     suppressNextClickRef,
   } = useBoardPreview({
-    isInteractionBlocked: isCelebrating || isShuffleAnimationRunning,
+    isInteractionBlocked:
+      isCelebrating || isShuffleAnimationRunning || Boolean(replayResult),
     playHintSound,
   });
   const celebrationTimeoutRef = useRef<number | null>(null);
@@ -148,9 +160,9 @@ function GameBoardContent({
   const shuffleInProgressRef = useRef(false);
   const hasPlayedInitialEntrySoundRef = useRef(false);
   const exitReplayMode = useCallback(() => {
-    window.history.replaceState(window.history.state, '', '/play');
     setActiveReplayOfId(null);
-  }, []);
+    router.replace('/play', { scroll: false });
+  }, [router]);
 
   useEffect(() => {
     startAmbience();
@@ -300,6 +312,17 @@ function GameBoardContent({
       const completedElapsedTimeMs = completeClock(
         effectiveLevelStartedAtMs,
       );
+      const latestReplayPerformance = {
+        moves: completedBoard.moves,
+        timeSeconds: Math.max(1, Math.round(completedElapsedTimeMs / 1000)),
+      };
+      const completedReplayResult =
+        activeReplayOfId
+          ? {
+              latest: latestReplayPerformance,
+              previousBest: currentReplayBest ?? latestReplayPerformance,
+            }
+          : null;
       launchCompletionConfetti(completedBoard);
       playSound('complete');
       setIsCompletionImageVisible(true);
@@ -328,6 +351,23 @@ function GameBoardContent({
         celebrationTimeoutRef.current = null;
 
         levelAdvanceTimeoutRef.current = window.setTimeout(() => {
+          if (completedReplayResult) {
+            setCurrentReplayBest({
+              moves: Math.min(
+                completedReplayResult.previousBest.moves,
+                completedReplayResult.latest.moves,
+              ),
+              timeSeconds: Math.min(
+                completedReplayResult.previousBest.timeSeconds,
+                completedReplayResult.latest.timeSeconds,
+              ),
+            });
+            setIsCelebrating(false);
+            setReplayResult(completedReplayResult);
+            levelAdvanceTimeoutRef.current = null;
+            return;
+          }
+
           resetClock();
           setIsBoardEntering(false);
           setHighestReachedLevel((highestLevel) =>
@@ -359,6 +399,7 @@ function GameBoardContent({
       attemptStartBoard,
       clearBoardHint,
       completeClock,
+      currentReplayBest,
       exitReplayMode,
       isSignedIn,
       launchCompletionConfetti,
@@ -567,6 +608,22 @@ function GameBoardContent({
   const shuffleLevel = useCallback(() => {
     refreshBoard(() => createBoardState(board.level, board.dimensions), true);
   }, [board.dimensions, board.level, refreshBoard]);
+  const replayAgain = useCallback(() => {
+    setReplayResult(null);
+    refreshBoard(() => resetBoardAttempt(attemptStartBoard), false);
+  }, [attemptStartBoard, refreshBoard]);
+  const continueProgress = useCallback(() => {
+    setReplayResult(null);
+    exitReplayMode();
+    refreshBoard(
+      () =>
+        createBoardState(
+          highestReachedLevel,
+          getDimensionsForLevel(highestReachedLevel),
+        ),
+      false,
+    );
+  }, [exitReplayMode, highestReachedLevel, refreshBoard]);
 
   const gameModeLabel = activeReplayOfId
     ? 'Replay run'
@@ -589,7 +646,8 @@ function GameBoardContent({
 
   useGameKeyboardControls({
     board,
-    isInteractionBlocked: isCelebrating || isShuffleAnimationRunning,
+    isInteractionBlocked:
+      isCelebrating || isShuffleAnimationRunning || Boolean(replayResult),
     movableSlotKeys,
     onMove: moveTile,
     onReset: resetLevel,
@@ -605,6 +663,7 @@ function GameBoardContent({
         boardFrameRef={boardFrameRef}
         columns={columns}
         confettiBurstKey={confettiBurstKey}
+        continueLevel={highestReachedLevel}
         elapsedTimeLabel={elapsedTimeLabel}
         hintedSlot={hintedSlot}
         isBoardEntering={isBoardEntering}
@@ -622,6 +681,7 @@ function GameBoardContent({
         onBoardPointerDown={startBoardHint}
         onBoardPointerLeave={clearBoardHintFromPointer}
         onBoardPointerUp={clearBoardHintFromPointer}
+        onContinueReplay={continueProgress}
         onHint={setHintedSlot}
         onInvalidMove={() => playSound('invalid')}
         onMove={moveTile}
@@ -631,9 +691,11 @@ function GameBoardContent({
         onPeekLeave={stopPeekButtonPreview}
         onPeekUp={stopPeekButtonPreview}
         onReset={resetLevel}
+        onReplayAgain={replayAgain}
         onShuffle={shuffleLevel}
         onToggleFullscreen={() => void toggleBoardFullscreen()}
         onToggleMuted={toggleMuted}
+        replayResult={replayResult}
         rows={rows}
         suppressNextClickRef={suppressNextClickRef}
         tileRotationSeed={tileRotationSeed}
@@ -643,7 +705,9 @@ function GameBoardContent({
         columns={columns}
         gameModeLabel={gameModeLabel}
         highestReachedLevel={highestReachedLevel}
-        isLevelSelectDisabled={isShuffleAnimationRunning || isCelebrating}
+        isLevelSelectDisabled={
+          isShuffleAnimationRunning || isCelebrating || Boolean(replayResult)
+        }
         isModalOpen={isInfoModalOpen}
         isModalRendered={isInfoModalRendered}
         isSignedIn={isSignedIn}
@@ -664,6 +728,7 @@ export function GameBoard({
   isSignedIn,
   playerAvatarUrl,
   playerName,
+  replayBest,
   replayOfId,
   soundEnabled = true,
 }: GameBoardProps) {
@@ -702,6 +767,7 @@ export function GameBoard({
         isSignedIn={isSignedIn}
         playerAvatarUrl={playerAvatarUrl}
         playerName={playerName}
+        replayBest={replayBest}
         replayOfId={replayOfId}
       />
     </SoundProvider>
