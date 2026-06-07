@@ -37,6 +37,10 @@ export function useGamePersistence({
   timerStatus,
 }: GamePersistenceOptions) {
   useEffect(() => {
+    if (isSignedIn) {
+      return;
+    }
+
     const storedHighestReachedLevel = Number.parseInt(
       window.localStorage.getItem(HIGHEST_REACHED_LEVEL_STORAGE_KEY) ?? '',
       10,
@@ -53,7 +57,7 @@ export function useGamePersistence({
         ),
       ),
     );
-  }, [highestReachedLevel]);
+  }, [highestReachedLevel, isSignedIn]);
 
   useEffect(() => {
     const boardWithElapsed = {

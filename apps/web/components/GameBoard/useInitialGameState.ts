@@ -52,12 +52,12 @@ export function useInitialGameState({
   );
   const storedProgressValue = useSyncExternalStore(
     subscribeToClientReady,
-    getAnonymousProgressSnapshot,
+    isSignedIn ? getServerStorageSnapshot : getAnonymousProgressSnapshot,
     getServerStorageSnapshot,
   );
   const storedHighestLevelValue = useSyncExternalStore(
     subscribeToClientReady,
-    getHighestReachedLevelSnapshot,
+    isSignedIn ? getServerStorageSnapshot : getHighestReachedLevelSnapshot,
     getServerStorageSnapshot,
   );
   const restoredProgress = useMemo(
@@ -88,7 +88,7 @@ export function useInitialGameState({
       activeInitialBoard.level,
       initialHighestReachedLevel ?? 1,
       restoredProgress?.highestReachedLevel ?? 1,
-      storedHighestReachedLevel ?? 1,
+      isSignedIn ? 1 : (storedHighestReachedLevel ?? 1),
     ),
     initialTimerStatus,
     isReady,
