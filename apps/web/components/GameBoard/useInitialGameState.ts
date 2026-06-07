@@ -5,6 +5,7 @@ import { useMemo, useSyncExternalStore } from 'react';
 import {
   ANONYMOUS_GAME_STORAGE_KEY,
   parseAnonymousGameProgress,
+  type AnonymousTimerStatus,
 } from '@/lib/anonymousGameStorage';
 import type { BoardState } from '@/lib/board';
 
@@ -74,7 +75,7 @@ export function useInitialGameState({
       : undefined;
   }, [storedHighestLevelValue]);
   const activeInitialBoard = restoredProgress?.board ?? initialBoard;
-  const initialTimerStatus =
+  const initialTimerStatus: AnonymousTimerStatus =
     activeInitialBoard.moves > 0
       ? 'paused'
       : restoredProgress?.timerStatus === 'paused'
