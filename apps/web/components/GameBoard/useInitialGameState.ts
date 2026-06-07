@@ -74,6 +74,12 @@ export function useInitialGameState({
       : undefined;
   }, [storedHighestLevelValue]);
   const activeInitialBoard = restoredProgress?.board ?? initialBoard;
+  const initialTimerStatus =
+    activeInitialBoard.moves > 0
+      ? 'paused'
+      : restoredProgress?.timerStatus === 'paused'
+        ? 'paused'
+        : 'idle';
 
   return {
     activeInitialBoard,
@@ -84,7 +90,7 @@ export function useInitialGameState({
       restoredProgress?.highestReachedLevel ?? 1,
       storedHighestReachedLevel ?? 1,
     ),
-    initialTimerStatus: restoredProgress?.timerStatus,
+    initialTimerStatus,
     isReady,
   };
 }
