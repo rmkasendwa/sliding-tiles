@@ -1,25 +1,14 @@
 'use client';
 
-import {
-  Maximize2,
-  Minimize2,
-  Search,
-  Shuffle,
-  RotateCcw,
-  Volume2,
-  VolumeX,
-} from 'lucide-react';
-import type { ButtonHTMLAttributes, PointerEvent, ReactNode } from 'react';
+import type { PointerEvent } from 'react';
 import {
   useCallback,
   useEffect,
-  useId,
   useMemo,
   useRef,
   useState,
   useSyncExternalStore,
 } from 'react';
-import { createPortal } from 'react-dom';
 
 import { recordLevelAttempt, saveGameState } from '@/app/actions/game';
 import {
@@ -47,8 +36,6 @@ import {
   BOARD_HINT_TILE_REVEAL_DELAY_MS,
   BOARD_SIZE,
   BOARD_SURFACE_BACKGROUND,
-  CELEBRATION_PARTICLES,
-  CONFETTI_PARTICLES,
   LEVEL_COMPLETE_ADVANCE_DELAY_MS,
   LEVEL_COMPLETE_CELEBRATION_DELAY_MS,
   LEVEL_COMPLETE_CONFETTI_DURATION_MS,
@@ -56,8 +43,11 @@ import {
   TILE_ENTRY_ANIMATION_MS,
   TILE_ENTRY_LOCK_IN_DELAY_MS,
 } from './constants';
+import { CompletionEffects } from './CompletionEffects';
 import { GameHud } from './GameHud';
-import { GameInfoPanel } from './GameInfoPanel';
+import { GameInfoPanels } from './GameInfoPanels';
+import { GameToolbar } from './GameToolbar';
+import { INFO_MODAL_TRANSITION_MS } from './MobileInfoModalPortal';
 
 export type GameBoardProps = {
   initialBoard: BoardState;
@@ -68,7 +58,6 @@ export type GameBoardProps = {
   soundEnabled?: boolean;
 };
 
-const INFO_MODAL_TRANSITION_MS = 180;
 const PEEK_BUTTON_PREVIEW_DELAY_MS = 120;
 const LEGACY_ANONYMOUS_GAME_STORAGE_KEY = 'sliding-tiles:anonymous-board';
 const HIGHEST_REACHED_LEVEL_STORAGE_KEY =
@@ -109,199 +98,6 @@ function isEditableKeyboardTarget(target: EventTarget | null) {
   );
 }
 
-type GameToolButtonProps = Omit<
-  ButtonHTMLAttributes<HTMLButtonElement>,
-  'children'
-> & {
-  description: string;
-  icon: ReactNode;
-  tooltip: string;
-};
-
-function GameToolButton({
-  'aria-describedby': ariaDescribedBy,
-  className = '',
-  description,
-  icon,
-  onBlur,
-  onFocus,
-  onPointerCancel,
-  onPointerDown,
-  onPointerEnter,
-  onPointerLeave,
-  onPointerUp,
-  tooltip,
-  ...buttonProps
-}: GameToolButtonProps) {
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const isTouchInteractionRef = useRef(false);
-  const [tooltipPosition, setTooltipPosition] = useState<{
-    left: number;
-    top: number;
-  } | null>(null);
-  const descriptionId = useId();
-  const tooltipId = useId();
-  const describedBy = [descriptionId, ariaDescribedBy]
-    .filter(Boolean)
-    .join(' ');
-  const showTooltip = () => {
-    const button = buttonRef.current;
-    if (!button) {
-      return;
-    }
-
-    const bounds = button.getBoundingClientRect();
-    setTooltipPosition({
-      left: Math.min(
-        window.innerWidth - 112,
-        Math.max(112, bounds.left + bounds.width / 2),
-      ),
-      top: bounds.top - 8,
-    });
-  };
-  const hideTooltip = () => setTooltipPosition(null);
-
-  return (
-    <span className="relative inline-grid">
-      <button
-        {...buttonProps}
-        aria-describedby={describedBy}
-        className={[
-          'grid h-8 w-8 cursor-pointer place-items-center rounded-md border border-line transition-colors hover:bg-accent/10 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent max-[480px]:h-11 max-[480px]:w-11',
-          className,
-        ]
-          .filter(Boolean)
-          .join(' ')}
-        onBlur={(event) => {
-          hideTooltip();
-          isTouchInteractionRef.current = false;
-          onBlur?.(event);
-        }}
-        onFocus={(event) => {
-          if (!isTouchInteractionRef.current) {
-            showTooltip();
-          }
-          onFocus?.(event);
-        }}
-        onPointerCancel={(event) => {
-          hideTooltip();
-          onPointerCancel?.(event);
-        }}
-        onPointerDown={(event) => {
-          isTouchInteractionRef.current = event.pointerType !== 'mouse';
-          if (isTouchInteractionRef.current) {
-            hideTooltip();
-          }
-          onPointerDown?.(event);
-        }}
-        onPointerEnter={(event) => {
-          if (event.pointerType === 'mouse') {
-            isTouchInteractionRef.current = false;
-            showTooltip();
-          }
-          onPointerEnter?.(event);
-        }}
-        onPointerLeave={(event) => {
-          if (event.pointerType === 'mouse') {
-            hideTooltip();
-          }
-          onPointerLeave?.(event);
-        }}
-        onPointerUp={(event) => {
-          if (event.pointerType !== 'mouse') {
-            hideTooltip();
-          }
-          onPointerUp?.(event);
-        }}
-        ref={buttonRef}
-      >
-        {icon}
-        <span className="sr-only" id={descriptionId}>
-          {description}
-        </span>
-      </button>
-      {tooltipPosition
-        ? createPortal(
-            <span
-              className="pointer-events-none fixed z-100 w-max max-w-52 -translate-x-1/2 -translate-y-full rounded-md border border-line bg-panel px-2.5 py-1.5 text-xs font-bold leading-snug text-foreground shadow-panel"
-              id={tooltipId}
-              role="tooltip"
-              style={{
-                left: tooltipPosition.left,
-                top: tooltipPosition.top,
-              }}
-            >
-              {tooltip}
-            </span>,
-            document.body,
-          )
-        : null}
-    </span>
-  );
-}
-
-function MobileInfoModalPortal({
-  children,
-  isOpen,
-  onClose,
-}: {
-  children: ReactNode;
-  isOpen: boolean;
-  onClose: () => void;
-}) {
-  const [isEntered, setIsEntered] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    const timeout = window.setTimeout(() => setIsMounted(true), 0);
-
-    return () => window.clearTimeout(timeout);
-  }, []);
-
-  useEffect(() => {
-    if (!isMounted || !isOpen) {
-      return;
-    }
-
-    const frame = window.requestAnimationFrame(() => setIsEntered(true));
-
-    return () => window.cancelAnimationFrame(frame);
-  }, [isMounted, isOpen]);
-
-  if (!isMounted) {
-    return null;
-  }
-
-  const isVisible = isOpen && isEntered;
-
-  return createPortal(
-    <div
-      className={[
-        'fixed inset-0 z-50 hidden items-center justify-center bg-black/75 p-3 backdrop-blur-sm transition-opacity duration-200 motion-reduce:transition-none max-[900px]:flex',
-        isVisible ? 'opacity-100' : 'opacity-0',
-      ].join(' ')}
-    >
-      <button
-        aria-label="Close run details"
-        className="absolute inset-0 cursor-default"
-        onClick={onClose}
-        type="button"
-      />
-      <div
-        className={[
-          'relative z-10 w-full max-w-lg transform transition-all duration-200 motion-reduce:transform-none motion-reduce:transition-none',
-          isVisible
-            ? 'translate-y-0 scale-100 opacity-100'
-            : 'translate-y-1 scale-[0.98] opacity-0',
-        ].join(' ')}
-      >
-        {children}
-      </div>
-    </div>,
-    document.body,
-  );
-}
-
 function formatElapsedTime(milliseconds: number) {
   const totalSeconds = Math.max(0, Math.floor(milliseconds / 1000));
   const hours = Math.floor(totalSeconds / 3600);
@@ -337,7 +133,6 @@ function GameBoardContent({
     stopAmbience,
     toggleMuted,
   } = useSound();
-  const SoundIcon = isMuted ? VolumeX : Volume2;
   const [board, setBoard] = useState<BoardState>(initialBoard);
   const [confettiBurstKey, setConfettiBurstKey] = useState<number | null>(null);
   const [isCompletionImageVisible, setIsCompletionImageVisible] =
@@ -381,7 +176,6 @@ function GameBoardContent({
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [isInfoModalRendered, setIsInfoModalRendered] = useState(false);
   const [isBoardFullscreen, setIsBoardFullscreen] = useState(false);
-  const FullscreenIcon = isBoardFullscreen ? Minimize2 : Maximize2;
   const previewButtonPointerIdRef = useRef<number | null>(null);
   const previewButtonTimeoutRef = useRef<number | null>(null);
   const boardFrameRef = useRef<HTMLElement>(null);
@@ -1382,264 +1176,50 @@ function GameBoardContent({
               />
             );
           })}
-          {isCompletionImageVisible ? (
-            <div
-              aria-label="Completed puzzle image"
-              className="completion-image-reveal pointer-events-none absolute inset-0 z-20 bg-[url('/frog.svg')] bg-cover bg-center bg-no-repeat"
-              role="img"
-            />
-          ) : null}
-          {confettiBurstKey !== null ? (
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 z-40 overflow-hidden"
-              key={confettiBurstKey}
-            >
-              {CONFETTI_PARTICLES.map((particle, index) => (
-                <span
-                  className="completion-confetti-piece absolute top-1/2 block"
-                  key={index}
-                  style={
-                    {
-                      '--confetti-color': particle.color,
-                      '--confetti-delay': particle.delay,
-                      '--confetti-drift': particle.drift,
-                      '--confetti-drift-mid': particle.driftMid,
-                      '--confetti-rotation': particle.rotation,
-                      '--confetti-rotation-mid': particle.rotationMid,
-                      '--confetti-size': particle.size,
-                      left: particle.left,
-                    } as React.CSSProperties
-                  }
-                />
-              ))}
-            </div>
-          ) : null}
-          {isCelebrating && (
-            <div className="pointer-events-none absolute inset-0 z-30 animate-[celebration-fade-in_700ms_ease-out_both] overflow-hidden">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,color-mix(in_srgb,var(--color-panel)_18%,transparent),color-mix(in_srgb,var(--color-primary)_18%,transparent)_42%,color-mix(in_srgb,var(--color-night)_30%,transparent))]" />
-              <div className="absolute inset-4 rounded-lg border border-surface/60 shadow-[inset_0_0_52px_color-mix(in_srgb,var(--color-surface)_38%,transparent),0_0_44px_color-mix(in_srgb,var(--color-celebration)_30%,transparent)]" />
-              {CELEBRATION_PARTICLES.map((particle, index) => (
-                <span
-                  className="absolute block animate-[celebration-float_1600ms_ease-out_both] rounded-full bg-celebration shadow-[0_0_26px_color-mix(in_srgb,var(--color-celebration)_90%,transparent),0_0_8px_color-mix(in_srgb,var(--color-surface)_90%,transparent)]"
-                  key={index}
-                  style={{
-                    animationDelay: particle.delay,
-                    height: particle.size,
-                    left: particle.left,
-                    top: particle.top,
-                    width: particle.size,
-                  }}
-                />
-              ))}
-              <div className="absolute inset-x-6 bottom-6 rounded-lg border border-surface/35 bg-panel/90 px-5 py-4 text-center shadow-panel backdrop-blur">
-                <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">
-                  Level complete
-                </p>
-                <p className="mt-1 text-sm text-muted">
-                  Enjoy the solved image. Next level is loading.
-                </p>
-              </div>
-            </div>
-          )}
+          <CompletionEffects
+            confettiBurstKey={confettiBurstKey}
+            isCelebrating={isCelebrating}
+            isCompletionImageVisible={isCompletionImageVisible}
+          />
         </div>
-        <div
-          aria-label={`Level ${board.level}, ${columns} by ${rows} grid`}
-          className="play-overlay-float board-overlay absolute left-4 top-4 z-40 rounded-[7px] border px-3 py-2 text-sm font-bold text-accent-strong max-[480px]:hidden"
-        >
-          Level {board.level} · {columns}x{rows}
-        </div>
-        {isFocusPaused ? (
-          <div
-            aria-live="polite"
-            className="board-overlay absolute bottom-18 left-1/2 z-40 -translate-x-1/2 whitespace-nowrap rounded-[7px] border px-3 py-2 text-center text-xs font-bold text-foreground max-[480px]:bottom-33 max-[480px]:max-w-[calc(100%-2rem)] max-[480px]:whitespace-normal"
-            role="status"
-          >
-            Game paused. Make your next move to continue.
-          </div>
-        ) : null}
-        <div className="absolute inset-x-4 bottom-4 z-40 flex items-end justify-between gap-2 max-[480px]:flex-col max-[480px]:items-stretch">
-          <div className="contents max-[480px]:flex max-[480px]:items-center max-[480px]:justify-center max-[480px]:gap-2">
-            <div
-              aria-label={`Level ${board.level}, ${columns} by ${rows} grid`}
-              className="board-overlay hidden whitespace-nowrap rounded-[7px] border px-2.5 py-2 text-xs font-bold text-accent-strong max-[480px]:block"
-            >
-              Level {board.level} · {columns}x{rows}
-            </div>
-            <div
-              aria-label={`${board.moves} ${board.moves === 1 ? 'move' : 'moves'}, elapsed time ${elapsedTimeLabel}`}
-              className="play-overlay-float board-overlay self-start whitespace-nowrap rounded-[7px] border px-3 py-2 text-sm font-bold text-accent-strong max-[480px]:self-auto max-[480px]:px-2.5 max-[480px]:text-xs"
-            >
-              {board.moves} {board.moves === 1 ? 'move' : 'moves'} ·{' '}
-              {elapsedTimeLabel}
-            </div>
-          </div>
-          <div className="board-overlay flex shrink-0 self-end gap-1 rounded-[7px] border p-1 text-accent-strong max-[480px]:self-center">
-            <GameToolButton
-              aria-label={
-                isShuffleAnimationRunning
-                  ? 'Puzzle is updating'
-                  : 'Reset current puzzle'
-              }
-              className={
-                isShuffleAnimationRunning ? 'disabled:cursor-wait' : undefined
-              }
-              description="Return the current puzzle to its starting configuration."
-              disabled={isShuffleAnimationRunning}
-              icon={
-                <RotateCcw
-                  aria-hidden="true"
-                  className={[
-                    'size-4',
-                    isShuffleAnimationRunning
-                      ? 'animate-spin motion-reduce:animate-none'
-                      : '',
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
-                  strokeWidth={2.2}
-                />
-              }
-              onClick={resetLevel}
-              tooltip={
-                isShuffleAnimationRunning
-                  ? 'Updating the puzzle'
-                  : 'Reset the current puzzle (R)'
-              }
-              type="button"
-            />
-            <GameToolButton
-              aria-label={
-                isShuffleAnimationRunning
-                  ? 'Puzzle is shuffling'
-                  : 'Shuffle puzzle'
-              }
-              className={
-                isShuffleAnimationRunning ? 'disabled:cursor-wait' : undefined
-              }
-              description="Create a new puzzle configuration for this level."
-              disabled={isShuffleAnimationRunning}
-              icon={
-                <Shuffle
-                  aria-hidden="true"
-                  className="size-4"
-                  strokeWidth={2.2}
-                />
-              }
-              onClick={shuffleLevel}
-              tooltip={
-                isShuffleAnimationRunning
-                  ? 'Shuffling the puzzle'
-                  : 'Shuffle the puzzle (S)'
-              }
-              type="button"
-            />
-            {isSoundEnabled ? (
-              <GameToolButton
-                aria-label={isMuted ? 'Turn sound on' : 'Turn sound off'}
-                aria-pressed={!isMuted}
-                description={
-                  isMuted
-                    ? 'Enable music and game sound effects.'
-                    : 'Mute music and game sound effects.'
-                }
-                icon={
-                  <SoundIcon
-                    aria-hidden="true"
-                    className="size-4"
-                    strokeWidth={2.2}
-                  />
-                }
-                onClick={toggleMuted}
-                tooltip={isMuted ? 'Enable game sounds' : 'Mute game sounds'}
-                type="button"
-              />
-            ) : null}
-            <GameToolButton
-              aria-label="Peek full image"
-              className="active:bg-accent/15"
-              description="Temporarily reveal the complete puzzle image while pressed."
-              disabled={isCelebrating || isShuffleAnimationRunning}
-              icon={
-                <Search
-                  aria-hidden="true"
-                  className="size-4"
-                  strokeWidth={2.2}
-                />
-              }
-              onClick={(event) => event.preventDefault()}
-              onPointerCancel={stopPeekButtonPreview}
-              onPointerDown={startPeekButtonPreview}
-              onPointerLeave={stopPeekButtonPreview}
-              onPointerUp={stopPeekButtonPreview}
-              tooltip="Hold to preview the full image"
-              type="button"
-            />
-            <GameToolButton
-              aria-label={
-                isBoardFullscreen
-                  ? 'Exit fullscreen board'
-                  : 'Enter fullscreen board'
-              }
-              description={
-                isBoardFullscreen
-                  ? 'Return the board to the page layout.'
-                  : 'Expand the board to fill the screen.'
-              }
-              icon={
-                <FullscreenIcon
-                  aria-hidden="true"
-                  className="size-4"
-                  strokeWidth={2.2}
-                />
-              }
-              onClick={toggleBoardFullscreen}
-              tooltip={
-                isBoardFullscreen
-                  ? 'Exit fullscreen (F)'
-                  : 'Enter fullscreen (F)'
-              }
-              type="button"
-            />
-          </div>
-        </div>
-      </section>
-
-      <aside className="play-panel-reveal sticky top-4 max-[900px]:hidden">
-        <GameInfoPanel
+        <GameToolbar
           columns={columns}
-          gameModeLabel={gameModeLabel}
-          highestReachedLevel={highestReachedLevel}
-          isLevelSelectDisabled={isShuffleAnimationRunning || isCelebrating}
-          isSignedIn={isSignedIn}
+          elapsedTimeLabel={elapsedTimeLabel}
+          isBoardFullscreen={isBoardFullscreen}
+          isCelebrating={isCelebrating}
+          isFocusPaused={isFocusPaused}
+          isMuted={isMuted}
+          isShuffleAnimationRunning={isShuffleAnimationRunning}
+          isSoundEnabled={isSoundEnabled}
           level={board.level}
-          onSelectLevel={selectLevel}
-          playerAvatarUrl={playerAvatarUrl}
-          playerName={playerName}
+          moves={board.moves}
+          onPeekCancel={stopPeekButtonPreview}
+          onPeekDown={startPeekButtonPreview}
+          onPeekLeave={stopPeekButtonPreview}
+          onPeekUp={stopPeekButtonPreview}
+          onReset={resetLevel}
+          onShuffle={shuffleLevel}
+          onToggleFullscreen={() => void toggleBoardFullscreen()}
+          onToggleMuted={toggleMuted}
           rows={rows}
         />
-      </aside>
-      {isInfoModalRendered && (
-        <MobileInfoModalPortal
-          isOpen={isInfoModalOpen}
-          onClose={closeInfoModal}
-        >
-          <GameInfoPanel
-            columns={columns}
-            gameModeLabel={gameModeLabel}
-            highestReachedLevel={highestReachedLevel}
-            isLevelSelectDisabled={isShuffleAnimationRunning || isCelebrating}
-            isModal
-            isSignedIn={isSignedIn}
-            level={board.level}
-            onClose={closeInfoModal}
-            onSelectLevel={selectLevel}
-            playerAvatarUrl={playerAvatarUrl}
-            playerName={playerName}
-            rows={rows}
-          />
-        </MobileInfoModalPortal>
-      )}
+      </section>
+
+      <GameInfoPanels
+        columns={columns}
+        gameModeLabel={gameModeLabel}
+        highestReachedLevel={highestReachedLevel}
+        isLevelSelectDisabled={isShuffleAnimationRunning || isCelebrating}
+        isModalOpen={isInfoModalOpen}
+        isModalRendered={isInfoModalRendered}
+        isSignedIn={isSignedIn}
+        level={board.level}
+        onCloseModal={closeInfoModal}
+        onSelectLevel={selectLevel}
+        playerAvatarUrl={playerAvatarUrl}
+        playerName={playerName}
+        rows={rows}
+      />
     </div>
   );
 }
