@@ -75,7 +75,7 @@ function HomePuzzlePreview({ footerText, label }: HomePuzzlePreviewProps) {
       className="relative mx-auto w-full max-w-md overflow-hidden rounded-[18px] border border-accent/18 bg-[radial-gradient(circle_at_top,color-mix(in_srgb,var(--color-accent)_20%,transparent),transparent_52%),linear-gradient(155deg,color-mix(in_srgb,var(--color-surface)_90%,transparent),color-mix(in_srgb,var(--color-panel-strong)_86%,transparent))] p-4 shadow-panel"
       role="img"
     >
-      <div className="pointer-events-none absolute right-3 top-3 rounded-full border border-accent/18 bg-surface/75 px-2.5 py-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-accent-strong">
+      <div className="pointer-events-none absolute right-3 top-3 rounded-full border border-accent/18 bg-surface/75 px-2.5 py-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-accent-strong z-1">
         {label}
       </div>
       <div className="home-puzzle-preview-grid grid aspect-square grid-cols-3 gap-2 overflow-hidden rounded-[7px]">
