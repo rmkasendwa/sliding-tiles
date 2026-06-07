@@ -1141,11 +1141,10 @@ function GameBoardContent({
         setAttemptStartBoard(
           resetBoardAttempt(selectedBoard, selectedBoard.startedAt),
         );
-        setIsBoardEntering(false);
+        setIsBoardEntering(true);
+        setBoardEntryAnimationKey((key) => key + 1);
         setBoard(selectedBoard);
         setIsResetting(false);
-        setIsShuffleInProgress(false);
-        shuffleInProgressRef.current = false;
         resetTimeoutRef.current = null;
       }, RESET_GATHER_DELAY_MS);
     },
