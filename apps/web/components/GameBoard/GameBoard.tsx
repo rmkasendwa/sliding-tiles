@@ -45,9 +45,9 @@ import {
 } from './constants';
 import { CompletionEffects } from './CompletionEffects';
 import { GameHud } from './GameHud';
-import { GameInfoPanels } from './GameInfoPanels';
 import { GameToolbar } from './GameToolbar';
 import { INFO_MODAL_TRANSITION_MS } from './MobileInfoModalPortal';
+import { ResponsiveGameInfoPanel } from './ResponsiveGameInfoPanel';
 
 export type GameBoardProps = {
   initialBoard: BoardState;
@@ -1205,7 +1205,7 @@ function GameBoardContent({
         />
       </section>
 
-      <GameInfoPanels
+      <ResponsiveGameInfoPanel
         columns={columns}
         gameModeLabel={gameModeLabel}
         highestReachedLevel={highestReachedLevel}

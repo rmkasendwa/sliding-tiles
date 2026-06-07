@@ -3,7 +3,7 @@
 import { GameInfoPanel } from './GameInfoPanel';
 import { MobileInfoModalPortal } from './MobileInfoModalPortal';
 
-type GameInfoPanelsProps = {
+type ResponsiveGameInfoPanelProps = {
   columns: number;
   gameModeLabel: string;
   highestReachedLevel: number;
@@ -19,7 +19,7 @@ type GameInfoPanelsProps = {
   rows: number;
 };
 
-export function GameInfoPanels({
+export function ResponsiveGameInfoPanel({
   columns,
   gameModeLabel,
   highestReachedLevel,
@@ -33,7 +33,7 @@ export function GameInfoPanels({
   playerAvatarUrl,
   playerName,
   rows,
-}: GameInfoPanelsProps) {
+}: ResponsiveGameInfoPanelProps) {
   const sharedProps = {
     columns,
     gameModeLabel,
