@@ -1144,6 +1144,8 @@ function GameBoardContent({
         setIsBoardEntering(false);
         setBoard(selectedBoard);
         setIsResetting(false);
+        setIsShuffleInProgress(false);
+        shuffleInProgressRef.current = false;
         resetTimeoutRef.current = null;
       }, RESET_GATHER_DELAY_MS);
     },
