@@ -14,6 +14,38 @@ const filters: { label: string; value: RunFilter }[] = [
   { label: 'Replay', value: 'replay' },
 ];
 
+function RunHistorySkeleton({ count = 3 }: { count?: number }) {
+  return (
+    <div aria-hidden="true" className="grid gap-2.5">
+      {Array.from({ length: count }, (_, index) => (
+        <div className="relative pl-4" key={index}>
+          <span className="absolute -left-1 top-2 size-2.5 rounded-full bg-line" />
+          <span className="absolute left-0 top-5 h-[calc(100%-8px)] w-0.5 bg-line/70" />
+          <div className="grid gap-3 rounded-lg border border-line bg-surface/60 p-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="grid gap-2">
+                <span className="h-4 w-24 animate-pulse rounded bg-line/70 motion-reduce:animate-none" />
+                <span className="h-3 w-36 animate-pulse rounded bg-line/55 motion-reduce:animate-none" />
+              </div>
+              <span className="h-7 w-20 animate-pulse rounded-full bg-line/60 motion-reduce:animate-none" />
+            </div>
+            <div className="grid grid-cols-3 gap-2 max-[620px]:grid-cols-1">
+              {Array.from({ length: 3 }, (_, metricIndex) => (
+                <span
+                  className="h-9 animate-pulse rounded-md bg-line/50 motion-reduce:animate-none"
+                  key={metricIndex}
+                />
+              ))}
+            </div>
+            <span className="h-14 animate-pulse rounded-md bg-line/45 motion-reduce:animate-none" />
+            <span className="h-9 w-32 animate-pulse rounded-md bg-line/60 motion-reduce:animate-none" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function RunHistoryFeed({
   initialPage,
 }: {
@@ -27,6 +59,7 @@ export function RunHistoryFeed({
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const isLoadingRef = useRef(false);
   const requestIdRef = useRef(0);
+  const isReplacing = isLoading && runs.length === 0;
 
   const loadPage = useCallback(
     async ({
@@ -148,14 +181,18 @@ export function RunHistoryFeed({
 
       {runs.length > 0 ? (
         <RunHistoryList runs={runs} />
-      ) : !isLoading ? (
+      ) : isReplacing ? (
+        <RunHistorySkeleton count={4} />
+      ) : (
         <div className="rounded-lg border border-dashed border-line bg-surface/50 p-8 text-center">
           <h2 className="text-xl font-bold">No runs found</h2>
           <p className="mt-2 text-sm text-muted">
             Completed runs matching this filter will appear here.
           </p>
         </div>
-      ) : null}
+      )}
+
+      {isLoading && runs.length > 0 ? <RunHistorySkeleton count={2} /> : null}
 
       <div
         aria-live="polite"
@@ -164,7 +201,7 @@ export function RunHistoryFeed({
         role="status"
       >
         {isLoading
-          ? 'Loading runs...'
+          ? 'Loading more runs...'
           : error
             ? error
             : nextCursor
