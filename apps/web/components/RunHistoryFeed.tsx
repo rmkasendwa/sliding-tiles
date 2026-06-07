@@ -1,6 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { MouseEvent } from 'react';
 
 import type { ApiRun, ApiRunPage } from '@/lib/api';
 
@@ -174,6 +176,25 @@ export function RunHistoryFeed({
     void loadPage({ replace: true, selectedFilter: nextFilter });
   };
 
+  const handleFilterClick = (
+    event: MouseEvent<HTMLAnchorElement>,
+    nextFilter: RunFilter,
+  ) => {
+    if (
+      event.defaultPrevented ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+    selectFilter(nextFilter);
+  };
+
   useEffect(() => {
     const target = loadMoreRef.current;
     if (!target || !nextCursor || isLoading) {
@@ -201,20 +222,20 @@ export function RunHistoryFeed({
         role="group"
       >
         {filters.map((item) => (
-          <button
-            aria-pressed={filter === item.value}
+          <Link
+            aria-current={filter === item.value ? 'page' : undefined}
             className={[
-              'min-h-10 cursor-pointer rounded-md px-4 text-sm font-bold transition-colors',
+              'inline-flex min-h-10 items-center justify-center rounded-md px-4 text-sm font-bold transition-colors',
               filter === item.value
                 ? 'bg-primary text-primary-contrast shadow-button-primary'
                 : 'text-muted hover:bg-accent/10 hover:text-foreground',
             ].join(' ')}
+            href={`/runs?filter=${item.value}`}
             key={item.value}
-            onClick={() => selectFilter(item.value)}
-            type="button"
+            onClick={(event) => handleFilterClick(event, item.value)}
           >
             {item.label}
-          </button>
+          </Link>
         ))}
       </div>
 
