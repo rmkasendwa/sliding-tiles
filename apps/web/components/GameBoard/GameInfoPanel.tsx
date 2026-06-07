@@ -34,7 +34,9 @@ function subscribeToInfoPanelPreference(onStoreChange: () => void) {
   };
 }
 
-function setInfoPanelPreference(preference: Exclude<InfoPanelPreference, null>) {
+function setInfoPanelPreference(
+  preference: Exclude<InfoPanelPreference, null>,
+) {
   window.localStorage.setItem(INFO_PANEL_STORAGE_KEY, preference);
   window.dispatchEvent(new Event(INFO_PANEL_CHANGE_EVENT));
 }
@@ -148,8 +150,7 @@ export function GameInfoPanel({
           Complete the pond
         </h1>
         <p className="text-sm leading-6 text-muted">
-          Slide the pieces back together. Hold the board to peek at the full
-          picture.
+          Slide the pieces back together and complete the picture.
         </p>
       </div>
       <div
@@ -160,11 +161,7 @@ export function GameInfoPanel({
         }
       >
         <div>
-          <SolutionPreview
-            columns={columns}
-            isCompact={isModal}
-            rows={rows}
-          />
+          <SolutionPreview columns={columns} isCompact={isModal} rows={rows} />
         </div>
 
         <div
@@ -230,7 +227,11 @@ export function GameInfoPanel({
           />
           {isExpanded ? 'Show less' : 'Show details'}
           {isExpanded ? (
-            <ChevronUp aria-hidden="true" className="size-4" strokeWidth={2.1} />
+            <ChevronUp
+              aria-hidden="true"
+              className="size-4"
+              strokeWidth={2.1}
+            />
           ) : (
             <ChevronDown
               aria-hidden="true"
