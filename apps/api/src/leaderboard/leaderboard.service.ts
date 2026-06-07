@@ -165,6 +165,7 @@ export class LeaderboardService {
     });
 
     return {
+      generatedAt: new Date().toISOString(),
       scores: scores.map(({ user, ...score }) => ({
         ...score,
         user: {
