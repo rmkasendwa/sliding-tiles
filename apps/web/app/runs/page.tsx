@@ -8,14 +8,31 @@ import { getSession } from '@/lib/session';
 
 export const metadata = pageMetadata.runs;
 
-export default async function RunsPage() {
+type RunFilter = 'all' | 'original' | 'replay';
+
+type RunsPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+function getRunFilter(value: string | string[] | undefined): RunFilter {
+  const filter = Array.isArray(value) ? value[0] : value;
+  return filter === 'original' || filter === 'replay' ? filter : 'all';
+}
+
+export default async function RunsPage({ searchParams }: RunsPageProps) {
   const session = await getSession();
   if (!session) {
     redirect(routes.login);
   }
 
+  const params = (await searchParams) ?? {};
+  const initialFilter = getRunFilter(params.filter);
+  const query = new URLSearchParams({ take: '12' });
+  if (initialFilter !== 'all') {
+    query.set('attemptType', initialFilter);
+  }
   const initialPage = await apiRequest<ApiRunPage>(
-    '/leaderboard/mine?take=12',
+    `/leaderboard/mine?${query}`,
   );
 
   return (
@@ -33,7 +50,10 @@ export default async function RunsPage() {
         </p>
       </header>
 
-      <RunHistoryFeed initialPage={initialPage} />
+      <RunHistoryFeed
+        initialFilter={initialFilter}
+        initialPage={initialPage}
+      />
     </section>
   );
 }

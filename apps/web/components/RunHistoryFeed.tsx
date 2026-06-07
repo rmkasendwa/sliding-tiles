@@ -7,6 +7,10 @@ import type { ApiRun, ApiRunPage } from '@/lib/api';
 import { RunHistoryList } from './RunHistoryList';
 
 type RunFilter = 'all' | 'original' | 'replay';
+type CachedRunPage = {
+  nextCursor: string | null;
+  runs: ApiRun[];
+};
 
 const filters: { label: string; value: RunFilter }[] = [
   { label: 'All', value: 'all' },
@@ -47,15 +51,24 @@ function RunHistorySkeleton({ count = 3 }: { count?: number }) {
 }
 
 export function RunHistoryFeed({
+  initialFilter,
   initialPage,
 }: {
+  initialFilter: RunFilter;
   initialPage: ApiRunPage;
 }) {
-  const [filter, setFilter] = useState<RunFilter>('all');
+  const [filter, setFilter] = useState<RunFilter>(initialFilter);
   const [runs, setRuns] = useState<ApiRun[]>(initialPage.scores);
   const [nextCursor, setNextCursor] = useState(initialPage.nextCursor);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const cacheRef = useRef<Partial<Record<RunFilter, CachedRunPage>>>({
+    [initialFilter]: {
+      nextCursor: initialPage.nextCursor,
+      runs: initialPage.scores,
+    },
+  });
+  const activeFilterRef = useRef(initialFilter);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const isLoadingRef = useRef(false);
   const requestIdRef = useRef(0);
@@ -98,19 +111,29 @@ export function RunHistoryFeed({
         if (requestId !== requestIdRef.current) {
           return;
         }
-        setRuns((current) =>
-          replace
-            ? page.scores
-            : [
-                ...current,
-                ...page.scores.filter(
-                  (run) => !current.some((item) => item.id === run.id),
-                ),
-              ],
-        );
-        setNextCursor(page.nextCursor);
+        const cachedRuns = cacheRef.current[selectedFilter]?.runs ?? [];
+        const nextRuns = replace
+          ? page.scores
+          : [
+              ...cachedRuns,
+              ...page.scores.filter(
+                (run) => !cachedRuns.some((item) => item.id === run.id),
+              ),
+            ];
+        cacheRef.current[selectedFilter] = {
+          nextCursor: page.nextCursor,
+          runs: nextRuns,
+        };
+
+        if (activeFilterRef.current === selectedFilter) {
+          setRuns(nextRuns);
+          setNextCursor(page.nextCursor);
+        }
       } catch {
-        if (requestId === requestIdRef.current) {
+        if (
+          requestId === requestIdRef.current &&
+          activeFilterRef.current === selectedFilter
+        ) {
           setError('Unable to load more runs right now.');
         }
       } finally {
@@ -127,9 +150,25 @@ export function RunHistoryFeed({
     if (nextFilter === filter) {
       return;
     }
+
     requestIdRef.current += 1;
     isLoadingRef.current = false;
+    activeFilterRef.current = nextFilter;
     setFilter(nextFilter);
+    setError(null);
+
+    const url = new URL(window.location.href);
+    url.searchParams.set('filter', nextFilter);
+    window.history.replaceState(window.history.state, '', url);
+
+    const cachedPage = cacheRef.current[nextFilter];
+    if (cachedPage) {
+      setRuns(cachedPage.runs);
+      setNextCursor(cachedPage.nextCursor);
+      setIsLoading(false);
+      return;
+    }
+
     setRuns([]);
     setNextCursor(null);
     void loadPage({ replace: true, selectedFilter: nextFilter });
