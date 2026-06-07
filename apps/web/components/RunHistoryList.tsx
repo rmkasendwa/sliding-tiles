@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 
 import type { ApiRun } from '@/lib/api';
 import { routes } from '@/lib/routes';
@@ -30,7 +31,13 @@ function formatPace(timeSeconds: number, level: number) {
   return `${(timeSeconds / Math.max(level, 1)).toFixed(1)}s/lvl`;
 }
 
-export function RunHistoryList({ runs }: { runs: ApiRun[] }) {
+export function RunHistoryList({
+  continuation,
+  runs,
+}: {
+  continuation?: ReactNode;
+  runs: ApiRun[];
+}) {
   return (
     <div className="grid gap-2.5">
       {runs.map((run, index) => {
@@ -39,8 +46,12 @@ export function RunHistoryList({ runs }: { runs: ApiRun[] }) {
             <span
               aria-hidden="true"
               className={[
-                'absolute left-0 top-5 h-[calc(100%-8px)] w-0.5',
-                index === runs.length - 1 ? 'hidden' : 'bg-line/70',
+                'absolute left-0 top-5 w-0.5',
+                index === runs.length - 1 && !continuation
+                  ? 'hidden'
+                  : index === runs.length - 1
+                    ? 'h-[calc(100%+10px)] bg-line/70'
+                    : 'h-[calc(100%-8px)] bg-line/70',
               ].join(' ')}
             />
             <span
@@ -135,6 +146,15 @@ export function RunHistoryList({ runs }: { runs: ApiRun[] }) {
           </article>
         );
       })}
+      {continuation ? (
+        <div className="relative pl-4">
+          <span
+            aria-hidden="true"
+            className="absolute -left-1 top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full border border-info bg-info"
+          />
+          {continuation}
+        </div>
+      ) : null}
     </div>
   );
 }

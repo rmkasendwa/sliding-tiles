@@ -602,15 +602,17 @@ export default async function ProfilePage() {
             </div>
 
             {recentRuns.length > 0 ? (
-              <>
-                <RunHistoryList runs={recentRuns} />
-                <Link
-                  className="inline-flex min-h-10 w-full items-center justify-center rounded-[7px] border border-info/30 bg-info-soft/70 px-4 text-sm font-bold text-info-strong transition-colors hover:bg-info/12"
-                  href={routes.runs}
-                >
-                  View Complete Run History
-                </Link>
-              </>
+              <RunHistoryList
+                continuation={
+                  <Link
+                    className="inline-flex min-h-10 w-full items-center justify-center rounded-[7px] border border-info/30 bg-info-soft/70 px-4 text-sm font-bold text-info-strong transition-colors hover:bg-info/12"
+                    href={routes.runs}
+                  >
+                    View Complete Run History
+                  </Link>
+                }
+                runs={recentRuns}
+              />
             ) : (
               <div className="rounded-[7px] border border-dashed border-line bg-surface/45 p-4">
                 <p className="leading-normal text-muted">
