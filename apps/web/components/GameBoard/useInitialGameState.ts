@@ -36,10 +36,12 @@ function getServerStorageSnapshot() {
 
 export function useInitialGameState({
   initialBoard,
+  initialHighestReachedLevel,
   isSignedIn,
   replayOfId,
 }: {
   initialBoard: BoardState;
+  initialHighestReachedLevel?: number;
   isSignedIn: boolean;
   replayOfId?: string | null;
 }) {
@@ -66,15 +68,11 @@ export function useInitialGameState({
     [isSignedIn, replayOfId, storedProgressValue],
   );
   const storedHighestReachedLevel = useMemo(() => {
-    if (isSignedIn || replayOfId) {
-      return undefined;
-    }
-
     const storedLevel = Number.parseInt(storedHighestLevelValue ?? '', 10);
     return Number.isFinite(storedLevel) && storedLevel > 0
       ? storedLevel
       : undefined;
-  }, [isSignedIn, replayOfId, storedHighestLevelValue]);
+  }, [storedHighestLevelValue]);
   const activeInitialBoard = restoredProgress?.board ?? initialBoard;
 
   return {
@@ -82,6 +80,7 @@ export function useInitialGameState({
     initialAttemptStartBoard: restoredProgress?.attemptStartBoard,
     initialHighestReachedLevel: Math.max(
       activeInitialBoard.level,
+      initialHighestReachedLevel ?? 1,
       restoredProgress?.highestReachedLevel ?? 1,
       storedHighestReachedLevel ?? 1,
     ),

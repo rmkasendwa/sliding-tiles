@@ -37,9 +37,21 @@ export function useGamePersistence({
   timerStatus,
 }: GamePersistenceOptions) {
   useEffect(() => {
+    const storedHighestReachedLevel = Number.parseInt(
+      window.localStorage.getItem(HIGHEST_REACHED_LEVEL_STORAGE_KEY) ?? '',
+      10,
+    );
+
     window.localStorage.setItem(
       HIGHEST_REACHED_LEVEL_STORAGE_KEY,
-      String(highestReachedLevel),
+      String(
+        Math.max(
+          highestReachedLevel,
+          Number.isFinite(storedHighestReachedLevel)
+            ? storedHighestReachedLevel
+            : 1,
+        ),
+      ),
     );
   }, [highestReachedLevel]);
 

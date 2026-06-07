@@ -43,6 +43,7 @@ import { useInitialGameState } from './useInitialGameState';
 
 export type GameBoardProps = {
   initialBoard: BoardState;
+  initialHighestReachedLevel?: number;
   isSignedIn: boolean;
   playerAvatarUrl?: string | null;
   playerName?: string;
@@ -61,7 +62,6 @@ function GameBoardContent({
   replayOfId,
 }: GameBoardProps & {
   initialAttemptStartBoard?: BoardState;
-  initialHighestReachedLevel?: number;
   initialTimerStatus?: AnonymousTimerStatus;
 }) {
   const {
@@ -660,6 +660,7 @@ function GameBoardContent({
 
 export function GameBoard({
   initialBoard,
+  initialHighestReachedLevel: progressionLevel,
   isSignedIn,
   playerAvatarUrl,
   playerName,
@@ -674,6 +675,7 @@ export function GameBoard({
     isReady,
   } = useInitialGameState({
     initialBoard,
+    initialHighestReachedLevel: progressionLevel,
     isSignedIn,
     replayOfId,
   });

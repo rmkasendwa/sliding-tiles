@@ -21,19 +21,19 @@ export default async function PlayPage({ searchParams }: PlayPageProps) {
           `/leaderboard/completions/${encodeURIComponent(replayId)}/replay`,
         )
       : null;
-  const savedState = session && !replayState
+  const savedState = session
     ? await apiRequest<{ gameState: ApiGameState | null }>('/game-state')
     : null;
+  const savedBoard = savedState?.gameState?.board as BoardState | undefined;
   const initialBoard = normalizeBoardState(
-    replayState?.board ??
-      (savedState?.gameState?.board as BoardState | undefined) ??
-      createBoardState(),
+    replayState?.board ?? savedBoard ?? createBoardState(),
   );
 
   return (
     <section className="page-rail-wide mx-auto grid min-h-svh py-4">
       <GameBoard
         initialBoard={initialBoard}
+        initialHighestReachedLevel={savedBoard?.level}
         isSignedIn={Boolean(session)}
         playerAvatarUrl={session?.avatarUrl}
         playerName={session?.name}
