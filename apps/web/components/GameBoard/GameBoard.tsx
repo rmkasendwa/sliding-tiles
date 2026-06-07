@@ -1,22 +1,15 @@
 'use client';
 
-import type { PointerEvent } from 'react';
 import {
   useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
-  useSyncExternalStore,
 } from 'react';
 
-import { recordLevelAttempt, saveGameState } from '@/app/actions/game';
-import {
-  ANONYMOUS_GAME_STORAGE_KEY,
-  parseAnonymousGameProgress,
-  serializeAnonymousGameProgress,
-  type AnonymousTimerStatus,
-} from '@/lib/anonymousGameStorage';
+import { recordLevelAttempt } from '@/app/actions/game';
+import type { AnonymousTimerStatus } from '@/lib/anonymousGameStorage';
 import {
   BoardState,
   Slot,
@@ -30,12 +23,7 @@ import {
 } from '@/lib/board';
 
 import { SoundProvider, useSound } from '../SoundProvider';
-import { BoardTile } from './BoardTile';
 import {
-  BOARD_HINT_DELAY_MS,
-  BOARD_HINT_TILE_REVEAL_DELAY_MS,
-  BOARD_SIZE,
-  BOARD_SURFACE_BACKGROUND,
   LEVEL_COMPLETE_ADVANCE_DELAY_MS,
   LEVEL_COMPLETE_CELEBRATION_DELAY_MS,
   LEVEL_COMPLETE_CONFETTI_DURATION_MS,
@@ -43,11 +31,15 @@ import {
   TILE_ENTRY_ANIMATION_MS,
   TILE_ENTRY_LOCK_IN_DELAY_MS,
 } from './constants';
-import { CompletionEffects } from './CompletionEffects';
-import { GameHud } from './GameHud';
-import { GameToolbar } from './GameToolbar';
-import { INFO_MODAL_TRANSITION_MS } from './MobileInfoModalPortal';
+import { GameStage } from './GameStage';
 import { ResponsiveGameInfoPanel } from './ResponsiveGameInfoPanel';
+import { useBoardFullscreen } from './useBoardFullscreen';
+import { useBoardPreview } from './useBoardPreview';
+import { useGameInfoModal } from './useGameInfoModal';
+import { useGameKeyboardControls } from './useGameKeyboardControls';
+import { useGamePersistence } from './useGamePersistence';
+import { useGameTimer } from './useGameTimer';
+import { useInitialGameState } from './useInitialGameState';
 
 export type GameBoardProps = {
   initialBoard: BoardState;
@@ -57,59 +49,6 @@ export type GameBoardProps = {
   replayOfId?: string | null;
   soundEnabled?: boolean;
 };
-
-const PEEK_BUTTON_PREVIEW_DELAY_MS = 120;
-const LEGACY_ANONYMOUS_GAME_STORAGE_KEY = 'sliding-tiles:anonymous-board';
-const HIGHEST_REACHED_LEVEL_STORAGE_KEY =
-  'sliding-tiles:highest-reached-level';
-
-function subscribeToClientReady() {
-  return () => undefined;
-}
-
-function getClientReadySnapshot() {
-  return true;
-}
-
-function getServerClientReadySnapshot() {
-  return false;
-}
-
-function getAnonymousProgressSnapshot() {
-  return window.localStorage.getItem(ANONYMOUS_GAME_STORAGE_KEY);
-}
-
-function getHighestReachedLevelSnapshot() {
-  return window.localStorage.getItem(HIGHEST_REACHED_LEVEL_STORAGE_KEY);
-}
-
-function getServerStorageSnapshot() {
-  return null;
-}
-
-function isEditableKeyboardTarget(target: EventTarget | null) {
-  return (
-    target instanceof HTMLElement &&
-    Boolean(
-      target.closest(
-        'input, textarea, select, [contenteditable="true"], [contenteditable=""], [role="textbox"]',
-      ),
-    )
-  );
-}
-
-function formatElapsedTime(milliseconds: number) {
-  const totalSeconds = Math.max(0, Math.floor(milliseconds / 1000));
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-
-  if (hours > 0) {
-    return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-  }
-
-  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-}
 
 function GameBoardContent({
   initialAttemptStartBoard,
@@ -133,6 +72,29 @@ function GameBoardContent({
     stopAmbience,
     toggleMuted,
   } = useSound();
+  const {
+    completeClock,
+    elapsedTimeLabel,
+    elapsedTimeMs,
+    isFocusPaused,
+    isGameComplete,
+    prepareClockForBoardChange,
+    resetClock,
+    startClockForValidMove,
+    timerStatus,
+  } = useGameTimer(initialBoard, initialTimerStatus);
+  const {
+    close: closeInfoModal,
+    isOpen: isInfoModalOpen,
+    isRendered: isInfoModalRendered,
+    open: showInfoModal,
+  } = useGameInfoModal();
+  const {
+    exit: exitBoardFullscreen,
+    frameRef: boardFrameRef,
+    isFullscreen: isBoardFullscreen,
+    toggle: toggleBoardFullscreen,
+  } = useBoardFullscreen();
   const [board, setBoard] = useState<BoardState>(initialBoard);
   const [confettiBurstKey, setConfettiBurstKey] = useState<number | null>(null);
   const [isCompletionImageVisible, setIsCompletionImageVisible] =
@@ -150,38 +112,30 @@ function GameBoardContent({
   const [activeReplayOfId, setActiveReplayOfId] = useState<string | null>(
     replayOfId ?? null,
   );
-  const [hintedSlot, setHintedSlot] = useState<string | null>(null);
   const [isCelebrating, setIsCelebrating] = useState(false);
-  const [isShowingSolvedHint, setIsShowingSolvedHint] = useState(false);
-  const [isShowingHintPlaceholder, setIsShowingHintPlaceholder] =
-    useState(false);
   const [boardEntryAnimationKey, setBoardEntryAnimationKey] = useState(0);
   const [isBoardEntering, setIsBoardEntering] = useState(true);
-  const [levelStartedAtMs, setLevelStartedAtMs] = useState(() => {
-    const initialElapsed = Math.max(0, initialBoard.elapsedTimeMs ?? 0);
-    return Date.now() - initialElapsed;
-  });
-  const [clockNowMs, setClockNowMs] = useState(() => Date.now());
-  const [isClockRunning, setIsClockRunning] = useState(
-    () =>
-      initialTimerStatus === 'running' ||
-      (initialTimerStatus === undefined && initialBoard.moves > 0),
-  );
-  const [isFocusPaused, setIsFocusPaused] = useState(
-    initialTimerStatus === 'paused',
-  );
   const [tileRotationSeed, setTileRotationSeed] = useState(0);
   const [isResetting, setIsResetting] = useState(false);
   const [isShuffleInProgress, setIsShuffleInProgress] = useState(false);
-  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
-  const [isInfoModalRendered, setIsInfoModalRendered] = useState(false);
-  const [isBoardFullscreen, setIsBoardFullscreen] = useState(false);
-  const previewButtonPointerIdRef = useRef<number | null>(null);
-  const previewButtonTimeoutRef = useRef<number | null>(null);
-  const boardFrameRef = useRef<HTMLElement>(null);
-  const boardSurfaceRef = useRef<HTMLDivElement>(null);
-  const boardHintTimeoutRef = useRef<number | null>(null);
-  const placeholderRevealTimeoutRef = useRef<number | null>(null);
+  const isShuffleAnimationRunning = isResetting || isShuffleInProgress;
+  const playHintSound = useCallback(() => playSound('hint'), [playSound]);
+  const {
+    clear: clearBoardHint,
+    clearFromPointer: clearBoardHintFromPointer,
+    hintedSlot,
+    isShowingHintPlaceholder,
+    isShowingSolvedHint,
+    setHintedSlot,
+    showSolvedBoard,
+    startBoardHint,
+    startPeekButtonPreview,
+    stopPeekButtonPreview,
+    suppressNextClickRef,
+  } = useBoardPreview({
+    isInteractionBlocked: isCelebrating || isShuffleAnimationRunning,
+    playHintSound,
+  });
   const celebrationTimeoutRef = useRef<number | null>(null);
   const confettiTimeoutRef = useRef<number | null>(null);
   const completedPuzzleKeyRef = useRef<string | null>(null);
@@ -192,52 +146,10 @@ function GameBoardContent({
   const entryMotionSoundCycleRef = useRef<number>(-1);
   const resetTimeoutRef = useRef<number | null>(null);
   const shuffleInProgressRef = useRef(false);
-  const infoModalTransitionTimeoutRef = useRef<number | null>(null);
-  const boardHintMouseUpRef = useRef<(() => void) | null>(null);
-  const suppressNextClickRef = useRef(false);
   const hasPlayedInitialEntrySoundRef = useRef(false);
-  const isClockRunningRef = useRef(
-    initialTimerStatus === 'running' ||
-      (initialTimerStatus === undefined && initialBoard.moves > 0),
-  );
-  const isGameCompleteRef = useRef(false);
   const exitReplayMode = useCallback(() => {
     window.history.replaceState(window.history.state, '', '/play');
     setActiveReplayOfId(null);
-  }, []);
-
-  useEffect(() => {
-    window.localStorage.setItem(
-      HIGHEST_REACHED_LEVEL_STORAGE_KEY,
-      String(highestReachedLevel),
-    );
-  }, [highestReachedLevel]);
-
-  const showInfoModal = useCallback(() => {
-    if (infoModalTransitionTimeoutRef.current !== null) {
-      window.clearTimeout(infoModalTransitionTimeoutRef.current);
-      infoModalTransitionTimeoutRef.current = null;
-    }
-
-    setIsInfoModalRendered(true);
-    setIsInfoModalOpen(true);
-  }, []);
-
-  const closeInfoModal = useCallback(() => {
-    if (infoModalTransitionTimeoutRef.current !== null) {
-      window.clearTimeout(infoModalTransitionTimeoutRef.current);
-    }
-
-    setIsInfoModalOpen(false);
-    const transitionMs = window.matchMedia('(prefers-reduced-motion: reduce)')
-      .matches
-      ? 0
-      : INFO_MODAL_TRANSITION_MS;
-
-    infoModalTransitionTimeoutRef.current = window.setTimeout(() => {
-      setIsInfoModalRendered(false);
-      infoModalTransitionTimeoutRef.current = null;
-    }, transitionMs);
   }, []);
 
   useEffect(() => {
@@ -267,97 +179,16 @@ function GameBoardContent({
     };
   }, [boardEntryAnimationKey]);
 
-  useEffect(() => {
-    if (!isClockRunning) {
-      return;
-    }
-
-    const interval = window.setInterval(() => {
-      setClockNowMs(Date.now());
-    }, 1000);
-
-    return () => {
-      window.clearInterval(interval);
-    };
-  }, [isClockRunning]);
-
-  useEffect(() => {
-    const pauseClockForFocusLoss = () => {
-      if (!isClockRunningRef.current || isGameCompleteRef.current) {
-        return;
-      }
-
-      const pausedAt = Date.now();
-      isClockRunningRef.current = false;
-      setClockNowMs(pausedAt);
-      setIsClockRunning(false);
-      setIsFocusPaused(true);
-    };
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        pauseClockForFocusLoss();
-      }
-    };
-
-    window.addEventListener('blur', pauseClockForFocusLoss);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    handleVisibilityChange();
-
-    return () => {
-      window.removeEventListener('blur', pauseClockForFocusLoss);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, []);
-
-  useEffect(() => {
-    const elapsedTimeMs = Math.max(0, clockNowMs - levelStartedAtMs);
-    const boardWithElapsed = {
-      ...board,
-      elapsedTimeMs,
-    };
-
-    if (isSignedIn && !activeReplayOfId) {
-      const timeout = window.setTimeout(() => {
-        void saveGameState(boardWithElapsed);
-      }, 350);
-      return () => window.clearTimeout(timeout);
-    }
-
-    if (!isSignedIn) {
-      window.localStorage.removeItem(LEGACY_ANONYMOUS_GAME_STORAGE_KEY);
-
-      if (isGameCompleteRef.current || isTileGridInOrder(board.tileGrid)) {
-        window.localStorage.removeItem(ANONYMOUS_GAME_STORAGE_KEY);
-        return;
-      }
-
-      const timerStatus: AnonymousTimerStatus = isFocusPaused
-        ? 'paused'
-        : isClockRunning
-          ? 'running'
-          : 'idle';
-
-      window.localStorage.setItem(
-        ANONYMOUS_GAME_STORAGE_KEY,
-        serializeAnonymousGameProgress({
-          attemptStartBoard,
-          board: boardWithElapsed,
-          highestReachedLevel,
-          timerStatus,
-        }),
-      );
-    }
-  }, [
+  useGamePersistence({
     activeReplayOfId,
     attemptStartBoard,
     board,
-    clockNowMs,
+    elapsedTimeMs,
     highestReachedLevel,
-    isClockRunning,
-    isFocusPaused,
+    isGameComplete,
     isSignedIn,
-    levelStartedAtMs,
-  ]);
+    timerStatus,
+  });
 
   const movableSlotKeys = useMemo(() => {
     return new Set(board.movableSlots.map(slotKey));
@@ -443,38 +274,6 @@ function GameBoardContent({
     hasPlayedInitialEntrySoundRef.current = true;
   }, [boardEntryAnimationKey, isMuted, scheduleLockInSound]);
 
-  const resetClock = useCallback(() => {
-    const levelStart = Date.now();
-    setLevelStartedAtMs(levelStart);
-    setClockNowMs(levelStart);
-    setIsClockRunning(false);
-    setIsFocusPaused(false);
-    isClockRunningRef.current = false;
-    isGameCompleteRef.current = false;
-  }, []);
-
-  const startClockForValidMove = useCallback(() => {
-    if (isClockRunningRef.current) {
-      return levelStartedAtMs;
-    }
-
-    const moveTime = Date.now();
-    const preservedElapsedTimeMs = isFocusPaused
-      ? Math.max(0, clockNowMs - levelStartedAtMs)
-      : 0;
-    const levelStart = moveTime - preservedElapsedTimeMs;
-
-    setLevelStartedAtMs(levelStart);
-    setClockNowMs(moveTime);
-    setIsClockRunning(true);
-    setIsFocusPaused(false);
-    isClockRunningRef.current = true;
-
-    return levelStart;
-  }, [clockNowMs, isFocusPaused, levelStartedAtMs]);
-
-  const isShuffleAnimationRunning = isResetting || isShuffleInProgress;
-
   const launchCompletionConfetti = useCallback((completedBoard: BoardState) => {
     const puzzleKey = `${completedBoard.level}:${completedBoard.startedAt}`;
     if (
@@ -498,22 +297,13 @@ function GameBoardContent({
 
   const completeLevel = useCallback(
     (completedBoard: BoardState, effectiveLevelStartedAtMs: number) => {
-      const completedAtMs = Date.now();
-      const completedElapsedTimeMs = Math.max(
-        0,
-        completedAtMs - effectiveLevelStartedAtMs,
+      const completedElapsedTimeMs = completeClock(
+        effectiveLevelStartedAtMs,
       );
-      isGameCompleteRef.current = true;
-      isClockRunningRef.current = false;
       launchCompletionConfetti(completedBoard);
       playSound('complete');
-      setClockNowMs(completedAtMs);
-      setIsClockRunning(false);
-      setIsFocusPaused(false);
-      setHintedSlot(null);
       setIsCompletionImageVisible(true);
-      setIsShowingSolvedHint(true);
-      setIsShowingHintPlaceholder(true);
+      showSolvedBoard();
       if (isSignedIn) {
         void recordLevelAttempt({
           attemptType: activeReplayOfId ? 'replay' : 'original',
@@ -559,8 +349,7 @@ function GameBoardContent({
           setBoard(nextBoard);
           setIsCompletionImageVisible(false);
           setIsCelebrating(false);
-          setIsShowingSolvedHint(false);
-          setIsShowingHintPlaceholder(false);
+          clearBoardHint();
           levelAdvanceTimeoutRef.current = null;
         }, LEVEL_COMPLETE_ADVANCE_DELAY_MS);
       }, LEVEL_COMPLETE_CELEBRATION_DELAY_MS);
@@ -568,11 +357,14 @@ function GameBoardContent({
     [
       activeReplayOfId,
       attemptStartBoard,
+      clearBoardHint,
+      completeClock,
       exitReplayMode,
       isSignedIn,
       launchCompletionConfetti,
       playSound,
       resetClock,
+      showSolvedBoard,
     ],
   );
 
@@ -604,106 +396,10 @@ function GameBoardContent({
     ],
   );
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (
-        isEditableKeyboardTarget(event.target) ||
-        !window.matchMedia('(hover: hover) and (pointer: fine)').matches
-      ) {
-        return;
-      }
-
-      const [row, column] = board.emptySlot;
-      if (isCelebrating || isShuffleAnimationRunning) {
-        return;
-      }
-
-      const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
-      const slotToMove: Slot | null = (() => {
-        switch (key) {
-          case 'ArrowUp':
-          case 'w':
-            return [row + 1, column];
-          case 'ArrowRight':
-          case 'd':
-            return [row, column - 1];
-          case 'ArrowDown':
-            return [row - 1, column];
-          case 'ArrowLeft':
-          case 'a':
-            return [row, column + 1];
-          default:
-            return null;
-        }
-      })();
-
-      if (slotToMove && movableSlotKeys.has(slotKey(slotToMove))) {
-        event.preventDefault();
-        moveTile(slotToMove);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [
-    board,
-    isCelebrating,
-    isShuffleAnimationRunning,
-    movableSlotKeys,
-    moveTile,
-  ]);
-
   const [columns, rows] = board.dimensions;
-  const tileWidth = BOARD_SIZE / columns;
-  const tileHeight = BOARD_SIZE / rows;
-  const elapsedTimeMs = Math.max(0, clockNowMs - levelStartedAtMs);
-  const elapsedTimeLabel = formatElapsedTime(elapsedTimeMs);
-
-  const clearBoardHint = useCallback(() => {
-    if (boardHintTimeoutRef.current !== null) {
-      window.clearTimeout(boardHintTimeoutRef.current);
-      boardHintTimeoutRef.current = null;
-    }
-    if (placeholderRevealTimeoutRef.current !== null) {
-      window.clearTimeout(placeholderRevealTimeoutRef.current);
-      placeholderRevealTimeoutRef.current = null;
-    }
-    setIsShowingSolvedHint(false);
-    setIsShowingHintPlaceholder(false);
-    if (boardHintMouseUpRef.current) {
-      window.removeEventListener('mouseup', boardHintMouseUpRef.current);
-      boardHintMouseUpRef.current = null;
-    }
-  }, []);
-
-  const showFullImagePreview = useCallback(() => {
-    if (isCelebrating || isShuffleAnimationRunning) {
-      return;
-    }
-
-    if (boardHintTimeoutRef.current !== null) {
-      window.clearTimeout(boardHintTimeoutRef.current);
-      boardHintTimeoutRef.current = null;
-    }
-    if (placeholderRevealTimeoutRef.current !== null) {
-      window.clearTimeout(placeholderRevealTimeoutRef.current);
-      placeholderRevealTimeoutRef.current = null;
-    }
-
-    suppressNextClickRef.current = true;
-    setIsShowingSolvedHint(true);
-    setIsShowingHintPlaceholder(true);
-    playSound('hint');
-  }, [isCelebrating, isShuffleAnimationRunning, playSound]);
-
-  const hideFullImagePreview = useCallback(() => {
-    previewButtonPointerIdRef.current = null;
-    clearBoardHint();
-  }, [clearBoardHint]);
 
   useEffect(() => {
     return () => {
-      clearBoardHint();
       clearEntryMotionSoundTimers();
       if (celebrationTimeoutRef.current !== null) {
         window.clearTimeout(celebrationTimeoutRef.current);
@@ -724,155 +420,8 @@ function GameBoardContent({
         window.clearTimeout(resetTimeoutRef.current);
       }
       shuffleInProgressRef.current = false;
-      if (previewButtonTimeoutRef.current !== null) {
-        window.clearTimeout(previewButtonTimeoutRef.current);
-      }
-      if (infoModalTransitionTimeoutRef.current !== null) {
-        window.clearTimeout(infoModalTransitionTimeoutRef.current);
-      }
     };
-  }, [clearBoardHint, clearEntryMotionSoundTimers]);
-
-  useEffect(() => {
-    if (!isInfoModalRendered) {
-      return;
-    }
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        closeInfoModal();
-      }
-    };
-
-    document.body.style.overflow = 'hidden';
-    window.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      document.body.style.overflow = '';
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [closeInfoModal, isInfoModalRendered]);
-
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      if (document.fullscreenElement === boardFrameRef.current) {
-        setIsBoardFullscreen(true);
-        return;
-      }
-
-      if (!document.fullscreenElement) {
-        setIsBoardFullscreen(false);
-      }
-    };
-
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!isBoardFullscreen) {
-      return;
-    }
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [isBoardFullscreen]);
-
-  const startBoardHint = useCallback(
-    (event: PointerEvent<HTMLDivElement>) => {
-      if (event.pointerType !== 'mouse' || event.button !== 0) {
-        return;
-      }
-
-      if (isCelebrating || isShuffleAnimationRunning) {
-        return;
-      }
-
-      if (boardHintTimeoutRef.current !== null) {
-        window.clearTimeout(boardHintTimeoutRef.current);
-      }
-
-      boardHintTimeoutRef.current = window.setTimeout(() => {
-        suppressNextClickRef.current = true;
-        setIsShowingSolvedHint(true);
-        playSound('hint');
-        placeholderRevealTimeoutRef.current = window.setTimeout(() => {
-          setIsShowingHintPlaceholder(true);
-          placeholderRevealTimeoutRef.current = null;
-        }, BOARD_HINT_TILE_REVEAL_DELAY_MS);
-        boardHintTimeoutRef.current = null;
-      }, BOARD_HINT_DELAY_MS);
-
-      if (boardHintMouseUpRef.current) {
-        window.removeEventListener('mouseup', boardHintMouseUpRef.current);
-      }
-
-      boardHintMouseUpRef.current = clearBoardHint;
-      window.addEventListener('mouseup', clearBoardHint, { once: true });
-    },
-    [clearBoardHint, isCelebrating, isShuffleAnimationRunning, playSound],
-  );
-
-  const clearBoardHintFromPointer = useCallback(() => {
-    if (isCelebrating || isShuffleAnimationRunning) {
-      return;
-    }
-
-    clearBoardHint();
-  }, [clearBoardHint, isCelebrating, isShuffleAnimationRunning]);
-
-  const startPeekButtonPreview = useCallback(
-    (event: PointerEvent<HTMLButtonElement>) => {
-      if (event.button !== 0 || isCelebrating || isShuffleAnimationRunning) {
-        return;
-      }
-
-      previewButtonPointerIdRef.current = event.pointerId;
-      event.currentTarget.setPointerCapture(event.pointerId);
-      if (previewButtonTimeoutRef.current !== null) {
-        window.clearTimeout(previewButtonTimeoutRef.current);
-      }
-
-      previewButtonTimeoutRef.current = window.setTimeout(() => {
-        if (previewButtonPointerIdRef.current === event.pointerId) {
-          showFullImagePreview();
-        }
-        previewButtonTimeoutRef.current = null;
-      }, PEEK_BUTTON_PREVIEW_DELAY_MS);
-    },
-    [isCelebrating, isShuffleAnimationRunning, showFullImagePreview],
-  );
-
-  const stopPeekButtonPreview = useCallback(
-    (event?: PointerEvent<HTMLButtonElement>) => {
-      if (
-        event &&
-        previewButtonPointerIdRef.current !== null &&
-        previewButtonPointerIdRef.current !== event.pointerId
-      ) {
-        return;
-      }
-
-      if (event && event.currentTarget.hasPointerCapture(event.pointerId)) {
-        event.currentTarget.releasePointerCapture(event.pointerId);
-      }
-
-      if (previewButtonTimeoutRef.current !== null) {
-        window.clearTimeout(previewButtonTimeoutRef.current);
-        previewButtonTimeoutRef.current = null;
-      }
-
-      hideFullImagePreview();
-    },
-    [hideFullImagePreview],
-  );
+  }, [clearEntryMotionSoundTimers]);
 
   const selectLevel = useCallback(
     (level: number) => {
@@ -911,12 +460,7 @@ function GameBoardContent({
 
       setIsCelebrating(false);
       setIsCompletionImageVisible(false);
-      setIsShowingSolvedHint(false);
-      setIsShowingHintPlaceholder(false);
-      setIsClockRunning(false);
-      setIsFocusPaused(false);
-      isClockRunningRef.current = false;
-      isGameCompleteRef.current = false;
+      prepareClockForBoardChange();
       playSound('shuffle');
       scheduleLockInSound(RESET_GATHER_DELAY_MS + TILE_ENTRY_LOCK_IN_DELAY_MS);
       setTileRotationSeed((seed) => seed + 1);
@@ -950,6 +494,7 @@ function GameBoardContent({
       highestReachedLevel,
       isShuffleAnimationRunning,
       playSound,
+      prepareClockForBoardChange,
       resetClock,
       scheduleLockInSound,
     ],
@@ -979,12 +524,7 @@ function GameBoardContent({
 
       setIsCelebrating(false);
       setIsCompletionImageVisible(false);
-      setIsShowingSolvedHint(false);
-      setIsShowingHintPlaceholder(false);
-      setIsClockRunning(false);
-      setIsFocusPaused(false);
-      isClockRunningRef.current = false;
-      isGameCompleteRef.current = false;
+      prepareClockForBoardChange();
       playSound('shuffle');
       scheduleLockInSound(RESET_GATHER_DELAY_MS + TILE_ENTRY_LOCK_IN_DELAY_MS);
       setTileRotationSeed((seed) => seed + 1);
@@ -1014,6 +554,7 @@ function GameBoardContent({
       exitReplayMode,
       isShuffleAnimationRunning,
       playSound,
+      prepareClockForBoardChange,
       resetClock,
       scheduleLockInSound,
     ],
@@ -1032,16 +573,6 @@ function GameBoardContent({
     : isSignedIn
       ? 'Saved run'
       : 'Anonymous run';
-  const exitBoardFullscreen = useCallback(async () => {
-    const boardFrame = boardFrameRef.current;
-
-    if (document.fullscreenElement === boardFrame) {
-      await document.exitFullscreen();
-      return;
-    }
-
-    setIsBoardFullscreen(false);
-  }, []);
   const openInfoModal = useCallback(async () => {
     if (isBoardFullscreen) {
       await exitBoardFullscreen();
@@ -1055,155 +586,58 @@ function GameBoardContent({
 
     showInfoModal();
   }, [exitBoardFullscreen, isBoardFullscreen, showInfoModal]);
-  const toggleBoardFullscreen = useCallback(async () => {
-    const boardFrame = boardFrameRef.current;
-    if (!boardFrame) {
-      return;
-    }
 
-    if (isBoardFullscreen) {
-      await exitBoardFullscreen();
-      return;
-    }
-
-    setIsBoardFullscreen(true);
-
-    if (document.fullscreenEnabled && boardFrame.requestFullscreen) {
-      try {
-        await boardFrame.requestFullscreen();
-      } catch {
-        setIsBoardFullscreen(true);
-      }
-    }
-  }, [exitBoardFullscreen, isBoardFullscreen]);
-
-  useEffect(() => {
-    const handleShortcut = (event: KeyboardEvent) => {
-      if (
-        event.repeat ||
-        event.altKey ||
-        event.ctrlKey ||
-        event.metaKey ||
-        isEditableKeyboardTarget(event.target) ||
-        !window.matchMedia('(hover: hover) and (pointer: fine)').matches
-      ) {
-        return;
-      }
-
-      switch (event.key.toLowerCase()) {
-        case 'r':
-          event.preventDefault();
-          resetLevel();
-          break;
-        case 's':
-          event.preventDefault();
-          shuffleLevel();
-          break;
-        case 'f':
-          event.preventDefault();
-          void toggleBoardFullscreen();
-          break;
-      }
-    };
-
-    window.addEventListener('keydown', handleShortcut);
-    return () => window.removeEventListener('keydown', handleShortcut);
-  }, [resetLevel, shuffleLevel, toggleBoardFullscreen]);
+  useGameKeyboardControls({
+    board,
+    isInteractionBlocked: isCelebrating || isShuffleAnimationRunning,
+    movableSlotKeys,
+    onMove: moveTile,
+    onReset: resetLevel,
+    onShuffle: shuffleLevel,
+    onToggleFullscreen: toggleBoardFullscreen,
+  });
 
   return (
     <div className="play-shell-reveal grid min-h-full w-full grid-cols-[minmax(0,1fr)_320px] items-start gap-5 max-[900px]:grid-cols-1">
-      <section
-        className={[
-          'play-board-reveal relative grid min-h-0 place-items-center overflow-hidden bg-night shadow-game-shell',
-          isBoardFullscreen
-            ? 'fullscreen-board-stage fixed inset-0 z-50 h-screen rounded-none p-4'
-            : 'h-[calc(100svh-36px)] rounded-lg p-3 max-[900px]:p-2.5',
-        ].join(' ')}
-        aria-label="Sliding tile board"
-        ref={boardFrameRef}
-      >
-        <GameHud
-          columns={columns}
-          onOpenDetails={openInfoModal}
-          rows={rows}
-          variant={isBoardFullscreen ? 'fullscreen' : 'compact'}
-        />
-        <div
-          ref={boardSurfaceRef}
-          className={[
-            'relative aspect-square overflow-hidden rounded-lg',
-            isBoardFullscreen
-              ? 'fullscreen-board-shell'
-              : 'w-[min(100%,calc(100svh-64px))]',
-          ].join(' ')}
-          onPointerDown={startBoardHint}
-          onPointerLeave={clearBoardHintFromPointer}
-          onPointerUp={clearBoardHintFromPointer}
-          style={{
-            background: BOARD_SURFACE_BACKGROUND,
-            touchAction: 'none',
-          }}
-        >
-          {board.tileGrid.flat().map((tile) => {
-            if (tile.type === 'PLACEHOLDER' && !isShowingSolvedHint) {
-              return null;
-            }
-
-            const isMovable = movableSlotKeys.has(slotKey(tile.slot));
-
-            return (
-              <BoardTile
-                columns={columns}
-                emptySlot={board.emptySlot}
-                hintedSlot={hintedSlot}
-                isHintPlaceholderVisible={isShowingHintPlaceholder}
-                isEntering={isBoardEntering}
-                isMovable={isMovable}
-                isResetting={isResetting}
-                isShowingSolvedHint={isShowingSolvedHint}
-                key={`${boardEntryAnimationKey}:${tile.position}`}
-                onHint={
-                  tile.type === 'PLACEHOLDER' ? () => undefined : setHintedSlot
-                }
-                onInvalidMove={() => playSound('invalid')}
-                onMove={moveTile}
-                rows={rows}
-                suppressNextClickRef={suppressNextClickRef}
-                tile={tile}
-                tileHeight={tileHeight}
-                tileRotationSeed={tileRotationSeed}
-                tileWidth={tileWidth}
-              />
-            );
-          })}
-          <CompletionEffects
-            confettiBurstKey={confettiBurstKey}
-            isCelebrating={isCelebrating}
-            isCompletionImageVisible={isCompletionImageVisible}
-          />
-        </div>
-        <GameToolbar
-          columns={columns}
-          elapsedTimeLabel={elapsedTimeLabel}
-          isBoardFullscreen={isBoardFullscreen}
-          isCelebrating={isCelebrating}
-          isFocusPaused={isFocusPaused}
-          isMuted={isMuted}
-          isShuffleAnimationRunning={isShuffleAnimationRunning}
-          isSoundEnabled={isSoundEnabled}
-          level={board.level}
-          moves={board.moves}
-          onPeekCancel={stopPeekButtonPreview}
-          onPeekDown={startPeekButtonPreview}
-          onPeekLeave={stopPeekButtonPreview}
-          onPeekUp={stopPeekButtonPreview}
-          onReset={resetLevel}
-          onShuffle={shuffleLevel}
-          onToggleFullscreen={() => void toggleBoardFullscreen()}
-          onToggleMuted={toggleMuted}
-          rows={rows}
-        />
-      </section>
+      <GameStage
+        board={board}
+        boardEntryAnimationKey={boardEntryAnimationKey}
+        boardFrameRef={boardFrameRef}
+        columns={columns}
+        confettiBurstKey={confettiBurstKey}
+        elapsedTimeLabel={elapsedTimeLabel}
+        hintedSlot={hintedSlot}
+        isBoardEntering={isBoardEntering}
+        isBoardFullscreen={isBoardFullscreen}
+        isCelebrating={isCelebrating}
+        isCompletionImageVisible={isCompletionImageVisible}
+        isFocusPaused={isFocusPaused}
+        isMuted={isMuted}
+        isResetting={isResetting}
+        isShowingHintPlaceholder={isShowingHintPlaceholder}
+        isShowingSolvedHint={isShowingSolvedHint}
+        isShuffleAnimationRunning={isShuffleAnimationRunning}
+        isSoundEnabled={isSoundEnabled}
+        movableSlotKeys={movableSlotKeys}
+        onBoardPointerDown={startBoardHint}
+        onBoardPointerLeave={clearBoardHintFromPointer}
+        onBoardPointerUp={clearBoardHintFromPointer}
+        onHint={setHintedSlot}
+        onInvalidMove={() => playSound('invalid')}
+        onMove={moveTile}
+        onOpenDetails={openInfoModal}
+        onPeekCancel={stopPeekButtonPreview}
+        onPeekDown={startPeekButtonPreview}
+        onPeekLeave={stopPeekButtonPreview}
+        onPeekUp={stopPeekButtonPreview}
+        onReset={resetLevel}
+        onShuffle={shuffleLevel}
+        onToggleFullscreen={() => void toggleBoardFullscreen()}
+        onToggleMuted={toggleMuted}
+        rows={rows}
+        suppressNextClickRef={suppressNextClickRef}
+        tileRotationSeed={tileRotationSeed}
+      />
 
       <ResponsiveGameInfoPanel
         columns={columns}
@@ -1232,40 +666,19 @@ export function GameBoard({
   replayOfId,
   soundEnabled = true,
 }: GameBoardProps) {
-  const isAnonymousStorageReady = useSyncExternalStore(
-    subscribeToClientReady,
-    getClientReadySnapshot,
-    isSignedIn ? getClientReadySnapshot : getServerClientReadySnapshot,
-  );
-  const storedProgressValue = useSyncExternalStore(
-    subscribeToClientReady,
-    getAnonymousProgressSnapshot,
-    getServerStorageSnapshot,
-  );
-  const storedHighestLevelValue = useSyncExternalStore(
-    subscribeToClientReady,
-    getHighestReachedLevelSnapshot,
-    getServerStorageSnapshot,
-  );
-  const restoredProgress = useMemo(
-    () =>
-      isSignedIn || replayOfId
-        ? null
-        : parseAnonymousGameProgress(storedProgressValue),
-    [isSignedIn, replayOfId, storedProgressValue],
-  );
-  const storedHighestReachedLevel = useMemo(() => {
-    if (isSignedIn || replayOfId) {
-      return undefined;
-    }
+  const {
+    activeInitialBoard,
+    initialAttemptStartBoard,
+    initialHighestReachedLevel,
+    initialTimerStatus,
+    isReady,
+  } = useInitialGameState({
+    initialBoard,
+    isSignedIn,
+    replayOfId,
+  });
 
-    const storedLevel = Number.parseInt(storedHighestLevelValue ?? '', 10);
-    return Number.isFinite(storedLevel) && storedLevel > 0
-      ? storedLevel
-      : undefined;
-  }, [isSignedIn, replayOfId, storedHighestLevelValue]);
-
-  if (!isAnonymousStorageReady) {
+  if (!isReady) {
     return (
       <div
         aria-label="Loading saved game"
@@ -1277,20 +690,13 @@ export function GameBoard({
     );
   }
 
-  const activeInitialBoard = restoredProgress?.board ?? initialBoard;
-  const initialHighestReachedLevel = Math.max(
-    activeInitialBoard.level,
-    restoredProgress?.highestReachedLevel ?? 1,
-    storedHighestReachedLevel ?? 1,
-  );
-
   return (
     <SoundProvider enabled={soundEnabled}>
       <GameBoardContent
-        initialAttemptStartBoard={restoredProgress?.attemptStartBoard}
+        initialAttemptStartBoard={initialAttemptStartBoard}
         initialBoard={activeInitialBoard}
         initialHighestReachedLevel={initialHighestReachedLevel}
-        initialTimerStatus={restoredProgress?.timerStatus}
+        initialTimerStatus={initialTimerStatus}
         isSignedIn={isSignedIn}
         playerAvatarUrl={playerAvatarUrl}
         playerName={playerName}
