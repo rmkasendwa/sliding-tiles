@@ -2,7 +2,7 @@ export default function RunsLoading() {
   return (
     <section
       aria-label="Loading run history"
-      className="page-rail mx-auto grid w-full max-w-240 gap-5 py-6 sm:py-8"
+      className="page-rail mx-auto grid max-w-240 gap-5 py-6 sm:py-8"
       role="status"
     >
       <header className="grid gap-3 border-b border-line pb-4">
@@ -15,8 +15,9 @@ export default function RunsLoading() {
 
       <div aria-hidden="true" className="grid gap-2.5">
         {Array.from({ length: 4 }, (_, index) => (
-          <div className="relative pl-4" key={index}>
-            <span className="absolute -left-1 top-2 size-2.5 rounded-full bg-line" />
+          <div className="relative pl-7 sm:pl-4" key={index}>
+            <span className="absolute left-1.5 top-2 size-2.5 rounded-full bg-line shadow-sm sm:-left-1" />
+            <span className="absolute left-2.5 top-5 h-[calc(100%-8px)] w-0.5 bg-line/85 sm:left-0 sm:bg-line/70" />
             <div className="grid gap-3 rounded-lg border border-line bg-surface/60 p-3">
               <div className="flex items-center justify-between gap-3">
                 <div className="grid gap-2">

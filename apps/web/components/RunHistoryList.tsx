@@ -42,22 +42,22 @@ export function RunHistoryList({
     <div className="grid gap-2.5">
       {runs.map((run, index) => {
         return (
-          <article className="relative pl-4" key={run.id}>
+          <article className="relative pl-7 sm:pl-4" key={run.id}>
             <span
               aria-hidden="true"
               className={[
-                'absolute left-0 top-5 w-0.5',
+                'absolute left-2.5 top-5 w-0.5 sm:left-0',
                 index === runs.length - 1 && !continuation
                   ? 'hidden'
                   : index === runs.length - 1
-                    ? 'h-[calc(100%+10px)] bg-line/70'
-                    : 'h-[calc(100%-8px)] bg-line/70',
+                    ? 'h-[calc(100%+10px)] bg-line/85 sm:bg-line/70'
+                    : 'h-[calc(100%-8px)] bg-line/85 sm:bg-line/70',
               ].join(' ')}
             />
             <span
               aria-hidden="true"
               className={[
-                'absolute -left-1 top-2 h-2.5 w-2.5 rounded-full border',
+                'absolute left-1.5 top-2 h-2.5 w-2.5 rounded-full border shadow-sm sm:-left-1',
                 index === 0
                   ? 'border-primary bg-primary'
                   : run.attemptType === 'replay'
@@ -147,10 +147,10 @@ export function RunHistoryList({
         );
       })}
       {continuation ? (
-        <div className="relative pl-4">
+        <div className="relative pl-7 sm:pl-4">
           <span
             aria-hidden="true"
-            className="absolute -left-1 top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full border border-info bg-info"
+            className="absolute left-1.5 top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full border border-info bg-info shadow-sm sm:-left-1"
           />
           {continuation}
         </div>

@@ -36,7 +36,7 @@ export default async function RunsPage({ searchParams }: RunsPageProps) {
   );
 
   return (
-    <section className="page-rail mx-auto grid w-full max-w-240 gap-5 py-6 sm:py-8">
+    <section className="page-rail mx-auto grid max-w-240 gap-5 py-6 sm:py-8">
       <header className="grid gap-2 border-b border-line pb-4">
         <p className="text-xs font-extrabold uppercase text-accent-strong">
           Performance archive
