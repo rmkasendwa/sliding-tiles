@@ -4,10 +4,27 @@ import Link from 'next/link';
 import { ForgotPasswordForm } from '@/components/ForgotPasswordForm';
 import { pageMetadata } from '@/lib/metadata';
 import { routes } from '@/lib/routes';
+import { redirect } from 'next/navigation';
+
+import { getSafeReturnTo } from '@/lib/authRedirect';
+import { getSession } from '@/lib/session';
 
 export const metadata = pageMetadata.forgotPassword;
 
-export default function ForgotPasswordPage() {
+type ForgotPasswordPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function ForgotPasswordPage({
+  searchParams,
+}: ForgotPasswordPageProps) {
+  const params = (await searchParams) ?? {};
+  const returnTo = getSafeReturnTo(params.returnTo);
+  const session = await getSession();
+  if (session) {
+    redirect(returnTo);
+  }
+
   return (
     <section className="page-rail mx-auto flex-1 grid place-items-center py-5 lg:py-8">
       <div className="relative w-full overflow-visible border-0 bg-transparent p-0 shadow-none lg:overflow-hidden lg:rounded-[26px] lg:border lg:border-line/90 lg:bg-surface-auth-cool lg:p-8 lg:shadow-panel">
