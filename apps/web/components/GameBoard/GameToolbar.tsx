@@ -77,7 +77,7 @@ export function GameToolbar({
         </div>
       ) : null}
       <div className="absolute inset-x-4 bottom-4 z-40 flex items-end justify-between gap-2 max-[480px]:flex-col max-[480px]:items-stretch">
-        <div className="contents max-[480px]:flex max-[480px]:items-center max-[480px]:justify-center max-[480px]:gap-2">
+        <div className="max-[480px]:flex max-[480px]:items-center max-[480px]:justify-center max-[480px]:gap-2">
           <div
             aria-label={`Level ${level}, ${columns} by ${rows} grid`}
             className="board-overlay hidden whitespace-nowrap rounded-[7px] border px-2.5 py-2 text-xs font-bold text-accent-strong max-[480px]:block"
@@ -208,9 +208,7 @@ export function GameToolbar({
             }
             onClick={onToggleFullscreen}
             tooltip={
-              isBoardFullscreen
-                ? 'Exit fullscreen (F)'
-                : 'Enter fullscreen (F)'
+              isBoardFullscreen ? 'Exit fullscreen (F)' : 'Enter fullscreen (F)'
             }
             type="button"
           />
