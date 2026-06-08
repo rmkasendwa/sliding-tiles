@@ -2,16 +2,23 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 import { AuthForm } from '@/components/AuthForm';
+import { getSafeReturnTo } from '@/lib/authRedirect';
 import { pageMetadata } from '@/lib/metadata';
 import { routes } from '@/lib/routes';
 import { getSession } from '@/lib/session';
 
 export const metadata = pageMetadata.signup;
 
-export default async function SignupPage() {
+type SignupPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function SignupPage({ searchParams }: SignupPageProps) {
+  const params = (await searchParams) ?? {};
+  const returnTo = getSafeReturnTo(params.returnTo);
   const session = await getSession();
   if (session) {
-    redirect(routes.play);
+    redirect(returnTo);
   }
 
   return (
@@ -83,12 +90,12 @@ export default async function SignupPage() {
               className="absolute -inset-2 hidden rounded-[20px] bg-linear-to-b from-warning/22 to-transparent blur-lg lg:block"
             />
             <div className="relative">
-              <AuthForm mode="signup" />
+              <AuthForm mode="signup" returnTo={returnTo} />
               <p className="mt-4 text-center leading-normal text-muted">
                 Already have an account?{' '}
                 <Link
                   className="font-bold text-accent-strong transition-colors hover:text-accent"
-                  href={routes.login}
+                  href={`${routes.login}?${new URLSearchParams({ returnTo })}`}
                 >
                   Log in
                 </Link>

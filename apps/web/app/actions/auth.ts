@@ -10,6 +10,7 @@ import {
   getApiFieldErrors,
   getApiMessage,
 } from '@/lib/api';
+import { getSafeReturnTo } from '@/lib/authRedirect';
 import { routes } from '@/lib/routes';
 import { destroySession, setSessionToken } from '@/lib/session';
 import {
@@ -72,7 +73,7 @@ export async function signup(
     };
   }
 
-  redirect(routes.play);
+  redirect(getSafeReturnTo(formData.get('returnTo')?.toString()));
 }
 
 export async function login(
@@ -106,7 +107,7 @@ export async function login(
     };
   }
 
-  redirect(routes.play);
+  redirect(getSafeReturnTo(formData.get('returnTo')?.toString()));
 }
 
 export async function requestPasswordReset(

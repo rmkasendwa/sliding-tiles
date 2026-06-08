@@ -3,16 +3,23 @@ import { redirect } from 'next/navigation';
 import { Lock } from 'lucide-react';
 
 import { AuthForm } from '@/components/AuthForm';
+import { getSafeReturnTo } from '@/lib/authRedirect';
 import { pageMetadata } from '@/lib/metadata';
 import { routes } from '@/lib/routes';
 import { getSession } from '@/lib/session';
 
 export const metadata = pageMetadata.login;
 
-export default async function LoginPage() {
+type LoginPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const params = (await searchParams) ?? {};
+  const returnTo = getSafeReturnTo(params.returnTo);
   const session = await getSession();
   if (session) {
-    redirect(routes.play);
+    redirect(returnTo);
   }
 
   return (
@@ -89,12 +96,12 @@ export default async function LoginPage() {
                 <Lock className="h-3.5 w-3.5 text-accent-strong" />
                 Secure sign-in
               </p>
-              <AuthForm mode="login" />
+              <AuthForm mode="login" returnTo={returnTo} />
               <p className="mt-4 text-center text-[0.9rem] leading-normal text-muted">
                 No account yet?{' '}
                 <Link
                   className="font-bold text-accent-strong transition-colors hover:text-accent"
-                  href={routes.signup}
+                  href={`${routes.signup}?${new URLSearchParams({ returnTo })}`}
                 >
                   Create one
                 </Link>

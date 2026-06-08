@@ -19,6 +19,7 @@ import { PasswordStrengthMeter } from './PasswordStrengthMeter';
 
 type AuthFormProps = {
   mode: 'login' | 'signup';
+  returnTo?: string;
 };
 
 type FormValues = {
@@ -48,7 +49,7 @@ type UsernameAvailabilityResponse = {
   suggestions: string[];
 };
 
-export function AuthForm({ mode }: AuthFormProps) {
+export function AuthForm({ mode, returnTo }: AuthFormProps) {
   const isSignup = mode === 'signup';
   const [clientErrors, setClientErrors] = useState<Record<string, string>>({});
   const [editedFields, setEditedFields] = useState<Record<string, boolean>>({});
@@ -468,6 +469,9 @@ export function AuthForm({ mode }: AuthFormProps) {
           : 'rounded-2xl border-line bg-success-soft p-4 shadow-panel-strong backdrop-blur-[2px] sm:p-6',
       ].join(' ')}
     >
+      {returnTo ? (
+        <input name="returnTo" type="hidden" value={returnTo} />
+      ) : null}
       <div className="grid gap-1.5">
         <p className="text-[0.62rem] font-bold uppercase tracking-widest text-accent-strong/90">
           {isSignup ? 'Create account' : 'Welcome back'}

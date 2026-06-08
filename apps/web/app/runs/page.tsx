@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 
 import { RunHistoryFeed } from '@/components/RunHistoryFeed';
 import { type ApiRunPage, apiRequest } from '@/lib/api';
+import { getLoginUrl } from '@/lib/authRedirect';
 import { pageMetadata } from '@/lib/metadata';
 import { routes } from '@/lib/routes';
 import { getSession } from '@/lib/session';
@@ -20,13 +21,19 @@ function getRunFilter(value: string | string[] | undefined): RunFilter {
 }
 
 export default async function RunsPage({ searchParams }: RunsPageProps) {
-  const session = await getSession();
-  if (!session) {
-    redirect(routes.login);
-  }
-
   const params = (await searchParams) ?? {};
   const initialFilter = getRunFilter(params.filter);
+  const session = await getSession();
+  if (!session) {
+    redirect(
+      getLoginUrl(
+        initialFilter === 'all'
+          ? routes.runs
+          : `${routes.runs}?filter=${initialFilter}`,
+      ),
+    );
+  }
+
   const query = new URLSearchParams({ take: '12' });
   if (initialFilter !== 'all') {
     query.set('attemptType', initialFilter);

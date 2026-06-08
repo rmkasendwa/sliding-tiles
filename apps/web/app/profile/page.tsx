@@ -8,6 +8,7 @@ import { RunHistoryList } from '@/components/RunHistoryList';
 import { ThemeSettings } from '@/components/ThemeSettings';
 import { ApiGameState, ApiRunPage, ApiScore, apiRequest } from '@/lib/api';
 import { pageMetadata } from '@/lib/metadata';
+import { getLoginUrl } from '@/lib/authRedirect';
 import { routes } from '@/lib/routes';
 import { getSession } from '@/lib/session';
 import { getUserDisplayName } from '@/lib/user-display';
@@ -53,7 +54,7 @@ function compareAttempt(a: ApiScore, b: ApiScore) {
 export default async function ProfilePage() {
   const session = await getSession();
   if (!session) {
-    redirect(routes.login);
+    redirect(getLoginUrl(routes.profile));
   }
 
   const [{ gameState, scores }, recentRunsPage] = await Promise.all([
