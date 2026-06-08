@@ -1,13 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { recordLevelAttempt } from '@/app/actions/game';
 import type { AnonymousTimerStatus } from '@/lib/anonymousGameStorage';
@@ -33,10 +27,7 @@ import {
   TILE_ENTRY_LOCK_IN_DELAY_MS,
 } from './constants';
 import { GameStage } from './GameStage';
-import type {
-  ReplayPerformance,
-  ReplayResult,
-} from './ReplayResultPanel';
+import type { ReplayPerformance, ReplayResult } from './ReplayResultPanel';
 import { ResponsiveGameInfoPanel } from './ResponsiveGameInfoPanel';
 import { useBoardFullscreen } from './useBoardFullscreen';
 import { useBoardPreview } from './useBoardPreview';
@@ -113,9 +104,10 @@ function GameBoardContent({
       initialBoard.level,
     ),
   );
-  const [attemptStartBoard, setAttemptStartBoard] = useState<BoardState>(() =>
-    initialAttemptStartBoard ??
-    resetBoardAttempt(initialBoard, initialBoard.startedAt),
+  const [attemptStartBoard, setAttemptStartBoard] = useState<BoardState>(
+    () =>
+      initialAttemptStartBoard ??
+      resetBoardAttempt(initialBoard, initialBoard.startedAt),
   );
   const [activeReplayOfId, setActiveReplayOfId] = useState<string | null>(
     replayOfId ?? null,
@@ -309,20 +301,17 @@ function GameBoardContent({
 
   const completeLevel = useCallback(
     (completedBoard: BoardState, effectiveLevelStartedAtMs: number) => {
-      const completedElapsedTimeMs = completeClock(
-        effectiveLevelStartedAtMs,
-      );
+      const completedElapsedTimeMs = completeClock(effectiveLevelStartedAtMs);
       const latestReplayPerformance = {
         moves: completedBoard.moves,
         timeSeconds: Math.max(1, Math.round(completedElapsedTimeMs / 1000)),
       };
-      const completedReplayResult =
-        activeReplayOfId
-          ? {
-              latest: latestReplayPerformance,
-              previousBest: currentReplayBest ?? latestReplayPerformance,
-            }
-          : null;
+      const completedReplayResult = activeReplayOfId
+        ? {
+            latest: latestReplayPerformance,
+            previousBest: currentReplayBest ?? latestReplayPerformance,
+          }
+        : null;
       launchCompletionConfetti(completedBoard);
       playSound('complete');
       setIsCompletionImageVisible(true);
@@ -749,7 +738,7 @@ export function GameBoard({
     return (
       <div
         aria-label="Loading saved game"
-        className="grid min-h-[calc(100svh-36px)] w-full place-items-center rounded-lg bg-night text-sm font-bold text-surface"
+        className="grid min-h-[calc(100svh-32px)] w-full place-items-center rounded-lg bg-night text-sm font-bold text-surface"
         role="status"
       >
         Loading game...

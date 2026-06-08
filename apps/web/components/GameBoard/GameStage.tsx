@@ -1,10 +1,6 @@
 'use client';
 
-import type {
-  MutableRefObject,
-  PointerEventHandler,
-  RefObject,
-} from 'react';
+import type { MutableRefObject, PointerEventHandler, RefObject } from 'react';
 
 import { BoardState, Slot, slotKey } from '@/lib/board';
 
@@ -13,10 +9,7 @@ import { BOARD_SIZE, BOARD_SURFACE_BACKGROUND } from './constants';
 import { CompletionEffects } from './CompletionEffects';
 import { GameHud } from './GameHud';
 import { GameToolbar } from './GameToolbar';
-import {
-  ReplayResultPanel,
-  type ReplayResult,
-} from './ReplayResultPanel';
+import { ReplayResultPanel, type ReplayResult } from './ReplayResultPanel';
 
 type GameStageProps = {
   board: BoardState;
@@ -115,7 +108,7 @@ export function GameStage({
         'play-board-reveal relative grid min-h-0 place-items-center overflow-hidden bg-night shadow-game-shell',
         isBoardFullscreen
           ? 'fullscreen-board-stage fixed inset-0 z-50 h-screen rounded-none p-4'
-          : 'h-[calc(100svh-36px)] rounded-lg p-3 max-[900px]:p-2.5',
+          : 'h-[calc(100svh-32px)] rounded-lg p-3 max-[900px]:p-2.5',
       ].join(' ')}
       ref={boardFrameRef}
     >
@@ -156,9 +149,7 @@ export function GameStage({
               isResetting={isResetting}
               isShowingSolvedHint={isShowingSolvedHint}
               key={`${boardEntryAnimationKey}:${tile.position}`}
-              onHint={
-                tile.type === 'PLACEHOLDER' ? () => undefined : onHint
-              }
+              onHint={tile.type === 'PLACEHOLDER' ? () => undefined : onHint}
               onInvalidMove={onInvalidMove}
               onMove={onMove}
               rows={rows}
