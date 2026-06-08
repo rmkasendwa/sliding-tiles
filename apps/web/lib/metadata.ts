@@ -120,6 +120,9 @@ export function createPageMetadata(config: PageMetadataConfig): Metadata {
   const title = pageTitle(config.title);
 
   return {
+    metadataBase: process.env.WEB_BASE_URL
+      ? new URL(process.env.WEB_BASE_URL)
+      : undefined,
     alternates: {
       canonical: config.path,
     },
