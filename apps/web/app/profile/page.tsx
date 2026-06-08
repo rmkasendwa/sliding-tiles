@@ -6,12 +6,7 @@ import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { ProfileSettingsForm } from '@/components/ProfileSettingsForm';
 import { RunHistoryList } from '@/components/RunHistoryList';
 import { ThemeSettings } from '@/components/ThemeSettings';
-import {
-  ApiGameState,
-  ApiRunPage,
-  ApiScore,
-  apiRequest,
-} from '@/lib/api';
+import { ApiGameState, ApiRunPage, ApiScore, apiRequest } from '@/lib/api';
 import { pageMetadata } from '@/lib/metadata';
 import { routes } from '@/lib/routes';
 import { getSession } from '@/lib/session';
@@ -61,13 +56,14 @@ export default async function ProfilePage() {
     redirect(routes.login);
   }
 
-  const [{ gameState, scores }, { scores: recentRuns }] = await Promise.all([
+  const [{ gameState, scores }, recentRunsPage] = await Promise.all([
     apiRequest<{
       gameState: ApiGameState | null;
       scores: ApiScore[];
     }>('/profile'),
-    apiRequest<ApiRunPage>('/leaderboard/mine?take=4'),
+    apiRequest<ApiRunPage>('/leaderboard/mine?take=5'),
   ]);
+  const recentRuns = recentRunsPage.scores;
 
   const completedRuns = scores.length;
   const replayComparisons = scores.reduce((comparisons, score) => {
@@ -379,13 +375,11 @@ export default async function ProfilePage() {
               <p
                 className={[
                   'mt-2 text-sm font-bold',
-                  replayComparisons.get(latestReplay.id)?.startsWith(
-                    'Improved',
-                  )
+                  replayComparisons.get(latestReplay.id)?.startsWith('Improved')
                     ? 'text-primary-strong'
-                    : replayComparisons.get(latestReplay.id)?.startsWith(
-                          'Behind',
-                        )
+                    : replayComparisons
+                          .get(latestReplay.id)
+                          ?.startsWith('Behind')
                       ? 'text-warning-strong'
                       : 'text-info-strong',
                 ].join(' ')}
@@ -426,7 +420,7 @@ export default async function ProfilePage() {
         <div className="grid grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] items-start gap-5 max-[980px]:grid-cols-1">
           <div className="grid gap-5">
             <section className="grid gap-4 rounded-lg border border-clay/22 bg-[linear-gradient(160deg,var(--color-clay-soft),var(--color-surface))] p-4">
-              <div className="flex items-end justify-between gap-3">
+              <div className="flex items-baseline justify-between gap-3">
                 <h2 className="text-[clamp(1.6rem,3vw,2.2rem)]">Saved board</h2>
                 <span className="text-xs font-bold uppercase tracking-[0.08em] text-clay-strong">
                   Resume point
@@ -591,7 +585,7 @@ export default async function ProfilePage() {
           </div>
 
           <section className="grid gap-4 rounded-lg border border-info/18 bg-[linear-gradient(160deg,var(--color-info-surface),var(--color-surface))] p-4">
-            <div className="flex items-end justify-between gap-3">
+            <div className="flex items-baseline justify-between gap-3">
               <h2 className="text-[clamp(1.6rem,3vw,2.2rem)]">Recent runs</h2>
               <Link
                 className="text-sm font-bold text-info-strong underline-offset-4 hover:underline"
@@ -604,12 +598,14 @@ export default async function ProfilePage() {
             {recentRuns.length > 0 ? (
               <RunHistoryList
                 continuation={
-                  <Link
-                    className="inline-flex min-h-10 w-full items-center justify-center rounded-[7px] border border-info/30 bg-info-soft/70 px-4 text-sm font-bold text-info-strong transition-colors hover:bg-info/12"
-                    href={routes.runs}
-                  >
-                    View Complete Run History
-                  </Link>
+                  recentRuns.length < recentRunsPage.totalCount ? (
+                    <Link
+                      className="inline-flex min-h-10 w-full items-center justify-center rounded-[7px] border border-info/30 bg-info-soft/70 px-4 text-sm font-bold text-info-strong transition-colors hover:bg-info/12"
+                      href={routes.runs}
+                    >
+                      View Complete Run History
+                    </Link>
+                  ) : undefined
                 }
                 runs={recentRuns}
               />

@@ -76,6 +76,7 @@ export type ApiRun = Omit<ApiScore, 'puzzleConfig'> & {
 export type ApiRunPage = {
   nextCursor: string | null;
   scores: ApiRun[];
+  totalCount: number;
 };
 
 function getApiBaseUrl() {

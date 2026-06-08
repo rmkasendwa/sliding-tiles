@@ -25,27 +25,35 @@ export class LeaderboardService {
       take?: number;
     },
   ) {
-    const scores = await this.prisma.leaderboard.findMany({
-      cursor: cursor ? { id: cursor } : undefined,
-      orderBy: [{ completedAt: 'desc' }, { id: 'desc' }],
-      select: {
-        attemptType: true,
-        completedAt: true,
-        id: true,
-        level: true,
-        moves: true,
-        puzzleConfig: true,
-        replayOfId: true,
-        timeSeconds: true,
-        userId: true,
-      },
-      skip: cursor ? 1 : 0,
-      take: take + 1,
-      where: {
-        attemptType,
-        userId,
-      },
-    });
+    const [scores, totalCount] = await Promise.all([
+      this.prisma.leaderboard.findMany({
+        cursor: cursor ? { id: cursor } : undefined,
+        orderBy: [{ completedAt: 'desc' }, { id: 'desc' }],
+        select: {
+          attemptType: true,
+          completedAt: true,
+          id: true,
+          level: true,
+          moves: true,
+          puzzleConfig: true,
+          replayOfId: true,
+          timeSeconds: true,
+          userId: true,
+        },
+        skip: cursor ? 1 : 0,
+        take: take + 1,
+        where: {
+          attemptType,
+          userId,
+        },
+      }),
+      this.prisma.leaderboard.count({
+        where: {
+          attemptType,
+          userId,
+        },
+      }),
+    ]);
     const hasMore = scores.length > take;
     const pageScores = hasMore ? scores.slice(0, take) : scores;
     const levels = [...new Set(pageScores.map((score) => score.level))];
@@ -139,6 +147,7 @@ export class LeaderboardService {
           replayComparison,
         };
       }),
+      totalCount,
     };
   }
 
