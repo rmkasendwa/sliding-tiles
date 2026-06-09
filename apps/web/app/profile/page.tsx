@@ -193,7 +193,7 @@ export default async function ProfilePage() {
   const playerHandle = session.username ? `@${session.username}` : playerLabel;
 
   return (
-    <section className="page-rail mx-auto grid max-w-300 gap-6 pt-5 pb-10">
+    <section className="page-rail mx-auto grid max-w-300 gap-5 py-5">
       <div className="grid gap-4 rounded-xl border border-accent/20 bg-[radial-gradient(circle_at_88%_12%,color-mix(in_srgb,var(--color-accent)_28%,transparent),transparent_36%),radial-gradient(circle_at_10%_100%,color-mix(in_srgb,var(--color-warning)_34%,transparent),transparent_34%),linear-gradient(135deg,color-mix(in_srgb,var(--color-primary-strong)_12%,transparent),color-mix(in_srgb,var(--color-surface)_52%,transparent)_48%,color-mix(in_srgb,var(--color-info)_18%,transparent))] p-5 shadow-panel min-[980px]:grid-cols-[minmax(0,1fr)_340px]">
         <div>
           <p className="text-[0.78rem] font-extrabold uppercase tracking-[0.08em] text-accent-strong">

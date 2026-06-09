@@ -43,7 +43,7 @@ export default async function RunsPage({ searchParams }: RunsPageProps) {
   );
 
   return (
-    <section className="page-rail mx-auto grid max-w-240 gap-5 py-6 sm:py-8">
+    <section className="page-rail mx-auto grid max-w-240 gap-5 py-5">
       <header className="grid gap-2 border-b border-line pb-4">
         <p className="text-xs font-extrabold uppercase text-accent-strong">
           Performance archive
@@ -57,10 +57,7 @@ export default async function RunsPage({ searchParams }: RunsPageProps) {
         </p>
       </header>
 
-      <RunHistoryFeed
-        initialFilter={initialFilter}
-        initialPage={initialPage}
-      />
+      <RunHistoryFeed initialFilter={initialFilter} initialPage={initialPage} />
     </section>
   );
 }

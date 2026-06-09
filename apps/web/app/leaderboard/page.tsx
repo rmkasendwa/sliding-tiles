@@ -56,13 +56,7 @@ function formatFullCompletedAt(isoDate: string) {
   }).format(new Date(isoDate));
 }
 
-function CompletedAt({
-  isoDate,
-  now,
-}: {
-  isoDate: string;
-  now: number;
-}) {
+function CompletedAt({ isoDate, now }: { isoDate: string; now: number }) {
   return (
     <time dateTime={isoDate} title={formatFullCompletedAt(isoDate)}>
       {formatCompletedAt(isoDate, now)}
@@ -100,7 +94,11 @@ function LeaderboardEmptyState() {
     >
       <div className="grid max-w-lg justify-items-center gap-4">
         <span className="grid size-16 place-items-center rounded-full border border-warning/35 bg-warning-soft text-warning-strong shadow-featured-stat sm:size-18">
-          <Trophy aria-hidden="true" className="size-8 sm:size-9" strokeWidth={2} />
+          <Trophy
+            aria-hidden="true"
+            className="size-8 sm:size-9"
+            strokeWidth={2}
+          />
         </span>
         <div className="grid gap-2">
           <h2
@@ -193,7 +191,7 @@ export default async function LeaderboardPage() {
     : 0;
 
   return (
-    <section className="page-rail mx-auto grid max-w-300 gap-6 pt-5 pb-10">
+    <section className="page-rail mx-auto grid max-w-300 gap-5 py-5">
       <div
         className="profile-reveal grid gap-4 rounded-xl border border-accent/20 bg-[radial-gradient(circle_at_88%_12%,color-mix(in_srgb,var(--color-accent)_28%,transparent),transparent_36%),radial-gradient(circle_at_12%_100%,color-mix(in_srgb,var(--color-warning)_34%,transparent),transparent_34%),linear-gradient(135deg,color-mix(in_srgb,var(--color-primary-strong)_12%,transparent),color-mix(in_srgb,var(--color-surface)_52%,transparent)_48%,color-mix(in_srgb,var(--color-info)_18%,transparent))] p-5 shadow-panel min-[1060px]:grid-cols-[minmax(0,1fr)_320px]"
         style={{ animationDelay: '40ms' }}
@@ -247,10 +245,7 @@ export default async function LeaderboardPage() {
               </div>
               <p className="text-xs leading-snug text-muted">
                 Completed{' '}
-                <CompletedAt
-                  isoDate={scores[0].completedAt}
-                  now={renderedAt}
-                />
+                <CompletedAt isoDate={scores[0].completedAt} now={renderedAt} />
               </p>
             </>
           ) : (
@@ -290,10 +285,7 @@ export default async function LeaderboardPage() {
                     #{rank}
                   </span>
                   <span className="text-xs font-bold uppercase text-muted">
-                    <CompletedAt
-                      isoDate={score.completedAt}
-                      now={renderedAt}
-                    />
+                    <CompletedAt isoDate={score.completedAt} now={renderedAt} />
                   </span>
                 </div>
                 <div className="mt-3 flex items-center gap-2.5">
@@ -339,36 +331,38 @@ export default async function LeaderboardPage() {
           className="profile-reveal grid grid-cols-4 gap-3 max-[980px]:grid-cols-2 max-[620px]:grid-cols-1"
           style={{ animationDelay: '100ms' }}
         >
-        <article className="rounded-lg border border-accent/22 bg-[linear-gradient(160deg,var(--color-primary-soft),var(--color-surface))] p-4 shadow-panel">
-          <p className="text-[0.75rem] font-extrabold uppercase text-accent-strong">
-            Posted runs
-          </p>
-          <p className="mt-1 text-2xl font-bold">{scores.length}</p>
-        </article>
-        <article className="rounded-lg border border-info/24 bg-[linear-gradient(160deg,var(--color-info-soft),var(--color-surface))] p-4 shadow-panel">
-          <p className="text-[0.75rem] font-extrabold uppercase text-info-strong">
-            Players
-          </p>
-          <p className="mt-1 text-2xl font-bold">{uniquePlayers}</p>
-        </article>
-        <article className="rounded-lg border border-warning/30 bg-[linear-gradient(160deg,var(--color-warning-soft),var(--color-surface))] p-4 shadow-panel">
-          <p className="text-[0.75rem] font-extrabold uppercase text-warning-strong">
-            Best run
-          </p>
-          <p className="mt-1 text-2xl font-bold">
-            {fastestRun ? formatDuration(fastestRun.timeSeconds) : '-'}
-          </p>
-          <p className="mt-1 text-sm text-muted">Highest level: {bestLevel}</p>
-        </article>
-        <article className="rounded-lg border border-clay/24 bg-[linear-gradient(160deg,var(--color-clay-soft),var(--color-surface))] p-4 shadow-panel">
-          <p className="text-[0.75rem] font-extrabold uppercase text-clay-strong">
-            Avg moves
-          </p>
-          <p className="mt-1 text-2xl font-bold">
-            {scores.length > 0 ? averageMoves : '-'}
-          </p>
-          <p className="mt-1 text-sm text-muted">Across all listed runs</p>
-        </article>
+          <article className="rounded-lg border border-accent/22 bg-[linear-gradient(160deg,var(--color-primary-soft),var(--color-surface))] p-4 shadow-panel">
+            <p className="text-[0.75rem] font-extrabold uppercase text-accent-strong">
+              Posted runs
+            </p>
+            <p className="mt-1 text-2xl font-bold">{scores.length}</p>
+          </article>
+          <article className="rounded-lg border border-info/24 bg-[linear-gradient(160deg,var(--color-info-soft),var(--color-surface))] p-4 shadow-panel">
+            <p className="text-[0.75rem] font-extrabold uppercase text-info-strong">
+              Players
+            </p>
+            <p className="mt-1 text-2xl font-bold">{uniquePlayers}</p>
+          </article>
+          <article className="rounded-lg border border-warning/30 bg-[linear-gradient(160deg,var(--color-warning-soft),var(--color-surface))] p-4 shadow-panel">
+            <p className="text-[0.75rem] font-extrabold uppercase text-warning-strong">
+              Best run
+            </p>
+            <p className="mt-1 text-2xl font-bold">
+              {fastestRun ? formatDuration(fastestRun.timeSeconds) : '-'}
+            </p>
+            <p className="mt-1 text-sm text-muted">
+              Highest level: {bestLevel}
+            </p>
+          </article>
+          <article className="rounded-lg border border-clay/24 bg-[linear-gradient(160deg,var(--color-clay-soft),var(--color-surface))] p-4 shadow-panel">
+            <p className="text-[0.75rem] font-extrabold uppercase text-clay-strong">
+              Avg moves
+            </p>
+            <p className="mt-1 text-2xl font-bold">
+              {scores.length > 0 ? averageMoves : '-'}
+            </p>
+            <p className="mt-1 text-sm text-muted">Across all listed runs</p>
+          </article>
         </div>
       ) : null}
 
@@ -383,67 +377,68 @@ export default async function LeaderboardPage() {
           className="profile-reveal hidden gap-4 min-[1120px]:grid min-[1120px]:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]"
           style={{ animationDelay: '130ms' }}
         >
-        <article className="overflow-hidden rounded-lg border border-accent/18 bg-panel shadow-panel">
-          <header className="border-b border-accent/16 bg-[linear-gradient(90deg,color-mix(in_srgb,var(--color-accent)_16%,transparent),color-mix(in_srgb,var(--color-surface)_45%,transparent))] px-4 py-3">
-            <p className="text-[0.74rem] font-extrabold uppercase text-accent-strong">
-              Top players in this slice
-            </p>
-          </header>
-          <ol className="grid">
-            {topPlayers.map((player, index) => (
-              <li
-                className="grid grid-cols-[46px_minmax(0,1fr)_auto_auto] items-center gap-2 border-b border-line/80 px-4 py-2.5 odd:bg-accent/4 last:border-b-0"
-                key={player.userId}
-              >
-                <span className="text-sm font-bold text-muted">
-                  #{index + 1}
-                </span>
-                <span className="inline-flex min-w-0 items-center gap-1.5 font-semibold text-foreground">
-                  <span className="truncate">{player.name}</span>
-                  {session?.id === player.userId ? <CurrentUserBadge /> : null}
-                </span>
-                <span className="rounded-md bg-accent/10 px-2 py-0.5 text-xs font-bold text-accent-strong">
-                  L{player.bestLevel}
-                </span>
-                <span className="text-xs text-muted">{player.runs} runs</span>
-              </li>
-            ))}
-            {topPlayers.length === 0 ? (
-              <li className="px-4 py-3 text-sm text-muted">No players yet.</li>
-            ) : null}
-          </ol>
-        </article>
+          <article className="overflow-hidden rounded-lg border border-accent/18 bg-panel shadow-panel">
+            <header className="border-b border-accent/16 bg-[linear-gradient(90deg,color-mix(in_srgb,var(--color-accent)_16%,transparent),color-mix(in_srgb,var(--color-surface)_45%,transparent))] px-4 py-3">
+              <p className="text-[0.74rem] font-extrabold uppercase text-accent-strong">
+                Top players in this slice
+              </p>
+            </header>
+            <ol className="grid">
+              {topPlayers.map((player, index) => (
+                <li
+                  className="grid grid-cols-[46px_minmax(0,1fr)_auto_auto] items-center gap-2 border-b border-line/80 px-4 py-2.5 odd:bg-accent/4 last:border-b-0"
+                  key={player.userId}
+                >
+                  <span className="text-sm font-bold text-muted">
+                    #{index + 1}
+                  </span>
+                  <span className="inline-flex min-w-0 items-center gap-1.5 font-semibold text-foreground">
+                    <span className="truncate">{player.name}</span>
+                    {session?.id === player.userId ? (
+                      <CurrentUserBadge />
+                    ) : null}
+                  </span>
+                  <span className="rounded-md bg-accent/10 px-2 py-0.5 text-xs font-bold text-accent-strong">
+                    L{player.bestLevel}
+                  </span>
+                  <span className="text-xs text-muted">{player.runs} runs</span>
+                </li>
+              ))}
+              {topPlayers.length === 0 ? (
+                <li className="px-4 py-3 text-sm text-muted">
+                  No players yet.
+                </li>
+              ) : null}
+            </ol>
+          </article>
 
-        <article className="overflow-hidden rounded-lg border border-info/18 bg-panel shadow-panel">
-          <header className="border-b border-info/16 bg-[linear-gradient(90deg,color-mix(in_srgb,var(--color-info)_18%,transparent),color-mix(in_srgb,var(--color-surface)_45%,transparent))] px-4 py-3">
-            <p className="text-[0.74rem] font-extrabold uppercase text-info-strong">
-              Recent completions
-            </p>
-          </header>
-          <ul className="grid">
-            {recentRuns.map((score) => (
-              <li
-                className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-line/80 px-4 py-2.5 odd:bg-info/5 last:border-b-0"
-                key={score.id}
-              >
-                <span className="truncate text-sm text-foreground">
-                  {score.user?.name ?? 'Player'} · Level {score.level}
-                </span>
-                <span className="text-xs text-muted">
-                  <CompletedAt
-                    isoDate={score.completedAt}
-                    now={renderedAt}
-                  />
-                </span>
-              </li>
-            ))}
-            {recentRuns.length === 0 ? (
-              <li className="px-4 py-3 text-sm text-muted">
-                No recent completions.
-              </li>
-            ) : null}
-          </ul>
-        </article>
+          <article className="overflow-hidden rounded-lg border border-info/18 bg-panel shadow-panel">
+            <header className="border-b border-info/16 bg-[linear-gradient(90deg,color-mix(in_srgb,var(--color-info)_18%,transparent),color-mix(in_srgb,var(--color-surface)_45%,transparent))] px-4 py-3">
+              <p className="text-[0.74rem] font-extrabold uppercase text-info-strong">
+                Recent completions
+              </p>
+            </header>
+            <ul className="grid">
+              {recentRuns.map((score) => (
+                <li
+                  className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-line/80 px-4 py-2.5 odd:bg-info/5 last:border-b-0"
+                  key={score.id}
+                >
+                  <span className="truncate text-sm text-foreground">
+                    {score.user?.name ?? 'Player'} · Level {score.level}
+                  </span>
+                  <span className="text-xs text-muted">
+                    <CompletedAt isoDate={score.completedAt} now={renderedAt} />
+                  </span>
+                </li>
+              ))}
+              {recentRuns.length === 0 ? (
+                <li className="px-4 py-3 text-sm text-muted">
+                  No recent completions.
+                </li>
+              ) : null}
+            </ul>
+          </article>
         </div>
       ) : null}
 
@@ -483,10 +478,7 @@ export default async function LeaderboardPage() {
                     #{rank}
                   </span>
                   <p className="text-sm text-muted">
-                    <CompletedAt
-                      isoDate={score.completedAt}
-                      now={renderedAt}
-                    />
+                    <CompletedAt isoDate={score.completedAt} now={renderedAt} />
                   </p>
                 </div>
                 <p className="mt-2 inline-flex min-w-0 items-center gap-1.5 text-lg font-bold">
@@ -587,10 +579,7 @@ export default async function LeaderboardPage() {
                     {perLevel(score.moves, score.level)} moves/lvl
                   </td>
                   <td className="border-b border-line p-3.5 text-left text-sm text-muted">
-                    <CompletedAt
-                      isoDate={score.completedAt}
-                      now={renderedAt}
-                    />
+                    <CompletedAt isoDate={score.completedAt} now={renderedAt} />
                   </td>
                 </tr>
               ))}
