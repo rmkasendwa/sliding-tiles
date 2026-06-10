@@ -8,6 +8,7 @@ const SESSION_DURATION_SECONDS = 60 * 60 * 24 * 30;
 
 export type SessionUser = {
   avatarUrl?: string | null;
+  emailVerified: boolean;
   id: string;
   name: string;
   username: string;
@@ -76,6 +77,7 @@ export async function getSession(): Promise<SessionUser | null> {
 
     return {
       avatarUrl: session.avatarUrl,
+      emailVerified: session.emailVerified ?? false,
       id: session.id,
       name: session.name,
       username: session.username ?? session.name,

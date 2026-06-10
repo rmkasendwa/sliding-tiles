@@ -30,6 +30,8 @@ services:
       DATABASE_URL: ${DOCKER_DATABASE_URL:-postgresql://sliding_tiles:sliding_tiles@postgres:5432/sliding_tiles?schema=public}
       NODE_ENV: production
       PORT: ${WEB_PORT:-3000}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-Sliding Tiles <onboarding@resend.dev>}
       RUN_MIGRATIONS: ${RUN_MIGRATIONS:-true}
       SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET must be set}
       WEB_BASE_URL: ${WEB_BASE_URL:-http://localhost:3000}

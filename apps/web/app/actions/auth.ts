@@ -148,6 +148,42 @@ export async function requestPasswordReset(
   };
 }
 
+export async function requestEmailVerification(
+  state: AuthFormState,
+  formData: FormData,
+): Promise<AuthFormState> {
+  void state;
+  void formData;
+
+  try {
+    const response = await apiRequest<{
+      accessToken?: string;
+      alreadyVerified: boolean;
+    }>('/auth/resend-verification-email', {
+      method: 'POST',
+    });
+
+    if (response.accessToken) {
+      await setSessionToken(response.accessToken);
+      revalidatePath(routes.home, 'layout');
+    }
+
+    return {
+      message: response.alreadyVerified
+        ? 'Your email address is already verified.'
+        : 'Verification email sent. Check your inbox and spam folder.',
+      success: true,
+    };
+  } catch (error) {
+    return {
+      message:
+        getApiMessage(error) ??
+        'Could not send a verification email right now. Please try again shortly.',
+      success: false,
+    };
+  }
+}
+
 export async function resetPassword(
   _state: AuthFormState,
   formData: FormData,

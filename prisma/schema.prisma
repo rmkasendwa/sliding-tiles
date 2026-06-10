@@ -7,18 +7,22 @@ datasource db {
 }
 
 model User {
-  id           String        @id @default(cuid())
-  name         String
-  username     String        @unique(map: "users_username_key")
+  id                              String        @id @default(cuid())
+  name                            String
+  username                        String        @unique(map: "users_username_key")
   /// Case-insensitive uniqueness is enforced by the users_email_lower_key expression index.
-  email        String
-  passwordHash String        @map("password_hash")
-  resetPasswordTokenHash      String?       @map("reset_password_token_hash")
-  resetPasswordTokenExpiresAt DateTime?     @map("reset_password_token_expires_at")
-  createdAt    DateTime      @default(now()) @map("created_at")
-  updatedAt    DateTime      @updatedAt @map("updated_at")
-  gameState    GameState?
-  scores       Leaderboard[]
+  email                           String
+  passwordHash                    String        @map("password_hash")
+  emailVerifiedAt                 DateTime?     @map("email_verified_at")
+  emailVerificationTokenHash      String?       @unique(map: "users_email_verification_token_hash_key") @map("email_verification_token_hash")
+  emailVerificationTokenExpiresAt DateTime?     @map("email_verification_token_expires_at")
+  verificationEmailSentAt         DateTime?     @map("verification_email_sent_at")
+  resetPasswordTokenHash          String?       @map("reset_password_token_hash")
+  resetPasswordTokenExpiresAt     DateTime?     @map("reset_password_token_expires_at")
+  createdAt                       DateTime      @default(now()) @map("created_at")
+  updatedAt                       DateTime      @updatedAt @map("updated_at")
+  gameState                       GameState?
+  scores                          Leaderboard[]
 
   @@map("users")
 }
@@ -37,16 +41,16 @@ model GameState {
 }
 
 model Leaderboard {
-  id              String   @id @default(cuid())
-  userId          String   @map("user_id")
-  level           Int
-  moves           Int
-  timeSeconds     Int      @map("time_seconds")
-  attemptType     String   @default("original") @map("attempt_type")
-  replayOfId      String?  @map("replay_of_id")
-  puzzleConfig    Json?    @map("puzzle_config")
-  completedAt     DateTime @default(now()) @map("completed_at")
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "leaderboards_user_id_fkey")
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  level        Int
+  moves        Int
+  timeSeconds  Int      @map("time_seconds")
+  attemptType  String   @default("original") @map("attempt_type")
+  replayOfId   String?  @map("replay_of_id")
+  puzzleConfig Json?    @map("puzzle_config")
+  completedAt  DateTime @default(now()) @map("completed_at")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "leaderboards_user_id_fkey")
 
   @@index([level, timeSeconds, moves], map: "leaderboards_level_time_seconds_moves_idx")
   @@index([replayOfId], map: "leaderboards_replay_of_id_idx")

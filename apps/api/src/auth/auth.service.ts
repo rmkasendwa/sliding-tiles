@@ -1,12 +1,15 @@
 import {
   BadRequestException,
   ConflictException,
+  HttpException,
+  HttpStatus,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
 import { createHash, randomBytes } from 'crypto';
 
 import { Prisma } from '@prisma/client';
+import { EmailService } from '../email/email.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { SessionUser } from '../session/session.types';
 import { getGravatarUrl } from '../shared/gravatar';
@@ -14,10 +17,15 @@ import { hashPassword, verifyPassword } from './password';
 
 const EMAIL_ALREADY_EXISTS_MESSAGE =
   'An account with this email address already exists.';
+const EMAIL_VERIFICATION_TOKEN_DURATION_MS = 1000 * 60 * 60 * 24;
+const VERIFICATION_EMAIL_COOLDOWN_MS = 1000 * 60;
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly emailService: EmailService,
+  ) {}
 
   private normalizeEmail(email: string) {
     return email.trim().toLowerCase();
@@ -25,6 +33,7 @@ export class AuthService {
 
   private toSessionUser(user: {
     email: string;
+    emailVerifiedAt: Date | null;
     id: string;
     name: string;
     username: string;
@@ -32,6 +41,7 @@ export class AuthService {
     return {
       avatarUrl: getGravatarUrl(user.email),
       email: user.email,
+      emailVerified: Boolean(user.emailVerifiedAt),
       id: user.id,
       name: user.name,
       username: user.username,
@@ -205,6 +215,7 @@ export class AuthService {
         },
         select: {
           email: true,
+          emailVerifiedAt: true,
           id: true,
           name: true,
           username: true,
@@ -282,6 +293,167 @@ export class AuthService {
     return createHash('sha256').update(token).digest('hex');
   }
 
+  private hashEmailVerificationToken(token: string) {
+    return createHash('sha256').update(token).digest('hex');
+  }
+
+  private getWebBaseUrl() {
+    return (process.env.WEB_BASE_URL ?? 'http://localhost:3000')
+      .trim()
+      .replace(/\/$/, '');
+  }
+
+  private async issueVerificationEmail(
+    user: {
+      email: string;
+      id: string;
+      name: string;
+    },
+    { enforceCooldown = true }: { enforceCooldown?: boolean } = {},
+  ) {
+    const now = new Date();
+    const verificationToken = randomBytes(32).toString('hex');
+    const verificationTokenHash =
+      this.hashEmailVerificationToken(verificationToken);
+    const verificationTokenExpiresAt = new Date(
+      now.getTime() + EMAIL_VERIFICATION_TOKEN_DURATION_MS,
+    );
+
+    if (enforceCooldown) {
+      const cooldownCutoff = new Date(
+        now.getTime() - VERIFICATION_EMAIL_COOLDOWN_MS,
+      );
+      const updated = await this.prisma.user.updateMany({
+        data: {
+          emailVerificationTokenExpiresAt: verificationTokenExpiresAt,
+          emailVerificationTokenHash: verificationTokenHash,
+          verificationEmailSentAt: now,
+        },
+        where: {
+          emailVerifiedAt: null,
+          id: user.id,
+          OR: [
+            { verificationEmailSentAt: null },
+            { verificationEmailSentAt: { lte: cooldownCutoff } },
+          ],
+        },
+      });
+
+      if (updated.count === 0) {
+        throw new HttpException(
+          'A verification email was sent recently. Please wait a minute before trying again.',
+          HttpStatus.TOO_MANY_REQUESTS,
+        );
+      }
+    } else {
+      await this.prisma.user.update({
+        data: {
+          emailVerificationTokenExpiresAt: verificationTokenExpiresAt,
+          emailVerificationTokenHash: verificationTokenHash,
+          verificationEmailSentAt: now,
+        },
+        where: { id: user.id },
+      });
+    }
+
+    const verificationLink = `${this.getWebBaseUrl()}/verify-email?token=${verificationToken}`;
+
+    try {
+      await this.emailService.sendEmailVerification({
+        email: user.email,
+        name: user.name,
+        verificationLink,
+      });
+    } catch (error) {
+      await this.prisma.user.updateMany({
+        data: { verificationEmailSentAt: null },
+        where: {
+          emailVerificationTokenHash: verificationTokenHash,
+          id: user.id,
+        },
+      });
+      throw error;
+    }
+  }
+
+  async resendVerificationEmail(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      select: {
+        email: true,
+        emailVerifiedAt: true,
+        id: true,
+        name: true,
+        username: true,
+      },
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Authentication is required.');
+    }
+
+    if (user.emailVerifiedAt) {
+      return {
+        alreadyVerified: true,
+        user: this.toSessionUser(user),
+      };
+    }
+
+    await this.issueVerificationEmail(user);
+    return { alreadyVerified: false, user: null };
+  }
+
+  async verifyEmail(token: string): Promise<SessionUser> {
+    const now = new Date();
+    const verificationTokenHash =
+      this.hashEmailVerificationToken(token.trim());
+    const user = await this.prisma.user.findFirst({
+      select: {
+        email: true,
+        emailVerifiedAt: true,
+        id: true,
+        name: true,
+        username: true,
+      },
+      where: {
+        emailVerificationTokenExpiresAt: { gt: now },
+        emailVerificationTokenHash: verificationTokenHash,
+        emailVerifiedAt: null,
+      },
+    });
+
+    if (!user) {
+      throw new BadRequestException(
+        'This verification link is invalid, expired, or has already been used.',
+      );
+    }
+
+    const updated = await this.prisma.user.updateMany({
+      data: {
+        emailVerificationTokenExpiresAt: null,
+        emailVerificationTokenHash: null,
+        emailVerifiedAt: now,
+      },
+      where: {
+        emailVerificationTokenExpiresAt: { gt: now },
+        emailVerificationTokenHash: verificationTokenHash,
+        emailVerifiedAt: null,
+        id: user.id,
+      },
+    });
+
+    if (updated.count === 0) {
+      throw new BadRequestException(
+        'This verification link is invalid, expired, or has already been used.',
+      );
+    }
+
+    return this.toSessionUser({
+      ...user,
+      emailVerifiedAt: now,
+    });
+  }
+
   async signup({
     email,
     name,
@@ -319,11 +491,21 @@ export class AuthService {
         },
         select: {
           email: true,
+          emailVerifiedAt: true,
           id: true,
           name: true,
           username: true,
         },
       });
+
+      try {
+        await this.issueVerificationEmail(user, { enforceCooldown: false });
+      } catch (error) {
+        console.error(
+          `[auth] Could not send signup verification email to ${user.email}.`,
+          error,
+        );
+      }
 
       return this.toSessionUser(user);
     } catch (error) {
@@ -381,6 +563,7 @@ export class AuthService {
     const user = await this.prisma.user.findFirst({
       select: {
         email: true,
+        emailVerifiedAt: true,
         id: true,
         name: true,
         passwordHash: true,

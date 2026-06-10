@@ -28,6 +28,7 @@ export class ApiRequestError extends Error {
 export type ApiUser = {
   avatarUrl: string;
   email: string;
+  emailVerified: boolean;
   id: string;
   name: string;
   username: string;

@@ -56,6 +56,7 @@ export class SessionService {
       return {
         avatarUrl: session.avatarUrl,
         email: session.email,
+        emailVerified: session.emailVerified ?? false,
         id: session.id,
         name: session.name,
         username: session.username ?? session.name,

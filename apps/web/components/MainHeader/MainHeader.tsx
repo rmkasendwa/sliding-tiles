@@ -1,10 +1,8 @@
 import { logout } from '@/app/actions/auth';
-import { getSession } from '@/lib/session';
+import type { SessionUser } from '@/lib/session';
 
 import { MainHeaderNav } from './MainHeaderNav';
 
-export async function MainHeader() {
-  const session = await getSession();
-
+export function MainHeader({ session }: { session: SessionUser | null }) {
   return <MainHeaderNav logout={logout} session={session} />;
 }

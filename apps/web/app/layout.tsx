@@ -1,11 +1,13 @@
 import type { Metadata } from 'next';
 
 import { CookieConsentBanner } from '@/components/CookieConsentBanner';
+import { EmailVerificationBanner } from '@/components/EmailVerificationBanner';
 import { MainFooter } from '@/components/MainFooter';
 import { MainHeader } from '@/components/MainHeader';
 import { RouteProgressBar } from '@/components/RouteProgressBar';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { pageMetadata, siteUrl } from '@/lib/metadata';
+import { getSession } from '@/lib/session';
 import { themeInitScript } from '@/lib/theme';
 
 import './globals.css';
@@ -33,6 +35,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await getSession();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -42,7 +46,8 @@ export default async function RootLayout({
         <ThemeProvider>
           <RouteProgressBar />
           <div className="flex min-h-screen flex-col">
-            <MainHeader />
+            <MainHeader session={session} />
+            <EmailVerificationBanner session={session} />
             <main className="flex flex-1 flex-col items-start">{children}</main>
             <MainFooter />
           </div>

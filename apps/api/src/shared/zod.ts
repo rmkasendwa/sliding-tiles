@@ -41,6 +41,10 @@ export const forgotPasswordSchema = z.object({
   identifier: z.string().trim().min(1, 'Enter your email or username.'),
 });
 
+export const verifyEmailSchema = z.object({
+  token: z.string().trim().min(1, 'Verification token is required.'),
+});
+
 export const reservedUsernames = new Set([
   'admin',
   'api',

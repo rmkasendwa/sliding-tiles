@@ -48,6 +48,7 @@ function createAuthService({
         users.set(normalizedEmail, { id: `user-${users.size + 1}` });
         return {
           email: data.email,
+          emailVerifiedAt: null,
           id: `user-${users.size}`,
           name: data.name,
           username: data.username,
@@ -57,12 +58,17 @@ function createAuthService({
         const email = where.email?.trim().toLowerCase();
         return email && users.has(email) ? users.get(email) : null;
       },
+      update: async () => ({}),
+      updateMany: async () => ({ count: 1 }),
     },
+  };
+  const emailService = {
+    sendEmailVerification: async () => {},
   };
 
   return {
     createCalls,
-    service: new AuthService(prisma),
+    service: new AuthService(prisma, emailService),
   };
 }
 

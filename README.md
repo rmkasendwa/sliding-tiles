@@ -10,6 +10,7 @@ NestJS, and PostgreSQL.
 - Root-level Prisma, Docker, and orchestration scripts.
 - Anonymous play with browser-local progress.
 - Email/password signup and login with HTTP-only signed sessions.
+- Email verification with expiring links sent through Resend.
 - Signed-in game-state persistence in PostgreSQL.
 - Leaderboard entries for completed signed-in levels.
 - Pure board transitions that keep every generated puzzle solvable.
@@ -43,6 +44,9 @@ cp .env.example .env
 - Set `API_CORS_ORIGINS` to the web origins that may call the NestJS API. Keep
   the localhost value and add your LAN IP origin for phone testing. Match these
   origins to `WEB_PORT`.
+- Set `RESEND_API_KEY` to a Resend API key and `RESEND_FROM_EMAIL` to a sender
+  on a verified Resend domain. Resend's `onboarding@resend.dev` sender is useful
+  for initial account testing.
 
 4. Install dependencies:
 
@@ -131,6 +135,8 @@ that future web and mobile clients can share:
 - `POST /api/auth/login`
 - `POST /api/auth/logout`
 - `GET /api/auth/me`
+- `POST /api/auth/verify-email`
+- `POST /api/auth/resend-verification-email`
 - `GET /api/game-state`
 - `PUT /api/game-state`
 - `GET /api/leaderboard`
@@ -173,6 +179,8 @@ docker run --rm \
   -e SESSION_SECRET="a-real-random-secret-with-at-least-32-characters" \
   -e WEB_BASE_URL="https://your-web-domain.example" \
   -e API_CORS_ORIGINS="https://your-web-domain.example" \
+  -e RESEND_API_KEY="re_your_api_key" \
+  -e RESEND_FROM_EMAIL="Sliding Tiles <accounts@your-domain.example>" \
   sliding-tiles:latest
 ```
 

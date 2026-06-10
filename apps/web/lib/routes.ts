@@ -3,6 +3,7 @@ export const routes = {
   play: '/play',
   leaderboard: '/leaderboard',
   contact: '/contact',
+  emailVerification: '/email-verification',
   login: '/login',
   privacy: '/privacy',
   forgotPassword: '/forgot-password',
@@ -10,6 +11,7 @@ export const routes = {
   runs: '/runs',
   signup: '/signup',
   terms: '/terms',
+  verifyEmail: '/verify-email',
   profile: '/profile',
 } as const;
 

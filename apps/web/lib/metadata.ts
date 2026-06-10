@@ -41,6 +41,12 @@ export const pageMetadataConfig = {
     path: routes.contact,
     title: 'Contact',
   },
+  emailVerification: {
+    description:
+      'Confirm the email address connected to your Sliding Tiles account.',
+    path: routes.emailVerification,
+    title: 'Email Verification',
+  },
   forgotPassword: {
     description:
       'Request a secure password reset link for your Sliding Tiles account and get back to your saved puzzle progress.',

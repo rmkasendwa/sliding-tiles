@@ -23,6 +23,7 @@ import {
   resetPasswordSchema,
   signupSchema,
   updateProfileSchema,
+  verifyEmailSchema,
   usernameAvailabilityQuerySchema,
 } from '../shared/zod';
 import { AuthService } from './auth.service';
@@ -84,6 +85,53 @@ export class AuthController {
   async resetPassword(@Body() body: unknown) {
     await this.authService.resetPassword(parseBody(resetPasswordSchema, body));
     return { ok: true };
+  }
+
+  @Post('verify-email')
+  async verifyEmail(
+    @Body() body: unknown,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const { token } = parseBody(verifyEmailSchema, body);
+    const user = await this.authService.verifyEmail(token);
+    const session = await this.sessionService.createSession(user);
+    this.sessionService.setSessionCookie(
+      response,
+      session.token,
+      session.expiresAt,
+    );
+
+    return {
+      accessToken: session.token,
+      user,
+    };
+  }
+
+  @Post('resend-verification-email')
+  @UseGuards(AuthGuard)
+  async resendVerificationEmail(
+    @Req() request: AuthenticatedRequest,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const result = await this.authService.resendVerificationEmail(
+      request.user!.id,
+    );
+    if (!result.user) {
+      return { alreadyVerified: false };
+    }
+
+    const session = await this.sessionService.createSession(result.user);
+    this.sessionService.setSessionCookie(
+      response,
+      session.token,
+      session.expiresAt,
+    );
+
+    return {
+      accessToken: session.token,
+      alreadyVerified: true,
+      user: result.user,
+    };
   }
 
   @Post('change-password')
