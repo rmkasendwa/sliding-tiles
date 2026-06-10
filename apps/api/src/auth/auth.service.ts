@@ -18,6 +18,9 @@ import { hashPassword, verifyPassword } from './password';
 const EMAIL_ALREADY_EXISTS_MESSAGE =
   'An account with this email address already exists.';
 const EMAIL_VERIFICATION_TOKEN_DURATION_MS = 1000 * 60 * 60 * 24;
+const PASSWORD_RESET_TOKEN_DURATION_MINUTES = 30;
+const PASSWORD_RESET_TOKEN_DURATION_MS =
+  1000 * 60 * PASSWORD_RESET_TOKEN_DURATION_MINUTES;
 const VERIFICATION_EMAIL_COOLDOWN_MS = 1000 * 60;
 
 @Injectable()
@@ -102,6 +105,7 @@ export class AuthService {
       select: {
         email: true,
         id: true,
+        name: true,
       },
       where: {
         OR: [
@@ -117,7 +121,9 @@ export class AuthService {
 
     const resetToken = randomBytes(32).toString('hex');
     const resetTokenHash = this.hashResetToken(resetToken);
-    const resetTokenExpiresAt = new Date(Date.now() + 1000 * 60 * 30);
+    const resetTokenExpiresAt = new Date(
+      Date.now() + PASSWORD_RESET_TOKEN_DURATION_MS,
+    );
 
     await this.prisma.user.update({
       data: {
@@ -127,12 +133,21 @@ export class AuthService {
       where: { id: user.id },
     });
 
-    const webBaseUrl = (process.env.WEB_BASE_URL ?? 'http://localhost:3000')
-      .trim()
-      .replace(/\/$/, '');
-    const resetLink = `${webBaseUrl}/reset-password?token=${resetToken}`;
+    const resetLink = `${this.getWebBaseUrl()}/reset-password?token=${resetToken}`;
 
-    console.info(`[auth] Password reset link for ${user.email}: ${resetLink}`);
+    try {
+      await this.emailService.sendPasswordReset({
+        email: user.email,
+        expiresInMinutes: PASSWORD_RESET_TOKEN_DURATION_MINUTES,
+        name: user.name,
+        resetLink,
+      });
+    } catch (error) {
+      console.error(
+        `[auth] Password reset email delivery failed for user ${user.id}.`,
+        error,
+      );
+    }
   }
 
   async resetPassword({
