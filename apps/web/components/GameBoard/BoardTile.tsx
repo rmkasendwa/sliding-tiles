@@ -27,6 +27,9 @@ import {
 } from './tileDrag';
 
 const TILE_DRAG_SETTLE_MS = 160;
+const MIN_ENTRY_SCATTER_RATIO = 0.015;
+const MAX_ENTRY_SCATTER_RATIO = 0.07;
+const FULL_ENTRY_SCATTER_TILE_COUNT = 24;
 
 type TileDragSession = {
   direction: SwipeDirection;
@@ -87,8 +90,29 @@ export function BoardTile({
   const isHintPlaceholder = tile.type === 'PLACEHOLDER';
   const tileCenterX = column * tileWidth + tileWidth / 2;
   const tileCenterY = row * tileHeight + tileHeight / 2;
-  const entryX = ((BOARD_SIZE / 2 - tileCenterX) / tileWidth) * 100;
-  const entryY = ((BOARD_SIZE / 2 - tileCenterY) / tileHeight) * 100;
+  const tileCount = columns * rows - 1;
+  const entryScatterProgress = Math.min(
+    1,
+    Math.max(0, (tileCount - 3) / (FULL_ENTRY_SCATTER_TILE_COUNT - 3)),
+  );
+  const entryScatterMaxDistance =
+    BOARD_SIZE *
+    (MIN_ENTRY_SCATTER_RATIO +
+      (MAX_ENTRY_SCATTER_RATIO - MIN_ENTRY_SCATTER_RATIO) *
+        entryScatterProgress);
+  const entryScatterAngle =
+    (((tile.position * 137 + tileRotationSeed * 53) % 360) * Math.PI) / 180;
+  const entryScatterDistance =
+    entryScatterMaxDistance *
+    Math.sqrt(
+      ((tile.position * 73 + tileRotationSeed * 29 + 17) % 101) / 100,
+    );
+  const entryCenterX =
+    BOARD_SIZE / 2 + Math.cos(entryScatterAngle) * entryScatterDistance;
+  const entryCenterY =
+    BOARD_SIZE / 2 + Math.sin(entryScatterAngle) * entryScatterDistance;
+  const entryX = ((entryCenterX - tileCenterX) / tileWidth) * 100;
+  const entryY = ((entryCenterY - tileCenterY) / tileHeight) * 100;
   const entryRotation =
     ((tile.position * 37 + tileRotationSeed * 19) % 181) - 90;
 
