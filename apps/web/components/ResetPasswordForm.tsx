@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
-import { useActionState, useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useActionState, useEffect, useMemo, useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 
 import { resetPassword } from '@/app/actions/auth';
@@ -17,10 +17,34 @@ export function ResetPasswordForm() {
     {},
   );
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const router = useRouter();
   const searchParams = useSearchParams();
   const token = useMemo(() => searchParams.get('token') ?? '', [searchParams]);
+
+  useEffect(() => {
+    if (!state.success) {
+      return;
+    }
+
+    const clearFieldsTimeoutId = window.setTimeout(() => {
+      setPassword('');
+      setConfirmPassword('');
+      setShowPassword(false);
+      setShowConfirmPassword(false);
+    }, 0);
+
+    const redirectTimeoutId = window.setTimeout(() => {
+      router.replace(routes.login);
+    }, 3000);
+
+    return () => {
+      window.clearTimeout(clearFieldsTimeoutId);
+      window.clearTimeout(redirectTimeoutId);
+    };
+  }, [router, state.success]);
 
   if (!token) {
     return (
@@ -106,9 +130,11 @@ export function ResetPasswordForm() {
             className="min-h-11 w-full rounded-[9px] border border-line bg-surface px-3 pr-11 text-foreground placeholder:text-[0.85rem] outline-none transition-[border-color,box-shadow,background-color] focus:border-accent/60 focus:bg-surface focus:shadow-focus-primary"
             id="confirmPassword"
             name="confirmPassword"
+            onChange={(event) => setConfirmPassword(event.target.value)}
             placeholder="Re-enter your password"
             required
             type={showConfirmPassword ? 'text' : 'password'}
+            value={confirmPassword}
           />
           <button
             aria-label={
@@ -143,10 +169,11 @@ export function ResetPasswordForm() {
 
       {state.message && (
         <p
+          role={state.success ? 'status' : 'alert'}
           className={
             state.success
-              ? 'text-[0.9rem] text-accent-strong'
-              : 'text-[0.9rem] text-danger'
+              ? 'rounded-[9px] border border-accent/24 bg-accent/8 px-3 py-2 text-[0.9rem] font-bold text-accent-strong'
+              : 'rounded-[9px] border border-danger/24 bg-danger/6 px-3 py-2 text-[0.9rem] font-bold text-danger'
           }
         >
           {state.message}
@@ -155,12 +182,12 @@ export function ResetPasswordForm() {
 
       {state.success && (
         <p className="text-[0.9rem] text-muted">
-          Ready to continue?{' '}
+          Redirecting to login in a few seconds.{' '}
           <Link
             className="font-bold text-accent-strong hover:text-accent"
             href={routes.login}
           >
-            Go to login
+            Log in now
           </Link>
           .
         </p>
@@ -168,10 +195,14 @@ export function ResetPasswordForm() {
 
       <button
         className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[9px] border border-primary bg-primary px-3.5 font-bold text-primary-contrast shadow-button-primary transition-[background-color,transform] hover:bg-primary-strong active:translate-y-px disabled:cursor-wait disabled:opacity-70"
-        disabled={pending}
+        disabled={pending || state.success}
         type="submit"
       >
-        {pending ? 'Updating...' : 'Reset password'}
+        {pending
+          ? 'Updating...'
+          : state.success
+            ? 'Password updated'
+            : 'Reset password'}
       </button>
     </form>
   );

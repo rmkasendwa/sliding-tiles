@@ -219,7 +219,7 @@ export async function resetPassword(
   }
 
   return {
-    message: 'Password updated. You can log in with your new password now.',
+    message: 'Password updated successfully.',
     success: true,
   };
 }
