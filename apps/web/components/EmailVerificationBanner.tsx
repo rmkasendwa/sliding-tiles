@@ -14,10 +14,10 @@ export function EmailVerificationBanner({
   session: SessionUser | null;
 }) {
   const pathname = usePathname();
-  const [state, formAction, pending] = useActionState<
-    AuthFormState,
-    FormData
-  >(requestEmailVerification, {});
+  const [state, formAction, pending] = useActionState<AuthFormState, FormData>(
+    requestEmailVerification,
+    {},
+  );
   const isPlayPage = pathname === '/play';
 
   if (!session || session.emailVerified) {
@@ -36,11 +36,11 @@ export function EmailVerificationBanner({
       <div
         className={
           isPlayPage
-            ? 'pointer-events-auto mx-auto flex w-fit max-w-full flex-col gap-2 rounded-xl border border-info/35 bg-background/92 px-3 py-2 text-sm text-foreground shadow-panel backdrop-blur sm:flex-row sm:items-center'
+            ? 'pointer-events-auto mx-auto flex w-fit max-w-full flex-col gap-2 rounded-xl border border-info/35 bg-background/92 px-3 py-2 text-sm text-foreground shadow-panel backdrop-blur sm:flex-row sm:flex-wrap sm:items-center'
             : 'page-rail mx-auto flex flex-col gap-2 py-2.5 text-sm text-foreground sm:flex-row sm:items-center sm:justify-between'
         }
       >
-        <div className="flex items-start gap-2.5">
+        <div className="flex items-start gap-2.5 sm:flex-1">
           <MailWarning
             aria-hidden="true"
             className="mt-0.5 h-4.5 w-4.5 shrink-0 text-info-strong"
@@ -66,7 +66,7 @@ export function EmailVerificationBanner({
           className={isPlayPage ? 'shrink-0 self-end sm:self-auto' : 'shrink-0'}
         >
           <button
-            className={`inline-flex cursor-pointer items-center justify-center gap-2 rounded-[8px] border border-info/45 bg-surface/80 font-bold text-foreground transition-colors hover:bg-surface disabled:cursor-wait disabled:opacity-65 ${
+            className={`inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-info/45 bg-surface/80 font-bold text-foreground transition-colors hover:bg-surface disabled:cursor-wait disabled:opacity-65 ${
               isPlayPage ? 'min-h-8 px-2.5 text-xs' : 'min-h-9 px-3'
             }`}
             disabled={pending}
@@ -84,7 +84,7 @@ export function EmailVerificationBanner({
         {isPlayPage && state.message ? (
           <p
             aria-live="polite"
-            className={`basis-full text-[0.78rem] sm:max-w-48 ${
+            className={`w-full basis-full border-t border-info/20 pt-2 text-[0.78rem] ${
               state.success ? 'text-accent-strong' : 'text-danger'
             }`}
           >
