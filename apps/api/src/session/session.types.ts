@@ -9,8 +9,9 @@ export type SessionUser = {
   username: string;
 };
 
-export type SessionPayload = SessionUser & {
-  expiresAt: string;
+export type SessionPayload = {
+  id?: string;
+  sub?: string;
 };
 
 export type AuthenticatedRequest = Request & {

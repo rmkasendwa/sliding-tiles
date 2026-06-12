@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import type { Request, Response } from 'express';
 
+import { PrismaService } from '../prisma/prisma.service';
+import { getGravatarUrl } from '../shared/gravatar';
 import {
   SESSION_COOKIE_NAME,
   SESSION_DURATION_SECONDS,
@@ -9,16 +11,16 @@ import { SessionPayload, SessionUser } from './session.types';
 
 @Injectable()
 export class SessionService {
+  constructor(private readonly prisma: PrismaService) {}
+
   async createSession(user: SessionUser) {
     const { SignJWT } = await import('jose');
     const expiresAt = new Date(Date.now() + SESSION_DURATION_SECONDS * 1000);
-    const token = await new SignJWT({
-      ...user,
-      expiresAt: expiresAt.toISOString(),
-    })
+    const token = await new SignJWT({})
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
       .setExpirationTime(`${SESSION_DURATION_SECONDS}s`)
+      .setSubject(user.id)
       .sign(this.getSessionSecret());
 
     return { expiresAt, token };
@@ -35,7 +37,12 @@ export class SessionService {
   }
 
   clearSessionCookie(response: Response) {
-    response.clearCookie(SESSION_COOKIE_NAME, { path: '/' });
+    response.clearCookie(SESSION_COOKIE_NAME, {
+      httpOnly: true,
+      path: '/',
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+    });
   }
 
   async getSessionFromRequest(request: Request): Promise<SessionUser | null> {
@@ -52,14 +59,33 @@ export class SessionService {
       const { jwtVerify } = await import('jose');
       const { payload } = await jwtVerify(token, this.getSessionSecret());
       const session = payload as SessionPayload;
+      const userId = session.sub ?? session.id;
+      if (!userId) {
+        return null;
+      }
+
+      const user = await this.prisma.user.findUnique({
+        select: {
+          email: true,
+          emailVerifiedAt: true,
+          id: true,
+          name: true,
+          username: true,
+        },
+        where: { id: userId },
+      });
+
+      if (!user) {
+        return null;
+      }
 
       return {
-        avatarUrl: session.avatarUrl,
-        email: session.email,
-        emailVerified: session.emailVerified ?? false,
-        id: session.id,
-        name: session.name,
-        username: session.username ?? session.name,
+        avatarUrl: getGravatarUrl(user.email),
+        email: user.email,
+        emailVerified: Boolean(user.emailVerifiedAt),
+        id: user.id,
+        name: user.name,
+        username: user.username,
       };
     } catch {
       return null;
