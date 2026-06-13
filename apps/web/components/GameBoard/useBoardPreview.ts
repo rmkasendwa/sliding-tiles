@@ -17,11 +17,13 @@ const PEEK_BUTTON_PREVIEW_DELAY_MS = 120;
 
 type BoardPreviewOptions = {
   isInteractionBlocked: boolean;
+  onFullImagePeeked?: () => void;
   playHintSound: () => void;
 };
 
 export function useBoardPreview({
   isInteractionBlocked,
+  onFullImagePeeked,
   playHintSound,
 }: BoardPreviewOptions) {
   const [hintedSlot, setHintedSlot] = useState<string | null>(null);
@@ -77,7 +79,8 @@ export function useBoardPreview({
     setIsShowingSolvedHint(true);
     setIsShowingHintPlaceholder(true);
     playHintSound();
-  }, [isInteractionBlocked, playHintSound]);
+    onFullImagePeeked?.();
+  }, [isInteractionBlocked, onFullImagePeeked, playHintSound]);
 
   const showSolvedBoard = useCallback(() => {
     clear();
@@ -104,6 +107,7 @@ export function useBoardPreview({
         suppressNextClickRef.current = true;
         setIsShowingSolvedHint(true);
         playHintSound();
+        onFullImagePeeked?.();
         placeholderRevealTimeoutRef.current = window.setTimeout(() => {
           setIsShowingHintPlaceholder(true);
           placeholderRevealTimeoutRef.current = null;
@@ -118,7 +122,7 @@ export function useBoardPreview({
       boardHintMouseUpRef.current = clear;
       window.addEventListener('mouseup', clear, { once: true });
     },
-    [clear, isInteractionBlocked, playHintSound],
+    [clear, isInteractionBlocked, onFullImagePeeked, playHintSound],
   );
 
   const clearFromPointer = useCallback(() => {

@@ -29,6 +29,7 @@ import {
 import { GameStage } from './GameStage';
 import type { ReplayPerformance, ReplayResult } from './ReplayResultPanel';
 import { ResponsiveGameInfoPanel } from './ResponsiveGameInfoPanel';
+import { useAnonymousGameplayAnalytics } from './useAnonymousGameplayAnalytics';
 import { useBoardFullscreen } from './useBoardFullscreen';
 import { useBoardPreview } from './useBoardPreview';
 import { useGameInfoModal } from './useGameInfoModal';
@@ -63,6 +64,8 @@ function GameBoardContent({
   initialTimerStatus?: AnonymousTimerStatus;
 }) {
   const router = useRouter();
+  const { track: trackAnonymousEvent } =
+    useAnonymousGameplayAnalytics(isSignedIn);
   const {
     isEnabled: isSoundEnabled,
     isMuted,
@@ -123,6 +126,25 @@ function GameBoardContent({
   const [isShuffleInProgress, setIsShuffleInProgress] = useState(false);
   const isShuffleAnimationRunning = isResetting || isShuffleInProgress;
   const playHintSound = useCallback(() => playSound('hint'), [playSound]);
+  const getAnalyticsMetadata = useCallback(
+    (
+      targetBoard: BoardState = board,
+      timerValueMs: number = elapsedTimeMs,
+    ) => ({
+      level: targetBoard.level,
+      moveCount: targetBoard.moves,
+      puzzleSize: `${targetBoard.dimensions[0]}x${targetBoard.dimensions[1]}`,
+      timerValueMs: Math.max(0, Math.round(timerValueMs)),
+    }),
+    [board, elapsedTimeMs],
+  );
+  const analyticsMetadataRef = useRef(getAnalyticsMetadata());
+  useEffect(() => {
+    analyticsMetadataRef.current = getAnalyticsMetadata();
+  }, [getAnalyticsMetadata]);
+  const trackFullImagePeek = useCallback(() => {
+    trackAnonymousEvent('full_image_peeked', getAnalyticsMetadata());
+  }, [getAnalyticsMetadata, trackAnonymousEvent]);
   const {
     clear: clearBoardHint,
     clearFromPointer: clearBoardHintFromPointer,
@@ -138,6 +160,7 @@ function GameBoardContent({
   } = useBoardPreview({
     isInteractionBlocked:
       isCelebrating || isShuffleAnimationRunning || Boolean(replayResult),
+    onFullImagePeeked: trackFullImagePeek,
     playHintSound,
   });
   const celebrationTimeoutRef = useRef<number | null>(null);
@@ -151,6 +174,7 @@ function GameBoardContent({
   const resetTimeoutRef = useRef<number | null>(null);
   const shuffleInProgressRef = useRef(false);
   const hasPlayedInitialEntrySoundRef = useRef(false);
+  const previousTimerStatusRef = useRef(timerStatus);
   const exitReplayMode = useCallback(() => {
     setActiveReplayOfId(null);
     router.replace('/play', { scroll: false });
@@ -160,6 +184,47 @@ function GameBoardContent({
     startAmbience();
     return stopAmbience;
   }, [startAmbience, stopAmbience]);
+
+  useEffect(() => {
+    trackAnonymousEvent('game_opened', analyticsMetadataRef.current);
+    trackAnonymousEvent(
+      'signup_prompt_shown',
+      analyticsMetadataRef.current,
+    );
+  }, [trackAnonymousEvent]);
+
+  useEffect(() => {
+    trackAnonymousEvent('level_started', analyticsMetadataRef.current);
+  }, [board.level, board.startedAt, trackAnonymousEvent]);
+
+  useEffect(() => {
+    const previousStatus = previousTimerStatusRef.current;
+    previousTimerStatusRef.current = timerStatus;
+
+    if (previousStatus === 'running' && timerStatus === 'paused') {
+      trackAnonymousEvent('timer_paused', analyticsMetadataRef.current);
+    } else if (previousStatus === 'paused' && timerStatus === 'running') {
+      trackAnonymousEvent('timer_resumed', analyticsMetadataRef.current);
+    }
+  }, [timerStatus, trackAnonymousEvent]);
+
+  useEffect(() => {
+    const abandonOnPageExit = () => {
+      if (board.moves > 0 && !isGameComplete) {
+        trackAnonymousEvent('level_abandoned', getAnalyticsMetadata(), {
+          immediate: true,
+        });
+      }
+    };
+
+    window.addEventListener('pagehide', abandonOnPageExit);
+    return () => window.removeEventListener('pagehide', abandonOnPageExit);
+  }, [
+    board.moves,
+    getAnalyticsMetadata,
+    isGameComplete,
+    trackAnonymousEvent,
+  ]);
 
   useEffect(() => {
     if (boardEntryTimeoutRef.current !== null) {
@@ -306,6 +371,10 @@ function GameBoardContent({
         moves: completedBoard.moves,
         timeSeconds: Math.max(1, Math.round(completedElapsedTimeMs / 1000)),
       };
+      trackAnonymousEvent(
+        'level_completed',
+        getAnalyticsMetadata(completedBoard, completedElapsedTimeMs),
+      );
       const completedReplayResult = activeReplayOfId
         ? {
             latest: latestReplayPerformance,
@@ -395,6 +464,8 @@ function GameBoardContent({
       playSound,
       resetClock,
       showSolvedBoard,
+      getAnalyticsMetadata,
+      trackAnonymousEvent,
     ],
   );
 
@@ -409,6 +480,14 @@ function GameBoardContent({
 
       if (nextBoard !== board) {
         const effectiveLevelStartedAtMs = startClockForValidMove();
+        const currentElapsedTimeMs = Math.max(
+          0,
+          Date.now() - effectiveLevelStartedAtMs,
+        );
+        trackAnonymousEvent(
+          'move_made',
+          getAnalyticsMetadata(nextBoard, currentElapsedTimeMs),
+        );
         playSound('move');
 
         if (isTileGridInOrder(nextBoard.tileGrid)) {
@@ -421,8 +500,10 @@ function GameBoardContent({
       completeLevel,
       isCelebrating,
       isShuffleAnimationRunning,
+      getAnalyticsMetadata,
       playSound,
       startClockForValidMove,
+      trackAnonymousEvent,
     ],
   );
 
@@ -469,6 +550,9 @@ function GameBoardContent({
         return;
       }
 
+      if (board.moves > 0) {
+        trackAnonymousEvent('level_abandoned', getAnalyticsMetadata());
+      }
       shuffleInProgressRef.current = true;
       setHighestReachedLevel((highestLevel) =>
         Math.max(highestLevel, board.level),
@@ -518,15 +602,17 @@ function GameBoardContent({
     },
     [
       activeReplayOfId,
-      board.level,
+      board,
       clearBoardHint,
       exitReplayMode,
       highestReachedLevel,
       isShuffleAnimationRunning,
+      getAnalyticsMetadata,
       playSound,
       prepareClockForBoardChange,
       resetClock,
       scheduleLockInSound,
+      trackAnonymousEvent,
     ],
   );
 
@@ -591,12 +677,32 @@ function GameBoardContent({
   );
 
   const resetLevel = useCallback(() => {
+    trackAnonymousEvent('reset_level_clicked', getAnalyticsMetadata());
+    if (board.moves > 0) {
+      trackAnonymousEvent('level_abandoned', getAnalyticsMetadata());
+    }
     refreshBoard(() => resetBoardAttempt(attemptStartBoard), false);
-  }, [attemptStartBoard, refreshBoard]);
+  }, [
+    attemptStartBoard,
+    board.moves,
+    getAnalyticsMetadata,
+    refreshBoard,
+    trackAnonymousEvent,
+  ]);
 
   const shuffleLevel = useCallback(() => {
+    if (board.moves > 0) {
+      trackAnonymousEvent('level_abandoned', getAnalyticsMetadata());
+    }
     refreshBoard(() => createBoardState(board.level, board.dimensions), true);
-  }, [board.dimensions, board.level, refreshBoard]);
+  }, [
+    board.dimensions,
+    board.level,
+    board.moves,
+    getAnalyticsMetadata,
+    refreshBoard,
+    trackAnonymousEvent,
+  ]);
   const replayAgain = useCallback(() => {
     setReplayResult(null);
     refreshBoard(() => resetBoardAttempt(attemptStartBoard), false);
@@ -632,6 +738,11 @@ function GameBoardContent({
 
     showInfoModal();
   }, [exitBoardFullscreen, isBoardFullscreen, showInfoModal]);
+  const trackSignupClick = useCallback(() => {
+    trackAnonymousEvent('signup_clicked', getAnalyticsMetadata(), {
+      immediate: true,
+    });
+  }, [getAnalyticsMetadata, trackAnonymousEvent]);
 
   useGameKeyboardControls({
     board,
@@ -702,6 +813,7 @@ function GameBoardContent({
         isSignedIn={isSignedIn}
         level={board.level}
         onCloseModal={closeInfoModal}
+        onSignupClick={trackSignupClick}
         onSelectLevel={selectLevel}
         playerAvatarUrl={playerAvatarUrl}
         playerName={playerName}

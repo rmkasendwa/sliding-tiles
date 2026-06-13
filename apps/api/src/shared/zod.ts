@@ -139,3 +139,41 @@ export const completedLevelSchema = z.object({
   puzzleConfig: boardStateSchema.optional(),
   replayOfId: z.string().trim().min(1).optional(),
 });
+
+export const anonymousAnalyticsEventNames = [
+  'game_opened',
+  'level_started',
+  'move_made',
+  'level_completed',
+  'level_abandoned',
+  'timer_paused',
+  'timer_resumed',
+  'reset_level_clicked',
+  'full_image_peeked',
+  'auto_play_started',
+  'auto_play_completed',
+  'signup_prompt_shown',
+  'signup_clicked',
+] as const;
+
+const anonymousAnalyticsEventSchema = z
+  .object({
+    anonymousPlayerId: z.string().uuid(),
+    eventName: z.enum(anonymousAnalyticsEventNames),
+    level: z.number().int().positive().max(100_000).optional(),
+    moveCount: z.number().int().nonnegative().max(10_000_000).optional(),
+    puzzleSize: z.string().regex(/^\d{1,3}x\d{1,3}$/).optional(),
+    screenHeight: z.number().int().positive().max(100_000).optional(),
+    screenWidth: z.number().int().positive().max(100_000).optional(),
+    sessionId: z.string().uuid(),
+    timerValueMs: z.number().int().nonnegative().max(604_800_000).optional(),
+    timestamp: z.string().datetime(),
+    userAgent: z.string().trim().max(512).optional(),
+  })
+  .strict();
+
+export const anonymousAnalyticsBatchSchema = z
+  .object({
+    events: z.array(anonymousAnalyticsEventSchema).min(1).max(50),
+  })
+  .strict();

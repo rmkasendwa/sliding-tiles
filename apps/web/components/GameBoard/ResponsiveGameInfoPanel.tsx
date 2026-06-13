@@ -13,6 +13,7 @@ type ResponsiveGameInfoPanelProps = {
   isSignedIn: boolean;
   level: number;
   onCloseModal: () => void;
+  onSignupClick: () => void;
   onSelectLevel: (level: number) => void;
   playerAvatarUrl?: string | null;
   playerName?: string;
@@ -29,6 +30,7 @@ export function ResponsiveGameInfoPanel({
   isSignedIn,
   level,
   onCloseModal,
+  onSignupClick,
   onSelectLevel,
   playerAvatarUrl,
   playerName,
@@ -42,6 +44,7 @@ export function ResponsiveGameInfoPanel({
     isSignedIn,
     level,
     onSelectLevel,
+    onSignupClick,
     playerAvatarUrl,
     playerName,
     rows,

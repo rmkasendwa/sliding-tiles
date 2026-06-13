@@ -57,3 +57,24 @@ model Leaderboard {
   @@index([userId, completedAt], map: "leaderboards_user_id_completed_at_idx")
   @@map("leaderboards")
 }
+
+model AnonymousAnalyticsEvent {
+  id                String   @id @default(cuid())
+  anonymousPlayerId String   @map("anonymous_player_id")
+  sessionId         String   @map("session_id")
+  eventName         String   @map("event_name")
+  level             Int?
+  puzzleSize        String?  @map("puzzle_size")
+  moveCount         Int?     @map("move_count")
+  timerValueMs      Int?     @map("timer_value_ms")
+  occurredAt        DateTime @map("occurred_at")
+  screenWidth       Int?     @map("screen_width")
+  screenHeight      Int?     @map("screen_height")
+  userAgent         String?  @map("user_agent")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  @@index([anonymousPlayerId, occurredAt], map: "anonymous_analytics_events_player_occurred_at_idx")
+  @@index([eventName, occurredAt], map: "anonymous_analytics_events_name_occurred_at_idx")
+  @@index([sessionId], map: "anonymous_analytics_events_session_id_idx")
+  @@map("anonymous_analytics_events")
+}

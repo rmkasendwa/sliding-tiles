@@ -52,6 +52,7 @@ export type GameInfoPanelProps = {
   isSignedIn: boolean;
   level: number;
   onClose?: () => void;
+  onSignupClick?: () => void;
   onSelectLevel: (level: number) => void;
   rows: number;
 };
@@ -67,6 +68,7 @@ export function GameInfoPanel({
   isSignedIn,
   level,
   onClose,
+  onSignupClick,
   onSelectLevel,
   rows,
 }: GameInfoPanelProps) {
@@ -242,10 +244,19 @@ export function GameInfoPanel({
         </button>
 
         {!isSignedIn && (
-          <p className="text-sm leading-6 text-muted">
-            Anonymous progress stays in this browser. Sign in to sync your board
-            and post leaderboard times.
-          </p>
+          <div className="grid gap-2 text-sm leading-6 text-muted">
+            <p>
+              Anonymous progress stays in this browser. Create an account to
+              sync your board and post leaderboard times.
+            </p>
+            <Link
+              className="font-bold text-accent-strong underline decoration-accent/40 underline-offset-4"
+              href={routes.signup}
+              onClick={onSignupClick}
+            >
+              Create account
+            </Link>
+          </div>
         )}
 
         <div

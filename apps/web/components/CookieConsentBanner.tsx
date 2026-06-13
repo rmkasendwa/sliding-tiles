@@ -4,44 +4,18 @@ import Link from 'next/link';
 import { useSyncExternalStore } from 'react';
 
 import { routes } from '@/lib/routes';
-
-const COOKIE_CONSENT_STORAGE_KEY = 'sliding-tiles:cookie-consent';
-const COOKIE_CONSENT_EVENT = 'sliding-tiles:cookie-consent-changed';
-
-function getStoredConsent() {
-  try {
-    return (
-      window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY) === 'accepted'
-    );
-  } catch {
-    return false;
-  }
-}
-
-function subscribeToConsentChanges(onStoreChange: () => void) {
-  window.addEventListener('storage', onStoreChange);
-  window.addEventListener(COOKIE_CONSENT_EVENT, onStoreChange);
-
-  return () => {
-    window.removeEventListener('storage', onStoreChange);
-    window.removeEventListener(COOKIE_CONSENT_EVENT, onStoreChange);
-  };
-}
+import {
+  acceptStorageConsent,
+  hasStorageConsent,
+  subscribeToStorageConsent,
+} from '@/lib/storageConsent';
 
 export function CookieConsentBanner() {
   const hasConsent = useSyncExternalStore(
-    subscribeToConsentChanges,
-    getStoredConsent,
+    subscribeToStorageConsent,
+    hasStorageConsent,
     () => true,
   );
-
-  const acceptConsent = () => {
-    try {
-      window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, 'accepted');
-    } finally {
-      window.dispatchEvent(new Event(COOKIE_CONSENT_EVENT));
-    }
-  };
 
   if (hasConsent) {
     return null;
@@ -71,7 +45,7 @@ export function CookieConsentBanner() {
           </Link>
           <button
             className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[7px] border border-primary bg-primary px-4 text-sm font-bold text-primary-contrast shadow-button-primary transition-colors hover:bg-primary-strong"
-            onClick={acceptConsent}
+            onClick={acceptStorageConsent}
             type="button"
           >
             Accept

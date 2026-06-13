@@ -21,11 +21,11 @@ const sections = [
   },
   {
     heading: 'Cookies and local storage',
-    body: 'The app uses cookies for signed-in sessions and local storage for browser-only game progress when you are not signed in. These help you continue playing without losing your current board.',
+    body: 'The app uses cookies for signed-in sessions and local storage for browser-only game progress, preferences, consent, and a random anonymous player ID. Anonymous analytics storage and sending begin only after you accept the storage notice.',
   },
   {
     heading: 'Analytics usage',
-    body: 'If analytics are added, they should be used to understand app health and gameplay flow, not to sell personal information. This page should be updated before adding any analytics that materially changes what is collected.',
+    body: 'For anonymous players who accept storage, we collect lightweight gameplay events such as level starts, moves, completions, resets, pauses, and signup prompt interactions. Events may include a random player ID, a per-play session ID, level and puzzle details, timer and move counts, timestamp, screen size, and browser user agent. We do not intentionally include names, email addresses, account IDs, or other contact details in these events.',
   },
   {
     heading: 'Data retention',
