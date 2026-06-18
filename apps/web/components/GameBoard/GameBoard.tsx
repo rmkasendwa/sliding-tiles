@@ -671,7 +671,7 @@ function GameBoardContent({
         showSolvedBoard();
       } else {
         setAutoPlayStatusMessage(
-          `${solution.reason} Try a new shuffle to enable the faster saved solve path.`,
+          `${solution.reason} Try reset or shuffle to start from a clean board.`,
         );
         playSound('invalid');
       }
@@ -679,11 +679,7 @@ function GameBoardContent({
     }
 
     clearBoardHint();
-    setAutoPlayStatusMessage(
-      solution.quality === 'replay'
-        ? 'Using a longer replay solve for this board. It may be less direct than the normal AI route.'
-        : null,
-    );
+    setAutoPlayStatusMessage(null);
     if (!isAutoPlayCompletion) {
       autoPlayElapsedMsRef.current = 0;
       setAutoPlayElapsedMs(0);

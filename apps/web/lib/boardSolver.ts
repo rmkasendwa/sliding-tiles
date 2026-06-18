@@ -1,12 +1,7 @@
-import {
-  BoardState,
-  Slot,
-  isTileGridInOrder,
-  moveBoardTile,
-} from './board';
+import { BoardState, Slot } from './board';
 
 type SolverOutcome =
-  | { moves: Slot[]; quality: 'direct' | 'replay'; status: 'solved' }
+  | { moves: Slot[]; quality: 'direct'; status: 'solved' }
   | { reason: string; status: 'already-solved' | 'invalid' | 'not-solvable' };
 
 type SearchNode = {
@@ -20,11 +15,16 @@ type SearchNode = {
 };
 
 const MAX_SEARCH_NODES = 220_000;
+const MAX_STAGED_SEARCH_NODES = 4_000_000;
+const STAGED_HEURISTIC_WEIGHT = 5;
 
 class MinHeap<T> {
   private values: T[] = [];
+  private score: (value: T) => number;
 
-  constructor(private readonly score: (value: T) => number) {}
+  constructor(score: (value: T) => number) {
+    this.score = score;
+  }
 
   get size() {
     return this.values.length;
@@ -246,24 +246,247 @@ function reconstructMoves(node: SearchNode) {
   return moves.reverse();
 }
 
-function getStoredSolutionMoves(board: BoardState): Slot[] | null {
-  if (!board.solutionMoves?.length) {
-    return null;
+function createTargetState(length: number) {
+  return Array.from({ length }, (_, index) => index);
+}
+
+function getTileIndex(state: number[], tile: number) {
+  return state.indexOf(tile);
+}
+
+function getIndexDistance(index: number, targetIndex: number, columns: number) {
+  return (
+    Math.abs(Math.floor(index / columns) - Math.floor(targetIndex / columns)) +
+    Math.abs((index % columns) - (targetIndex % columns))
+  );
+}
+
+function getStateManhattanDistance(
+  state: number[],
+  columns: number,
+  blankTile: number,
+  lockedIndexes: ReadonlySet<number>,
+) {
+  let distance = 0;
+
+  for (let index = 0; index < state.length; index++) {
+    const tile = state[index];
+
+    if (tile === blankTile || lockedIndexes.has(index)) {
+      continue;
+    }
+
+    distance += getIndexDistance(index, tile, columns);
   }
 
-  let solvedBoard = board;
+  return distance;
+}
 
-  for (const slot of board.solutionMoves) {
-    const nextBoard = moveBoardTile(solvedBoard, slot, { countMove: false });
+function searchMoves({
+  blankIndex,
+  blankTile,
+  columns,
+  goal,
+  heuristic,
+  heuristicWeight = 1,
+  initialState,
+  lockedIndexes,
+  maxNodes,
+  rows,
+}: {
+  blankIndex: number;
+  blankTile: number;
+  columns: number;
+  goal: (state: number[]) => boolean;
+  heuristic: (state: number[]) => number;
+  heuristicWeight?: number;
+  initialState: number[];
+  lockedIndexes: ReadonlySet<number>;
+  maxNodes: number;
+  rows: number;
+}) {
+  const initialId = getStateId(initialState);
+  const openSet = new MinHeap<SearchNode>(
+    (node) => node.estimate * 1024 - node.cost,
+  );
+  const bestCosts = new Map<string, number>([[initialId, 0]]);
+  let visitedNodes = 0;
 
-    if (nextBoard === solvedBoard) {
+  openSet.push({
+    blankIndex,
+    cost: 0,
+    estimate: heuristic(initialState) * heuristicWeight,
+    id: initialId,
+    moveSlot: null,
+    previous: null,
+    state: initialState,
+  });
+
+  while (openSet.size > 0 && visitedNodes < maxNodes) {
+    const node = openSet.pop();
+
+    if (!node) {
+      break;
+    }
+
+    if (goal(node.state)) {
+      return {
+        blankIndex: node.blankIndex,
+        moves: reconstructMoves(node),
+        state: node.state,
+      };
+    }
+
+    if ((bestCosts.get(node.id) ?? Number.POSITIVE_INFINITY) < node.cost) {
+      continue;
+    }
+
+    visitedNodes++;
+
+    for (const neighborIndex of getNeighborIndexes(
+      node.blankIndex,
+      columns,
+      rows,
+    )) {
+      if (lockedIndexes.has(neighborIndex)) {
+        continue;
+      }
+
+      const nextState = [...node.state];
+      nextState[node.blankIndex] = nextState[neighborIndex];
+      nextState[neighborIndex] = blankTile;
+
+      const nextId = getStateId(nextState);
+      const nextCost = node.cost + 1;
+
+      if ((bestCosts.get(nextId) ?? Number.POSITIVE_INFINITY) <= nextCost) {
+        continue;
+      }
+
+      bestCosts.set(nextId, nextCost);
+      openSet.push({
+        blankIndex: neighborIndex,
+        cost: nextCost,
+        estimate: nextCost + heuristic(nextState) * heuristicWeight,
+        id: nextId,
+        moveSlot: indexToSlot(neighborIndex, columns),
+        previous: node,
+        state: nextState,
+      });
+    }
+  }
+
+  return null;
+}
+
+function getStagedTargetGroups(columns: number, rows: number) {
+  const groups: number[][] = [];
+
+  for (let row = 0; row < rows - 2; row++) {
+    groups.push(
+      Array.from({ length: columns }, (_, column) => row * columns + column),
+    );
+  }
+
+  for (let column = 0; column < columns - 2; column++) {
+    groups.push(
+      Array.from(
+        { length: Math.min(2, rows) },
+        (_, rowOffset) => (rows - 2 + rowOffset) * columns + column,
+      ),
+    );
+  }
+
+  return groups;
+}
+
+function solveWithStagedSearch({
+  blankTile,
+  columns,
+  rows,
+  state,
+}: {
+  blankTile: number;
+  columns: number;
+  rows: number;
+  state: number[];
+}) {
+  let currentState = state;
+  let blankIndex = state.indexOf(blankTile);
+  const lockedIndexes = new Set<number>();
+  const moves: Slot[] = [];
+  const targetState = createTargetState(state.length);
+
+  for (const targetIndexes of getStagedTargetGroups(columns, rows)) {
+    if (targetIndexes.every((targetIndex) => currentState[targetIndex] === targetIndex)) {
+      targetIndexes.forEach((targetIndex) => lockedIndexes.add(targetIndex));
+      continue;
+    }
+
+    const result = searchMoves({
+      blankIndex,
+      blankTile,
+      columns,
+      goal: (candidateState) =>
+        targetIndexes.every(
+          (targetIndex) => candidateState[targetIndex] === targetIndex,
+        ),
+      heuristic: (candidateState) =>
+        targetIndexes.reduce(
+          (distance, targetIndex) =>
+            distance +
+            getIndexDistance(
+              getTileIndex(candidateState, targetIndex),
+              targetIndex,
+              columns,
+            ),
+          0,
+        ),
+      heuristicWeight: STAGED_HEURISTIC_WEIGHT,
+      initialState: currentState,
+      lockedIndexes,
+      maxNodes: MAX_STAGED_SEARCH_NODES,
+      rows,
+    });
+
+    if (!result) {
       return null;
     }
 
-    solvedBoard = nextBoard;
+    moves.push(...result.moves);
+    currentState = result.state;
+    blankIndex = result.blankIndex;
+    targetIndexes.forEach((targetIndex) => lockedIndexes.add(targetIndex));
   }
 
-  return isTileGridInOrder(solvedBoard.tileGrid) ? board.solutionMoves : null;
+  if (getStateId(currentState) === getStateId(targetState)) {
+    return moves;
+  }
+
+  const result = searchMoves({
+    blankIndex,
+    blankTile,
+    columns,
+    goal: (candidateState) => getStateId(candidateState) === getStateId(targetState),
+    heuristic: (candidateState) =>
+      getStateManhattanDistance(
+        candidateState,
+        columns,
+        blankTile,
+        lockedIndexes,
+      ),
+    heuristicWeight: STAGED_HEURISTIC_WEIGHT,
+    initialState: currentState,
+    lockedIndexes,
+    maxNodes: MAX_STAGED_SEARCH_NODES,
+    rows,
+  });
+
+  if (!result) {
+    return null;
+  }
+
+  return [...moves, ...result.moves];
 }
 
 export function solveSlidingTilesBoard(board: BoardState): SolverOutcome {
@@ -277,7 +500,7 @@ export function solveSlidingTilesBoard(board: BoardState): SolverOutcome {
   }
 
   const { blankTile, columns, rows, state } = parsedBoard;
-  const targetState = Array.from({ length: state.length }, (_, index) => index);
+  const targetState = createTargetState(state.length);
   const targetId = getStateId(targetState);
   const initialId = getStateId(state);
 
@@ -295,85 +518,44 @@ export function solveSlidingTilesBoard(board: BoardState): SolverOutcome {
     };
   }
 
-  const openSet = new MinHeap<SearchNode>(
-    (node) => node.estimate * 1024 + node.cost,
-  );
-  const bestCosts = new Map<string, number>([[initialId, 0]]);
-  const initialDistance = getManhattanDistance(state, columns, blankTile);
-  let visitedNodes = 0;
-
-  openSet.push({
+  const directResult = searchMoves({
     blankIndex: state.indexOf(blankTile),
-    cost: 0,
-    estimate: initialDistance,
-    id: initialId,
-    moveSlot: null,
-    previous: null,
-    state,
+    blankTile,
+    columns,
+    goal: (candidateState) => getStateId(candidateState) === targetId,
+    heuristic: (candidateState) =>
+      getManhattanDistance(candidateState, columns, blankTile),
+    initialState: state,
+    lockedIndexes: new Set(),
+    maxNodes: MAX_SEARCH_NODES,
+    rows,
   });
 
-  while (openSet.size > 0 && visitedNodes < MAX_SEARCH_NODES) {
-    const node = openSet.pop();
-
-    if (!node) {
-      break;
-    }
-
-    if (node.id === targetId) {
+  if (directResult) {
       return {
-        moves: reconstructMoves(node),
+        moves: directResult.moves,
         quality: 'direct',
         status: 'solved',
       };
-    }
-
-    if ((bestCosts.get(node.id) ?? Number.POSITIVE_INFINITY) < node.cost) {
-      continue;
-    }
-
-    visitedNodes++;
-
-    for (const neighborIndex of getNeighborIndexes(
-      node.blankIndex,
-      columns,
-      rows,
-    )) {
-      const nextState = [...node.state];
-      nextState[node.blankIndex] = nextState[neighborIndex];
-      nextState[neighborIndex] = blankTile;
-
-      const nextId = getStateId(nextState);
-      const nextCost = node.cost + 1;
-
-      if ((bestCosts.get(nextId) ?? Number.POSITIVE_INFINITY) <= nextCost) {
-        continue;
-      }
-
-      bestCosts.set(nextId, nextCost);
-      openSet.push({
-        blankIndex: neighborIndex,
-        cost: nextCost,
-        estimate:
-          nextCost + getManhattanDistance(nextState, columns, blankTile),
-        id: nextId,
-        moveSlot: indexToSlot(neighborIndex, columns),
-        previous: node,
-        state: nextState,
-      });
-    }
   }
 
-  const storedSolutionMoves = getStoredSolutionMoves(board);
-  if (storedSolutionMoves) {
+  const stagedMoves = solveWithStagedSearch({
+    blankTile,
+    columns,
+    rows,
+    state,
+  });
+
+  if (stagedMoves) {
     return {
-      moves: storedSolutionMoves,
-      quality: 'replay',
+      moves: stagedMoves,
+      quality: 'direct',
       status: 'solved',
     };
   }
 
   return {
-    reason: 'The AI could not find a smooth solution for this board.',
+    reason: 'The AI could not find a solution for this board.',
     status: 'invalid',
   };
 }

@@ -139,7 +139,6 @@ export function randomizeTileGrid(tileGrid: TileGrid, moves: number) {
   let emptySlot: Slot = [...maxSlot];
   let movableSlots = getMovableSlots(emptySlot, maxSlot);
   let previousSlot: Slot | null = null;
-  const solutionMoves: Slot[] = [];
 
   for (let i = 0; i < moves; i++) {
     const candidates =
@@ -154,7 +153,6 @@ export function randomizeTileGrid(tileGrid: TileGrid, moves: number) {
       emptySlot,
       slotInTransit,
     );
-    solutionMoves.push(emptySlot);
     previousSlot = emptySlot;
     emptySlot = slotInTransit;
     movableSlots = getMovableSlots(emptySlot, maxSlot);
@@ -164,7 +162,6 @@ export function randomizeTileGrid(tileGrid: TileGrid, moves: number) {
     tileGrid: randomizedGrid,
     emptySlot,
     movableSlots,
-    solutionMoves: solutionMoves.reverse(),
   };
 }
 
@@ -175,7 +172,7 @@ export function createBoardState(level = 1, dimensions = BASE_GRID_DIMENSIONS) {
     randomizationMoves *= 100;
   }
 
-  const { tileGrid, emptySlot, movableSlots, solutionMoves } = randomizeTileGrid(
+  const { tileGrid, emptySlot, movableSlots } = randomizeTileGrid(
     solvedTileGrid,
     randomizationMoves,
   );
@@ -188,7 +185,6 @@ export function createBoardState(level = 1, dimensions = BASE_GRID_DIMENSIONS) {
     movableSlots,
     moves: 0,
     elapsedTimeMs: 0,
-    solutionMoves,
     startedAt: new Date().toISOString(),
   } satisfies BoardState;
 }
@@ -205,14 +201,8 @@ export function moveBoardTile(
   }
 
   const tileGrid = moveTileLogically(board.tileGrid, board.emptySlot, slot);
-  const previousEmptySlot = board.emptySlot;
   const emptySlot = slot;
   const movableSlots = getMovableSlots(emptySlot, getMaxSlot(tileGrid));
-  const nextSolutionMoves = board.solutionMoves
-    ? board.solutionMoves[0] && slotsEqual(board.solutionMoves[0], slot)
-      ? board.solutionMoves.slice(1)
-      : [previousEmptySlot, ...board.solutionMoves]
-    : undefined;
 
   return {
     ...board,
@@ -220,6 +210,6 @@ export function moveBoardTile(
     emptySlot,
     movableSlots,
     moves: options.countMove === false ? board.moves : board.moves + 1,
-    solutionMoves: nextSolutionMoves,
+    solutionMoves: undefined,
   };
 }
