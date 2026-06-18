@@ -89,10 +89,10 @@ export function GameToolbar({
       {isAutoPlayActive ? (
         <div
           aria-live="polite"
-          className="board-overlay absolute left-1/2 top-4 z-40 -translate-x-1/2 whitespace-nowrap rounded-[7px] border px-3 py-2 text-center text-xs font-bold text-accent-strong max-[480px]:top-17 max-[480px]:max-w-[calc(100%-2rem)] max-[480px]:whitespace-normal"
+          className="board-overlay absolute left-1/2 top-4 z-40 max-w-[min(26rem,calc(100%-2rem))] -translate-x-1/2 rounded-[7px] border px-3 py-2 text-center text-xs font-bold leading-snug text-accent-strong max-[480px]:top-17"
           role="status"
         >
-          Auto Play active
+          Auto Play demo active. Moves are not ranked. Stop anytime.
         </div>
       ) : null}
       <div className="absolute inset-x-4 bottom-4 z-40 flex items-end justify-between gap-2 max-[480px]:flex-col max-[480px]:items-stretch">

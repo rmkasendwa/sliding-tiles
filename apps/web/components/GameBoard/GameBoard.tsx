@@ -128,6 +128,8 @@ function GameBoardContent({
   const [isShuffleInProgress, setIsShuffleInProgress] = useState(false);
   const [isAutoPlayRunning, setIsAutoPlayRunning] = useState(false);
   const [isAutoPlayCompletion, setIsAutoPlayCompletion] = useState(false);
+  const [isAutoPlaySolvedNoticeVisible, setIsAutoPlaySolvedNoticeVisible] =
+    useState(false);
   const isShuffleAnimationRunning = isResetting || isShuffleInProgress;
   const playHintSound = useCallback(() => playSound('hint'), [playSound]);
   const getAnalyticsMetadata = useCallback(
@@ -421,6 +423,7 @@ function GameBoardContent({
       if (source === 'auto-play' || isAutoPlayCompletion) {
         setIsAutoPlayCompletion(true);
         if (source === 'auto-play') {
+          setIsAutoPlaySolvedNoticeVisible(true);
           trackAnonymousEvent('auto_play_completed', analyticsMetadata);
         }
         return;
@@ -690,6 +693,7 @@ function GameBoardContent({
 
       cancelAutoPlay();
       setIsAutoPlayCompletion(false);
+      setIsAutoPlaySolvedNoticeVisible(false);
       if (board.moves > 0) {
         trackAnonymousEvent('level_abandoned', getAnalyticsMetadata());
       }
@@ -765,6 +769,7 @@ function GameBoardContent({
 
       cancelAutoPlay();
       setIsAutoPlayCompletion(false);
+      setIsAutoPlaySolvedNoticeVisible(false);
       shuffleInProgressRef.current = true;
       setIsShuffleInProgress(true);
       clearBoardHint();
@@ -824,6 +829,7 @@ function GameBoardContent({
     trackAnonymousEvent('reset_level_clicked', getAnalyticsMetadata());
     cancelAutoPlay();
     setIsAutoPlayCompletion(false);
+    setIsAutoPlaySolvedNoticeVisible(false);
     if (board.moves > 0) {
       trackAnonymousEvent('level_abandoned', getAnalyticsMetadata());
     }
@@ -840,6 +846,7 @@ function GameBoardContent({
   const shuffleLevel = useCallback(() => {
     cancelAutoPlay();
     setIsAutoPlayCompletion(false);
+    setIsAutoPlaySolvedNoticeVisible(false);
     if (board.moves > 0) {
       trackAnonymousEvent('level_abandoned', getAnalyticsMetadata());
     }
@@ -856,12 +863,14 @@ function GameBoardContent({
   const replayAgain = useCallback(() => {
     cancelAutoPlay();
     setIsAutoPlayCompletion(false);
+    setIsAutoPlaySolvedNoticeVisible(false);
     setReplayResult(null);
     refreshBoard(() => resetBoardAttempt(attemptStartBoard), false);
   }, [attemptStartBoard, cancelAutoPlay, refreshBoard]);
   const continueProgress = useCallback(() => {
     cancelAutoPlay();
     setIsAutoPlayCompletion(false);
+    setIsAutoPlaySolvedNoticeVisible(false);
     setReplayResult(null);
     exitReplayMode();
     refreshBoard(
@@ -936,6 +945,7 @@ function GameBoardContent({
           isShuffleAnimationRunning ||
           Boolean(replayResult)
         }
+        isAutoPlaySolvedNoticeVisible={isAutoPlaySolvedNoticeVisible}
         isResetting={isResetting}
         isShowingHintPlaceholder={isShowingHintPlaceholder}
         isShowingSolvedHint={isShowingSolvedHint}
@@ -974,6 +984,7 @@ function GameBoardContent({
           isShuffleAnimationRunning ||
           isCelebrating ||
           isAutoPlayRunning ||
+          isAutoPlaySolvedNoticeVisible ||
           Boolean(replayResult)
         }
         isModalOpen={isInfoModalOpen}

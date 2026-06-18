@@ -5,6 +5,7 @@ import type { MutableRefObject, PointerEventHandler, RefObject } from 'react';
 import { BoardState, Slot, slotKey } from '@/lib/board';
 
 import { BoardTile } from './BoardTile';
+import { AutoPlayResultPanel } from './AutoPlayResultPanel';
 import { BOARD_SIZE, BOARD_SURFACE_BACKGROUND } from './constants';
 import { CompletionEffects } from './CompletionEffects';
 import { GameHud } from './GameHud';
@@ -28,6 +29,7 @@ type GameStageProps = {
   isMuted: boolean;
   isAutoPlayActive: boolean;
   isAutoPlayBlocked: boolean;
+  isAutoPlaySolvedNoticeVisible: boolean;
   isResetting: boolean;
   isShowingHintPlaceholder: boolean;
   isShowingSolvedHint: boolean;
@@ -75,6 +77,7 @@ export function GameStage({
   isMuted,
   isAutoPlayActive,
   isAutoPlayBlocked,
+  isAutoPlaySolvedNoticeVisible,
   isResetting,
   isShowingHintPlaceholder,
   isShowingSolvedHint,
@@ -204,6 +207,13 @@ export function GameStage({
           onContinue={onContinueReplay}
           onReplayAgain={onReplayAgain}
           result={replayResult}
+        />
+      ) : null}
+      {isAutoPlaySolvedNoticeVisible ? (
+        <AutoPlayResultPanel
+          level={board.level}
+          onReset={onReset}
+          onShuffle={onShuffle}
         />
       ) : null}
     </section>
