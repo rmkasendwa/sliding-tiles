@@ -22,6 +22,7 @@ type GamePersistenceOptions = {
   elapsedTimeMs: number;
   highestReachedLevel: number;
   isGameComplete: boolean;
+  isPersistenceDisabled?: boolean;
   isSignedIn: boolean;
   timerStatus: AnonymousTimerStatus;
 };
@@ -33,6 +34,7 @@ export function useGamePersistence({
   elapsedTimeMs,
   highestReachedLevel,
   isGameComplete,
+  isPersistenceDisabled = false,
   isSignedIn,
   timerStatus,
 }: GamePersistenceOptions) {
@@ -64,6 +66,10 @@ export function useGamePersistence({
       ...board,
       elapsedTimeMs,
     };
+
+    if (isPersistenceDisabled) {
+      return;
+    }
 
     if (isSignedIn && !activeReplayOfId) {
       const timeout = window.setTimeout(() => {
@@ -97,6 +103,7 @@ export function useGamePersistence({
     elapsedTimeMs,
     highestReachedLevel,
     isGameComplete,
+    isPersistenceDisabled,
     isSignedIn,
     timerStatus,
   ]);

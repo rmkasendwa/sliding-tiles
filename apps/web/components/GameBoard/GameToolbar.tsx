@@ -3,6 +3,8 @@
 import {
   Maximize2,
   Minimize2,
+  Pause,
+  Play,
   RotateCcw,
   Search,
   Shuffle,
@@ -20,10 +22,13 @@ type GameToolbarProps = {
   isCelebrating: boolean;
   isFocusPaused: boolean;
   isMuted: boolean;
+  isAutoPlayActive: boolean;
+  isAutoPlayBlocked: boolean;
   isShuffleAnimationRunning: boolean;
   isSoundEnabled: boolean;
   level: number;
   moves: number;
+  onAutoPlayToggle: () => void;
   onPeekCancel: PointerEventHandler<HTMLButtonElement>;
   onPeekDown: PointerEventHandler<HTMLButtonElement>;
   onPeekLeave: PointerEventHandler<HTMLButtonElement>;
@@ -42,10 +47,13 @@ export function GameToolbar({
   isCelebrating,
   isFocusPaused,
   isMuted,
+  isAutoPlayActive,
+  isAutoPlayBlocked,
   isShuffleAnimationRunning,
   isSoundEnabled,
   level,
   moves,
+  onAutoPlayToggle,
   onPeekCancel,
   onPeekDown,
   onPeekLeave,
@@ -58,6 +66,8 @@ export function GameToolbar({
 }: GameToolbarProps) {
   const FullscreenIcon = isBoardFullscreen ? Minimize2 : Maximize2;
   const SoundIcon = isMuted ? VolumeX : Volume2;
+  const AutoPlayIcon = isAutoPlayActive ? Pause : Play;
+  const controlsLocked = isShuffleAnimationRunning || isAutoPlayActive;
 
   return (
     <>
@@ -74,6 +84,15 @@ export function GameToolbar({
           role="status"
         >
           Game paused. Make your next move to continue.
+        </div>
+      ) : null}
+      {isAutoPlayActive ? (
+        <div
+          aria-live="polite"
+          className="board-overlay absolute left-1/2 top-4 z-40 -translate-x-1/2 whitespace-nowrap rounded-[7px] border px-3 py-2 text-center text-xs font-bold text-accent-strong max-[480px]:top-17 max-[480px]:max-w-[calc(100%-2rem)] max-[480px]:whitespace-normal"
+          role="status"
+        >
+          Auto Play active
         </div>
       ) : null}
       <div className="absolute inset-x-4 bottom-4 z-40 flex items-end justify-between gap-2 max-[480px]:flex-col max-[480px]:items-stretch">
@@ -94,15 +113,15 @@ export function GameToolbar({
         <div className="board-overlay flex shrink-0 self-end gap-1 rounded-[7px] border p-1 text-accent-strong max-[480px]:self-center">
           <GameToolButton
             aria-label={
-              isShuffleAnimationRunning
+              controlsLocked
                 ? 'Puzzle is updating'
                 : 'Reset current puzzle'
             }
             className={
-              isShuffleAnimationRunning ? 'disabled:cursor-wait' : undefined
+              controlsLocked ? 'disabled:cursor-wait' : undefined
             }
             description="Return the current puzzle to its starting configuration."
-            disabled={isShuffleAnimationRunning}
+            disabled={controlsLocked}
             icon={
               <RotateCcw
                 aria-hidden="true"
@@ -119,7 +138,7 @@ export function GameToolbar({
             }
             onClick={onReset}
             tooltip={
-              isShuffleAnimationRunning
+              controlsLocked
                 ? 'Updating the puzzle'
                 : 'Reset the current puzzle (R)'
             }
@@ -127,15 +146,15 @@ export function GameToolbar({
           />
           <GameToolButton
             aria-label={
-              isShuffleAnimationRunning
+              controlsLocked
                 ? 'Puzzle is shuffling'
                 : 'Shuffle puzzle'
             }
             className={
-              isShuffleAnimationRunning ? 'disabled:cursor-wait' : undefined
+              controlsLocked ? 'disabled:cursor-wait' : undefined
             }
             description="Create a new puzzle configuration for this level."
-            disabled={isShuffleAnimationRunning}
+            disabled={controlsLocked}
             icon={
               <Shuffle
                 aria-hidden="true"
@@ -145,7 +164,7 @@ export function GameToolbar({
             }
             onClick={onShuffle}
             tooltip={
-              isShuffleAnimationRunning
+              controlsLocked
                 ? 'Shuffling the puzzle'
                 : 'Shuffle the puzzle (S)'
             }
@@ -173,10 +192,31 @@ export function GameToolbar({
             />
           ) : null}
           <GameToolButton
+            aria-label={isAutoPlayActive ? 'Stop Auto Play' : 'Start Auto Play'}
+            aria-pressed={isAutoPlayActive}
+            className={isAutoPlayActive ? 'bg-accent/15 text-accent-strong' : ''}
+            description={
+              isAutoPlayActive
+                ? 'Stop the AI demonstration.'
+                : 'Let the built-in AI solve the current puzzle.'
+            }
+            disabled={!isAutoPlayActive && isAutoPlayBlocked}
+            icon={
+              <AutoPlayIcon
+                aria-hidden="true"
+                className="size-4"
+                strokeWidth={2.2}
+              />
+            }
+            onClick={onAutoPlayToggle}
+            tooltip={isAutoPlayActive ? 'Stop Auto Play' : 'Auto Play'}
+            type="button"
+          />
+          <GameToolButton
             aria-label="Peek full image"
             className="active:bg-accent/15"
             description="Temporarily reveal the complete puzzle image while pressed."
-            disabled={isCelebrating || isShuffleAnimationRunning}
+            disabled={isCelebrating || controlsLocked}
             icon={
               <Search aria-hidden="true" className="size-4" strokeWidth={2.2} />
             }

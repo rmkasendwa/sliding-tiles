@@ -89,10 +89,16 @@ export function useGameKeyboardControls({
 
       switch (event.key.toLowerCase()) {
         case 'r':
+          if (isInteractionBlocked) {
+            return;
+          }
           event.preventDefault();
           onReset();
           break;
         case 's':
+          if (isInteractionBlocked) {
+            return;
+          }
           event.preventDefault();
           onShuffle();
           break;
@@ -105,5 +111,5 @@ export function useGameKeyboardControls({
 
     window.addEventListener('keydown', handleShortcut);
     return () => window.removeEventListener('keydown', handleShortcut);
-  }, [onReset, onShuffle, onToggleFullscreen]);
+  }, [isInteractionBlocked, onReset, onShuffle, onToggleFullscreen]);
 }

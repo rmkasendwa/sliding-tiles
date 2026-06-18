@@ -26,12 +26,15 @@ type GameStageProps = {
   isCompletionImageVisible: boolean;
   isFocusPaused: boolean;
   isMuted: boolean;
+  isAutoPlayActive: boolean;
+  isAutoPlayBlocked: boolean;
   isResetting: boolean;
   isShowingHintPlaceholder: boolean;
   isShowingSolvedHint: boolean;
   isShuffleAnimationRunning: boolean;
   isSoundEnabled: boolean;
   movableSlotKeys: ReadonlySet<string>;
+  onAutoPlayToggle: () => void;
   onBoardPointerDown: PointerEventHandler<HTMLDivElement>;
   onBoardPointerLeave: PointerEventHandler<HTMLDivElement>;
   onBoardPointerUp: PointerEventHandler<HTMLDivElement>;
@@ -70,12 +73,15 @@ export function GameStage({
   isCompletionImageVisible,
   isFocusPaused,
   isMuted,
+  isAutoPlayActive,
+  isAutoPlayBlocked,
   isResetting,
   isShowingHintPlaceholder,
   isShowingSolvedHint,
   isShuffleAnimationRunning,
   isSoundEnabled,
   movableSlotKeys,
+  onAutoPlayToggle,
   onBoardPointerDown,
   onBoardPointerLeave,
   onBoardPointerUp,
@@ -125,12 +131,12 @@ export function GameStage({
             ? 'fullscreen-board-shell'
             : 'w-[min(100%,calc(100svh-64px))]',
         ].join(' ')}
-        onPointerDown={onBoardPointerDown}
-        onPointerLeave={onBoardPointerLeave}
-        onPointerUp={onBoardPointerUp}
+        onPointerDown={isAutoPlayActive ? undefined : onBoardPointerDown}
+        onPointerLeave={isAutoPlayActive ? undefined : onBoardPointerLeave}
+        onPointerUp={isAutoPlayActive ? undefined : onBoardPointerUp}
         style={{
           background: BOARD_SURFACE_BACKGROUND,
-          touchAction: 'none',
+          touchAction: isAutoPlayActive ? 'auto' : 'none',
         }}
       >
         {board.tileGrid.flat().map((tile) => {
@@ -146,6 +152,7 @@ export function GameStage({
               isHintPlaceholderVisible={isShowingHintPlaceholder}
               isEntering={isBoardEntering}
               isMovable={movableSlotKeys.has(slotKey(tile.slot))}
+              isInteractionBlocked={isAutoPlayActive}
               isResetting={isResetting}
               isShowingSolvedHint={isShowingSolvedHint}
               key={`${boardEntryAnimationKey}:${tile.position}`}
@@ -174,10 +181,13 @@ export function GameStage({
         isCelebrating={isCelebrating}
         isFocusPaused={isFocusPaused}
         isMuted={isMuted}
+        isAutoPlayActive={isAutoPlayActive}
+        isAutoPlayBlocked={isAutoPlayBlocked}
         isShuffleAnimationRunning={isShuffleAnimationRunning}
         isSoundEnabled={isSoundEnabled}
         level={board.level}
         moves={board.moves}
+        onAutoPlayToggle={onAutoPlayToggle}
         onPeekCancel={onPeekCancel}
         onPeekDown={onPeekDown}
         onPeekLeave={onPeekLeave}

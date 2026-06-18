@@ -188,7 +188,11 @@ export function createBoardState(level = 1, dimensions = BASE_GRID_DIMENSIONS) {
   } satisfies BoardState;
 }
 
-export function moveBoardTile(board: BoardState, slot: Slot): BoardState {
+export function moveBoardTile(
+  board: BoardState,
+  slot: Slot,
+  options: { countMove?: boolean } = {},
+): BoardState {
   if (
     !board.movableSlots.some((movableSlot) => slotsEqual(movableSlot, slot))
   ) {
@@ -204,6 +208,6 @@ export function moveBoardTile(board: BoardState, slot: Slot): BoardState {
     tileGrid,
     emptySlot,
     movableSlots,
-    moves: board.moves + 1,
+    moves: options.countMove === false ? board.moves : board.moves + 1,
   };
 }

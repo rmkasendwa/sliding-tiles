@@ -44,6 +44,7 @@ export type BoardTileProps = {
   hintedSlot: string | null;
   isHintPlaceholderVisible: boolean;
   isEntering: boolean;
+  isInteractionBlocked: boolean;
   isMovable: boolean;
   isResetting: boolean;
   isShowingSolvedHint: boolean;
@@ -64,6 +65,7 @@ export function BoardTile({
   hintedSlot,
   isHintPlaceholderVisible,
   isEntering,
+  isInteractionBlocked,
   isMovable,
   isResetting,
   isShowingSolvedHint,
@@ -132,7 +134,7 @@ export function BoardTile({
   );
 
   const activateTile = () => {
-    if (isHintPlaceholder) {
+    if (isInteractionBlocked || isHintPlaceholder) {
       return;
     }
 
@@ -149,6 +151,10 @@ export function BoardTile({
     }
   };
   const startTileDrag = (event: PointerEvent<HTMLButtonElement>) => {
+    if (isInteractionBlocked) {
+      return;
+    }
+
     if (pendingMoveTimeoutRef.current !== null) {
       return;
     }
@@ -331,6 +337,7 @@ export function BoardTile({
   };
   const tileClasses = [
     'board-tile absolute cursor-pointer rounded-md border border-foreground/20 bg-no-repeat shadow-tile hover:z-[8] focus-visible:z-[8]',
+    isInteractionBlocked ? 'pointer-events-none cursor-wait' : '',
     isMovable ? '' : 'cursor-not-allowed',
     isShowingSolvedHint
       ? 'z-[2] cursor-default brightness-[1.04] saturate-[1.08]'
@@ -348,6 +355,7 @@ export function BoardTile({
     <button
       aria-label={`Tile ${tile.position + 1}`}
       className={tileClasses}
+      disabled={isInteractionBlocked}
       key={tile.position}
       onBlur={() => onHint(null)}
       onClick={activateTile}
