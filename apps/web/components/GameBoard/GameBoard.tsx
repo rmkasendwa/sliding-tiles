@@ -422,8 +422,8 @@ function GameBoardContent({
       showSolvedBoard();
       if (source === 'auto-play' || isAutoPlayCompletion) {
         setIsAutoPlayCompletion(true);
+        setIsAutoPlaySolvedNoticeVisible(true);
         if (source === 'auto-play') {
-          setIsAutoPlaySolvedNoticeVisible(true);
           trackAnonymousEvent('auto_play_completed', analyticsMetadata);
         }
         return;

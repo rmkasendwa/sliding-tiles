@@ -23,15 +23,15 @@ export function AutoPlayResultPanel({
         role="dialog"
       >
         <p className="text-xs font-extrabold uppercase text-accent-strong">
-          Auto Play complete
+          Auto Play assisted
         </p>
         <h2 className="mt-1 text-xl font-extrabold" id="auto-play-result-title">
-          The AI solved Level {level}
+          Level {level} was solved with AI help
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-muted" id="auto-play-result-summary">
-          This was a demonstration solve, so it was not saved, ranked, or counted
-          toward personal bests. The board stays here so you can study the final
-          layout.
+          Auto Play was used during this attempt, so the result was not saved,
+          ranked, or counted toward personal bests. Reset to try the same puzzle
+          yourself, or start a fresh shuffle.
         </p>
 
         <div className="mt-5 grid gap-2 sm:grid-cols-2">
