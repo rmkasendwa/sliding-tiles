@@ -140,13 +140,9 @@ export function GameToolbar({
         <div className="board-overlay flex max-w-full shrink-0 flex-wrap items-center justify-end gap-1 self-end rounded-[7px] border p-1 text-accent-strong max-[560px]:w-full max-[560px]:justify-center max-[560px]:self-center">
           <GameToolButton
             aria-label={
-              controlsLocked
-                ? 'Puzzle is updating'
-                : 'Reset current puzzle'
+              controlsLocked ? 'Puzzle is updating' : 'Reset current puzzle'
             }
-            className={
-              controlsLocked ? 'disabled:cursor-wait' : undefined
-            }
+            className={controlsLocked ? 'disabled:cursor-wait' : undefined}
             description="Return the current puzzle to its starting configuration."
             disabled={controlsLocked}
             icon={
@@ -173,13 +169,9 @@ export function GameToolbar({
           />
           <GameToolButton
             aria-label={
-              controlsLocked
-                ? 'Puzzle is shuffling'
-                : 'Shuffle puzzle'
+              controlsLocked ? 'Puzzle is shuffling' : 'Shuffle puzzle'
             }
-            className={
-              controlsLocked ? 'disabled:cursor-wait' : undefined
-            }
+            className={controlsLocked ? 'disabled:cursor-wait' : undefined}
             description="Create a new puzzle configuration for this level."
             disabled={controlsLocked}
             icon={
@@ -191,9 +183,7 @@ export function GameToolbar({
             }
             onClick={onShuffle}
             tooltip={
-              controlsLocked
-                ? 'Shuffling the puzzle'
-                : 'Shuffle the puzzle (S)'
+              controlsLocked ? 'Shuffling the puzzle' : 'Shuffle the puzzle (S)'
             }
             type="button"
           />
@@ -227,7 +217,9 @@ export function GameToolbar({
                   : 'Start Auto Play'
             }
             aria-pressed={isAutoPlayActive}
-            className={isAutoPlayActive ? 'bg-accent/15 text-accent-strong' : ''}
+            className={
+              isAutoPlayActive ? 'bg-accent/15 text-accent-strong' : ''
+            }
             description={
               isAutoPlayActive
                 ? 'Pause the AI demonstration.'
@@ -303,7 +295,7 @@ export function GameToolbar({
               <span className="sr-only">Auto Play speed</span>
               <input
                 aria-label="Auto Play speed"
-                className="h-4 min-w-0 flex-1 cursor-pointer accent-[var(--color-accent)]"
+                className="h-4 min-w-0 flex-1 cursor-pointer accent-(--color-accent)"
                 max={100}
                 min={0}
                 onChange={(event) => {
