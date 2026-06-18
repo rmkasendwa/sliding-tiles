@@ -1,7 +1,12 @@
-import { BoardState, Slot } from './board';
+import {
+  BoardState,
+  Slot,
+  isTileGridInOrder,
+  moveBoardTile,
+} from './board';
 
 type SolverOutcome =
-  | { moves: Slot[]; status: 'solved' }
+  | { moves: Slot[]; quality: 'direct' | 'replay'; status: 'solved' }
   | { reason: string; status: 'already-solved' | 'invalid' | 'not-solvable' };
 
 type SearchNode = {
@@ -241,6 +246,26 @@ function reconstructMoves(node: SearchNode) {
   return moves.reverse();
 }
 
+function getStoredSolutionMoves(board: BoardState): Slot[] | null {
+  if (!board.solutionMoves?.length) {
+    return null;
+  }
+
+  let solvedBoard = board;
+
+  for (const slot of board.solutionMoves) {
+    const nextBoard = moveBoardTile(solvedBoard, slot, { countMove: false });
+
+    if (nextBoard === solvedBoard) {
+      return null;
+    }
+
+    solvedBoard = nextBoard;
+  }
+
+  return isTileGridInOrder(solvedBoard.tileGrid) ? board.solutionMoves : null;
+}
+
 export function solveSlidingTilesBoard(board: BoardState): SolverOutcome {
   const parsedBoard = buildBoardState(board);
 
@@ -297,6 +322,7 @@ export function solveSlidingTilesBoard(board: BoardState): SolverOutcome {
     if (node.id === targetId) {
       return {
         moves: reconstructMoves(node),
+        quality: 'direct',
         status: 'solved',
       };
     }
@@ -335,6 +361,15 @@ export function solveSlidingTilesBoard(board: BoardState): SolverOutcome {
         state: nextState,
       });
     }
+  }
+
+  const storedSolutionMoves = getStoredSolutionMoves(board);
+  if (storedSolutionMoves) {
+    return {
+      moves: storedSolutionMoves,
+      quality: 'replay',
+      status: 'solved',
+    };
   }
 
   return {

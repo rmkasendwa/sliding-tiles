@@ -39,6 +39,7 @@ type GameStageProps = {
     elapsedMs: number;
     moves: number;
   };
+  autoPlayStatusMessage: string | null;
   isResetting: boolean;
   isShowingHintPlaceholder: boolean;
   isShowingSolvedHint: boolean;
@@ -90,6 +91,7 @@ export function GameStage({
   isAutoPlaySolvedNoticeVisible,
   autoPlaySpeed,
   autoPlayStats,
+  autoPlayStatusMessage,
   isResetting,
   isShowingHintPlaceholder,
   isShowingSolvedHint,
@@ -201,6 +203,7 @@ export function GameStage({
         isAutoPlayBlocked={isAutoPlayBlocked}
         autoPlaySpeed={autoPlaySpeed}
         autoPlayStats={autoPlayStats}
+        autoPlayStatusMessage={autoPlayStatusMessage}
         isShuffleAnimationRunning={isShuffleAnimationRunning}
         isSoundEnabled={isSoundEnabled}
         level={board.level}

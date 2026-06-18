@@ -137,6 +137,9 @@ function GameBoardContent({
   );
   const [autoPlayMoveCount, setAutoPlayMoveCount] = useState(0);
   const [autoPlayElapsedMs, setAutoPlayElapsedMs] = useState(0);
+  const [autoPlayStatusMessage, setAutoPlayStatusMessage] = useState<
+    string | null
+  >(null);
   const isShuffleAnimationRunning = isResetting || isShuffleInProgress;
   const playHintSound = useCallback(() => playSound('hint'), [playSound]);
   const getAnalyticsMetadata = useCallback(
@@ -667,12 +670,20 @@ function GameBoardContent({
       if (solution.status === 'already-solved') {
         showSolvedBoard();
       } else {
+        setAutoPlayStatusMessage(
+          `${solution.reason} Try a new shuffle to enable the faster saved solve path.`,
+        );
         playSound('invalid');
       }
       return;
     }
 
     clearBoardHint();
+    setAutoPlayStatusMessage(
+      solution.quality === 'replay'
+        ? 'Using a longer replay solve for this board. It may be less direct than the normal AI route.'
+        : null,
+    );
     if (!isAutoPlayCompletion) {
       autoPlayElapsedMsRef.current = 0;
       setAutoPlayElapsedMs(0);
@@ -750,6 +761,7 @@ function GameBoardContent({
       cancelAutoPlay();
       setIsAutoPlayCompletion(false);
       setIsAutoPlaySolvedNoticeVisible(false);
+      setAutoPlayStatusMessage(null);
       autoPlayElapsedMsRef.current = 0;
       autoPlayStartedAtRef.current = null;
       setAutoPlayElapsedMs(0);
@@ -830,6 +842,7 @@ function GameBoardContent({
       cancelAutoPlay();
       setIsAutoPlayCompletion(false);
       setIsAutoPlaySolvedNoticeVisible(false);
+      setAutoPlayStatusMessage(null);
       autoPlayElapsedMsRef.current = 0;
       autoPlayStartedAtRef.current = null;
       setAutoPlayElapsedMs(0);
@@ -894,6 +907,7 @@ function GameBoardContent({
     cancelAutoPlay();
     setIsAutoPlayCompletion(false);
     setIsAutoPlaySolvedNoticeVisible(false);
+    setAutoPlayStatusMessage(null);
     autoPlayElapsedMsRef.current = 0;
     autoPlayStartedAtRef.current = null;
     setAutoPlayElapsedMs(0);
@@ -915,6 +929,7 @@ function GameBoardContent({
     cancelAutoPlay();
     setIsAutoPlayCompletion(false);
     setIsAutoPlaySolvedNoticeVisible(false);
+    setAutoPlayStatusMessage(null);
     autoPlayElapsedMsRef.current = 0;
     autoPlayStartedAtRef.current = null;
     setAutoPlayElapsedMs(0);
@@ -936,6 +951,7 @@ function GameBoardContent({
     cancelAutoPlay();
     setIsAutoPlayCompletion(false);
     setIsAutoPlaySolvedNoticeVisible(false);
+    setAutoPlayStatusMessage(null);
     autoPlayElapsedMsRef.current = 0;
     autoPlayStartedAtRef.current = null;
     setAutoPlayElapsedMs(0);
@@ -947,6 +963,7 @@ function GameBoardContent({
     cancelAutoPlay();
     setIsAutoPlayCompletion(false);
     setIsAutoPlaySolvedNoticeVisible(false);
+    setAutoPlayStatusMessage(null);
     autoPlayElapsedMsRef.current = 0;
     autoPlayStartedAtRef.current = null;
     setAutoPlayElapsedMs(0);
@@ -1035,6 +1052,7 @@ function GameBoardContent({
           elapsedMs: autoPlayElapsedMs,
           moves: autoPlayMoveCount,
         }}
+        autoPlayStatusMessage={autoPlayStatusMessage}
         isResetting={isResetting}
         isShowingHintPlaceholder={isShowingHintPlaceholder}
         isShowingSolvedHint={isShowingSolvedHint}

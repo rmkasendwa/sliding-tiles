@@ -34,6 +34,7 @@ type GameToolbarProps = {
     elapsedMs: number;
     moves: number;
   };
+  autoPlayStatusMessage: string | null;
   isShuffleAnimationRunning: boolean;
   isSoundEnabled: boolean;
   level: number;
@@ -62,6 +63,7 @@ export function GameToolbar({
   isAutoPlayBlocked,
   autoPlaySpeed,
   autoPlayStats,
+  autoPlayStatusMessage,
   isShuffleAnimationRunning,
   isSoundEnabled,
   level,
@@ -120,6 +122,15 @@ export function GameToolbar({
           {isAutoPlayActive
             ? 'Auto Play demo active. Moves are not ranked. Pause anytime.'
             : 'Auto Play paused. This attempt is still AI-assisted.'}
+        </div>
+      ) : null}
+      {autoPlayStatusMessage ? (
+        <div
+          aria-live="polite"
+          className="board-overlay absolute left-1/2 top-4 z-40 max-w-[min(28rem,calc(100%-2rem))] -translate-x-1/2 rounded-[7px] border px-3 py-2 text-center text-xs font-bold leading-snug text-warning-strong max-[480px]:top-17"
+          role="status"
+        >
+          {autoPlayStatusMessage}
         </div>
       ) : null}
       <div className="absolute inset-x-4 bottom-4 z-40 flex items-end justify-between gap-2 max-[560px]:flex-col max-[560px]:items-stretch">

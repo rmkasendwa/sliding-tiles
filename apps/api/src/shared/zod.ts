@@ -28,6 +28,11 @@ export const boardStateSchema = z.object({
     z.tuple([z.number().int().nonnegative(), z.number().int().nonnegative()]),
   ),
   moves: z.number().int().nonnegative(),
+  solutionMoves: z
+    .array(
+      z.tuple([z.number().int().nonnegative(), z.number().int().nonnegative()]),
+    )
+    .optional(),
   startedAt: z.string().datetime(),
   tileGrid: z.array(z.array(z.unknown())),
 });

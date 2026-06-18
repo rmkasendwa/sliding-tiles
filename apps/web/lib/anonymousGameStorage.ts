@@ -33,6 +33,7 @@ const boardSchema = z.object({
   level: z.number().int().positive(),
   movableSlots: z.array(slotSchema),
   moves: z.number().int().nonnegative(),
+  solutionMoves: z.array(slotSchema).optional(),
   startedAt: z.string().datetime(),
   tileGrid: z.array(z.array(tileSchema)),
 });
