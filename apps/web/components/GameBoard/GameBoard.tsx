@@ -20,7 +20,9 @@ import { solveSlidingTilesBoard } from '@/lib/boardSolver';
 
 import { SoundProvider, useSound } from '../SoundProvider';
 import {
-  AUTO_PLAY_STEP_DELAY_MS,
+  AUTO_PLAY_DEFAULT_STEP_DELAY_MS,
+  AUTO_PLAY_FASTEST_STEP_DELAY_MS,
+  AUTO_PLAY_SLOWEST_STEP_DELAY_MS,
   LEVEL_COMPLETE_ADVANCE_DELAY_MS,
   LEVEL_COMPLETE_CELEBRATION_DELAY_MS,
   LEVEL_COMPLETE_CONFETTI_DURATION_MS,
@@ -130,6 +132,11 @@ function GameBoardContent({
   const [isAutoPlayCompletion, setIsAutoPlayCompletion] = useState(false);
   const [isAutoPlaySolvedNoticeVisible, setIsAutoPlaySolvedNoticeVisible] =
     useState(false);
+  const [autoPlayStepDelayMs, setAutoPlayStepDelayMs] = useState(
+    AUTO_PLAY_DEFAULT_STEP_DELAY_MS,
+  );
+  const [autoPlayMoveCount, setAutoPlayMoveCount] = useState(0);
+  const [autoPlayElapsedMs, setAutoPlayElapsedMs] = useState(0);
   const isShuffleAnimationRunning = isResetting || isShuffleInProgress;
   const playHintSound = useCallback(() => playSound('hint'), [playSound]);
   const getAnalyticsMetadata = useCallback(
@@ -184,6 +191,9 @@ function GameBoardContent({
   const autoPlayTimeoutRef = useRef<number | null>(null);
   const autoPlayMovesRef = useRef<Slot[]>([]);
   const autoPlayStepRef = useRef(0);
+  const autoPlayStepDelayRef = useRef(autoPlayStepDelayMs);
+  const autoPlayElapsedMsRef = useRef(0);
+  const autoPlayStartedAtRef = useRef<number | null>(null);
   const isAutoPlayRunningRef = useRef(false);
   const shuffleInProgressRef = useRef(false);
   const hasPlayedInitialEntrySoundRef = useRef(false);
@@ -197,6 +207,26 @@ function GameBoardContent({
   useEffect(() => {
     boardRef.current = board;
   }, [board]);
+
+  useEffect(() => {
+    autoPlayStepDelayRef.current = autoPlayStepDelayMs;
+  }, [autoPlayStepDelayMs]);
+
+  useEffect(() => {
+    if (!isAutoPlayRunning) {
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      const startedAt = autoPlayStartedAtRef.current;
+      setAutoPlayElapsedMs(
+        autoPlayElapsedMsRef.current +
+          (startedAt === null ? 0 : Date.now() - startedAt),
+      );
+    }, 250);
+
+    return () => window.clearInterval(interval);
+  }, [isAutoPlayRunning]);
 
   useEffect(() => {
     startAmbience();
@@ -391,6 +421,13 @@ function GameBoardContent({
 
     autoPlayMovesRef.current = [];
     autoPlayStepRef.current = 0;
+    if (autoPlayStartedAtRef.current !== null) {
+      const nextElapsed =
+        autoPlayElapsedMsRef.current + Date.now() - autoPlayStartedAtRef.current;
+      autoPlayElapsedMsRef.current = nextElapsed;
+      autoPlayStartedAtRef.current = null;
+      setAutoPlayElapsedMs(nextElapsed);
+    }
     isAutoPlayRunningRef.current = false;
     setIsAutoPlayRunning(false);
   }, []);
@@ -421,6 +458,7 @@ function GameBoardContent({
       setIsCompletionImageVisible(true);
       showSolvedBoard();
       if (source === 'auto-play' || isAutoPlayCompletion) {
+        cancelAutoPlay();
         setIsAutoPlayCompletion(true);
         setIsAutoPlaySolvedNoticeVisible(true);
         if (source === 'auto-play') {
@@ -548,6 +586,8 @@ function GameBoardContent({
             'move_made',
             getAnalyticsMetadata(nextBoard, currentElapsedTimeMs),
           );
+        } else {
+          setAutoPlayMoveCount((count) => count + 1);
         }
         playSound('move');
 
@@ -558,6 +598,7 @@ function GameBoardContent({
     },
     [
       board,
+      cancelAutoPlay,
       completeLevel,
       isCelebrating,
       isShuffleAnimationRunning,
@@ -585,16 +626,25 @@ function GameBoardContent({
 
     if (autoPlayStepRef.current >= autoPlayMovesRef.current.length) {
       autoPlayTimeoutRef.current = null;
-      isAutoPlayRunningRef.current = false;
-      setIsAutoPlayRunning(false);
+      cancelAutoPlay();
       return;
     }
 
     autoPlayTimeoutRef.current = window.setTimeout(
       runNextAutoPlayMove,
-      AUTO_PLAY_STEP_DELAY_MS,
+      autoPlayStepDelayRef.current,
     );
   }, [cancelAutoPlay, moveTile]);
+
+  const updateAutoPlaySpeed = useCallback((delayMs: number) => {
+    const nextDelay = Math.min(
+      AUTO_PLAY_SLOWEST_STEP_DELAY_MS,
+      Math.max(AUTO_PLAY_FASTEST_STEP_DELAY_MS, Math.trunc(delayMs)),
+    );
+
+    autoPlayStepDelayRef.current = nextDelay;
+    setAutoPlayStepDelayMs(nextDelay);
+  }, []);
 
   const toggleAutoPlay = useCallback(() => {
     if (isAutoPlayRunningRef.current) {
@@ -623,10 +673,16 @@ function GameBoardContent({
     }
 
     clearBoardHint();
+    if (!isAutoPlayCompletion) {
+      autoPlayElapsedMsRef.current = 0;
+      setAutoPlayElapsedMs(0);
+      setAutoPlayMoveCount(0);
+    }
     setIsAutoPlayCompletion(true);
     autoPlayMovesRef.current = solution.moves;
     autoPlayStepRef.current = 0;
     isAutoPlayRunningRef.current = true;
+    autoPlayStartedAtRef.current = Date.now();
     setIsAutoPlayRunning(true);
     trackAnonymousEvent('auto_play_started', getAnalyticsMetadata());
     autoPlayTimeoutRef.current = window.setTimeout(runNextAutoPlayMove, 0);
@@ -694,6 +750,10 @@ function GameBoardContent({
       cancelAutoPlay();
       setIsAutoPlayCompletion(false);
       setIsAutoPlaySolvedNoticeVisible(false);
+      autoPlayElapsedMsRef.current = 0;
+      autoPlayStartedAtRef.current = null;
+      setAutoPlayElapsedMs(0);
+      setAutoPlayMoveCount(0);
       if (board.moves > 0) {
         trackAnonymousEvent('level_abandoned', getAnalyticsMetadata());
       }
@@ -770,6 +830,10 @@ function GameBoardContent({
       cancelAutoPlay();
       setIsAutoPlayCompletion(false);
       setIsAutoPlaySolvedNoticeVisible(false);
+      autoPlayElapsedMsRef.current = 0;
+      autoPlayStartedAtRef.current = null;
+      setAutoPlayElapsedMs(0);
+      setAutoPlayMoveCount(0);
       shuffleInProgressRef.current = true;
       setIsShuffleInProgress(true);
       clearBoardHint();
@@ -830,6 +894,10 @@ function GameBoardContent({
     cancelAutoPlay();
     setIsAutoPlayCompletion(false);
     setIsAutoPlaySolvedNoticeVisible(false);
+    autoPlayElapsedMsRef.current = 0;
+    autoPlayStartedAtRef.current = null;
+    setAutoPlayElapsedMs(0);
+    setAutoPlayMoveCount(0);
     if (board.moves > 0) {
       trackAnonymousEvent('level_abandoned', getAnalyticsMetadata());
     }
@@ -847,6 +915,10 @@ function GameBoardContent({
     cancelAutoPlay();
     setIsAutoPlayCompletion(false);
     setIsAutoPlaySolvedNoticeVisible(false);
+    autoPlayElapsedMsRef.current = 0;
+    autoPlayStartedAtRef.current = null;
+    setAutoPlayElapsedMs(0);
+    setAutoPlayMoveCount(0);
     if (board.moves > 0) {
       trackAnonymousEvent('level_abandoned', getAnalyticsMetadata());
     }
@@ -864,6 +936,10 @@ function GameBoardContent({
     cancelAutoPlay();
     setIsAutoPlayCompletion(false);
     setIsAutoPlaySolvedNoticeVisible(false);
+    autoPlayElapsedMsRef.current = 0;
+    autoPlayStartedAtRef.current = null;
+    setAutoPlayElapsedMs(0);
+    setAutoPlayMoveCount(0);
     setReplayResult(null);
     refreshBoard(() => resetBoardAttempt(attemptStartBoard), false);
   }, [attemptStartBoard, cancelAutoPlay, refreshBoard]);
@@ -871,6 +947,10 @@ function GameBoardContent({
     cancelAutoPlay();
     setIsAutoPlayCompletion(false);
     setIsAutoPlaySolvedNoticeVisible(false);
+    autoPlayElapsedMsRef.current = 0;
+    autoPlayStartedAtRef.current = null;
+    setAutoPlayElapsedMs(0);
+    setAutoPlayMoveCount(0);
     setReplayResult(null);
     exitReplayMode();
     refreshBoard(
@@ -946,6 +1026,15 @@ function GameBoardContent({
           Boolean(replayResult)
         }
         isAutoPlaySolvedNoticeVisible={isAutoPlaySolvedNoticeVisible}
+        autoPlaySpeed={{
+          delayMs: autoPlayStepDelayMs,
+          fastestDelayMs: AUTO_PLAY_FASTEST_STEP_DELAY_MS,
+          slowestDelayMs: AUTO_PLAY_SLOWEST_STEP_DELAY_MS,
+        }}
+        autoPlayStats={{
+          elapsedMs: autoPlayElapsedMs,
+          moves: autoPlayMoveCount,
+        }}
         isResetting={isResetting}
         isShowingHintPlaceholder={isShowingHintPlaceholder}
         isShowingSolvedHint={isShowingSolvedHint}
@@ -953,6 +1042,7 @@ function GameBoardContent({
         isSoundEnabled={isSoundEnabled}
         movableSlotKeys={movableSlotKeys}
         onAutoPlayToggle={toggleAutoPlay}
+        onAutoPlaySpeedChange={updateAutoPlaySpeed}
         onBoardPointerDown={startBoardHint}
         onBoardPointerLeave={clearBoardHintFromPointer}
         onBoardPointerUp={clearBoardHintFromPointer}

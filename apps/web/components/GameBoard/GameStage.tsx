@@ -30,6 +30,15 @@ type GameStageProps = {
   isAutoPlayActive: boolean;
   isAutoPlayBlocked: boolean;
   isAutoPlaySolvedNoticeVisible: boolean;
+  autoPlaySpeed: {
+    delayMs: number;
+    fastestDelayMs: number;
+    slowestDelayMs: number;
+  };
+  autoPlayStats: {
+    elapsedMs: number;
+    moves: number;
+  };
   isResetting: boolean;
   isShowingHintPlaceholder: boolean;
   isShowingSolvedHint: boolean;
@@ -37,6 +46,7 @@ type GameStageProps = {
   isSoundEnabled: boolean;
   movableSlotKeys: ReadonlySet<string>;
   onAutoPlayToggle: () => void;
+  onAutoPlaySpeedChange: (delayMs: number) => void;
   onBoardPointerDown: PointerEventHandler<HTMLDivElement>;
   onBoardPointerLeave: PointerEventHandler<HTMLDivElement>;
   onBoardPointerUp: PointerEventHandler<HTMLDivElement>;
@@ -78,6 +88,8 @@ export function GameStage({
   isAutoPlayActive,
   isAutoPlayBlocked,
   isAutoPlaySolvedNoticeVisible,
+  autoPlaySpeed,
+  autoPlayStats,
   isResetting,
   isShowingHintPlaceholder,
   isShowingSolvedHint,
@@ -85,6 +97,7 @@ export function GameStage({
   isSoundEnabled,
   movableSlotKeys,
   onAutoPlayToggle,
+  onAutoPlaySpeedChange,
   onBoardPointerDown,
   onBoardPointerLeave,
   onBoardPointerUp,
@@ -186,11 +199,14 @@ export function GameStage({
         isMuted={isMuted}
         isAutoPlayActive={isAutoPlayActive}
         isAutoPlayBlocked={isAutoPlayBlocked}
+        autoPlaySpeed={autoPlaySpeed}
+        autoPlayStats={autoPlayStats}
         isShuffleAnimationRunning={isShuffleAnimationRunning}
         isSoundEnabled={isSoundEnabled}
         level={board.level}
         moves={board.moves}
         onAutoPlayToggle={onAutoPlayToggle}
+        onAutoPlaySpeedChange={onAutoPlaySpeedChange}
         onPeekCancel={onPeekCancel}
         onPeekDown={onPeekDown}
         onPeekLeave={onPeekLeave}
