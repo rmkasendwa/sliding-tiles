@@ -28,7 +28,7 @@ export function FrogLogo({ className = '', variant = 'color' }: FrogLogoProps) {
         fill
         priority={false}
         sizes="56px"
-        src="/logo192.png"
+        src="/icons/icon-192.png"
       />
     </span>
   );
