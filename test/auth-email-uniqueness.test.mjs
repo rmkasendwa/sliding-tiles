@@ -91,7 +91,7 @@ async function expectEmailConflict(promise) {
 test('registers a user with a new normalized email', async () => {
   const { createCalls, service } = createAuthService();
 
-  const user = await service.signup({
+  const user = await service.register({
     email: ' NewUser@Example.COM ',
     name: 'New User',
     password: 'password123',
@@ -104,13 +104,13 @@ test('registers a user with a new normalized email', async () => {
   assert.equal(createCalls[0].data.email, 'newuser@example.com');
 });
 
-test('rejects signup when the normalized email already exists', async () => {
+test('rejects registration when the normalized email already exists', async () => {
   const { createCalls, service } = createAuthService({
     existingEmails: ['user@example.com'],
   });
 
   await expectEmailConflict(
-    service.signup({
+    service.register({
       email: 'user@example.com',
       name: 'Duplicate User',
       password: 'password123',
@@ -127,7 +127,7 @@ test('treats email duplicates case-insensitively', async () => {
   });
 
   await expectEmailConflict(
-    service.signup({
+    service.register({
       email: 'USER@EXAMPLE.COM',
       name: 'Case Duplicate',
       password: 'password123',
@@ -138,13 +138,13 @@ test('treats email duplicates case-insensitively', async () => {
   assert.equal(createCalls.length, 0);
 });
 
-test('maps database unique email conflicts to signup validation errors', async () => {
+test('maps database unique email conflicts to registration validation errors', async () => {
   const { createCalls, service } = createAuthService({
     createThrows: uniqueEmailError(),
   });
 
   await expectEmailConflict(
-    service.signup({
+    service.register({
       email: 'race@example.com',
       name: 'Race User',
       password: 'password123',

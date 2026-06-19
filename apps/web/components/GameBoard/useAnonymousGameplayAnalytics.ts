@@ -22,8 +22,8 @@ export type AnonymousGameplayEventName =
   | 'level_started'
   | 'move_made'
   | 'reset_level_clicked'
-  | 'signup_clicked'
-  | 'signup_prompt_shown'
+  | 'register_clicked'
+  | 'register_prompt_shown'
   | 'timer_paused'
   | 'timer_resumed';
 

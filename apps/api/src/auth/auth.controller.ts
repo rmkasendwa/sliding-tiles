@@ -21,7 +21,7 @@ import {
   loginSchema,
   parseBody,
   resetPasswordSchema,
-  signupSchema,
+  registerSchema,
   updateProfileSchema,
   verifyEmailSchema,
   usernameAvailabilityQuerySchema,
@@ -35,12 +35,24 @@ export class AuthController {
     private readonly sessionService: SessionService,
   ) {}
 
-  @Post('signup')
-  async signup(
+  @Post('register')
+  async register(
     @Body() body: unknown,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const user = await this.authService.signup(parseBody(signupSchema, body));
+    return this.createRegistrationSession(body, response);
+  }
+
+  @Post('signup')
+  async legacyRegister(
+    @Body() body: unknown,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    return this.createRegistrationSession(body, response);
+  }
+
+  private async createRegistrationSession(body: unknown, response: Response) {
+    const user = await this.authService.register(parseBody(registerSchema, body));
     const session = await this.sessionService.createSession(user);
     this.sessionService.setSessionCookie(
       response,

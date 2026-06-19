@@ -14,7 +14,7 @@ const footerLinks = [
   { href: routes.play, label: 'Play' },
   { href: routes.leaderboard, label: 'Leaderboard' },
   { href: routes.login, label: 'Log in' },
-  { href: routes.signup, label: 'Register' },
+  { href: routes.register, label: 'Register' },
 ];
 
 const utilityLinks = [
@@ -46,7 +46,7 @@ export async function MainFooter() {
   const [session, champion] = await Promise.all([getSession(), getChampion()]);
   const visibleFooterLinks = session
     ? footerLinks.filter(
-        (link) => link.href !== routes.login && link.href !== routes.signup,
+        (link) => link.href !== routes.login && link.href !== routes.register,
       )
     : footerLinks;
   const championName = champion?.user?.name ?? 'Unclaimed champion';

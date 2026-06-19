@@ -131,7 +131,7 @@ relicensing considerations.
 The NestJS API lives in `apps/api` and currently exposes the backend surfaces
 that future web and mobile clients can share:
 
-- `POST /api/auth/signup`
+- `POST /api/auth/register`
 - `POST /api/auth/login`
 - `POST /api/auth/logout`
 - `GET /api/auth/me`

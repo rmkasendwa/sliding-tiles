@@ -314,7 +314,7 @@ export default async function HomePage() {
             {!session ? (
               <Link
                 className="inline-flex min-h-10 items-center justify-center rounded-[7px] border border-accent/30 px-3.5 font-bold text-accent-strong max-[560px]:w-full"
-                href={routes.signup}
+                href={routes.register}
               >
                 Register
               </Link>

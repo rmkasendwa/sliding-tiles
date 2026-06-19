@@ -16,7 +16,6 @@ export const reservedUsernames = new Set([
   'reset_password',
   'reset-password',
   'settings',
-  'signup',
   'support',
   'terms',
 ]);
@@ -40,7 +39,7 @@ export const usernameSchema = z
     'This username is reserved.',
   );
 
-export const signupSchema = z
+export const registerSchema = z
   .object({
     name: nameSchema,
     username: usernameSchema,

@@ -261,7 +261,7 @@ function GameBoardContent({
   useEffect(() => {
     trackAnonymousEvent('game_opened', analyticsMetadataRef.current);
     trackAnonymousEvent(
-      'signup_prompt_shown',
+      'register_prompt_shown',
       analyticsMetadataRef.current,
     );
   }, [trackAnonymousEvent]);
@@ -1113,8 +1113,8 @@ function GameBoardContent({
 
     showInfoModal();
   }, [exitBoardFullscreen, isBoardFullscreen, showInfoModal]);
-  const trackSignupClick = useCallback(() => {
-    trackAnonymousEvent('signup_clicked', getAnalyticsMetadata(), {
+  const trackRegisterClick = useCallback(() => {
+    trackAnonymousEvent('register_clicked', getAnalyticsMetadata(), {
       immediate: true,
     });
   }, [getAnalyticsMetadata, trackAnonymousEvent]);
@@ -1228,7 +1228,7 @@ function GameBoardContent({
         isSignedIn={isSignedIn}
         level={board.level}
         onCloseModal={closeInfoModal}
-        onSignupClick={trackSignupClick}
+        onRegisterClick={trackRegisterClick}
         onSelectLevel={selectLevel}
         playerAvatarUrl={playerAvatarUrl}
         playerName={playerName}

@@ -100,10 +100,10 @@ export const pageMetadataConfig = {
     path: routes.runs,
     title: 'Run History',
   },
-  signup: {
+  register: {
     description:
       'Create a Sliding Tiles account to save puzzle progress, track runs, and climb the competitive leaderboard.',
-    path: routes.signup,
+    path: routes.register,
     title: 'Register',
   },
   terms: {

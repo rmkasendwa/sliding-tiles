@@ -52,7 +52,7 @@ export type GameInfoPanelProps = {
   isSignedIn: boolean;
   level: number;
   onClose?: () => void;
-  onSignupClick?: () => void;
+  onRegisterClick?: () => void;
   onSelectLevel: (level: number) => void;
   rows: number;
 };
@@ -68,7 +68,7 @@ export function GameInfoPanel({
   isSignedIn,
   level,
   onClose,
-  onSignupClick,
+  onRegisterClick,
   onSelectLevel,
   rows,
 }: GameInfoPanelProps) {
@@ -249,8 +249,8 @@ export function GameInfoPanel({
               Anonymous progress stays in this browser.{' '}
               <Link
                 className="font-bold text-accent-strong underline decoration-accent/40 underline-offset-4"
-                href={routes.signup}
-                onClick={onSignupClick}
+                href={routes.register}
+                onClick={onRegisterClick}
               >
                 Register
               </Link>{' '}

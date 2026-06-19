@@ -10,7 +10,7 @@ import {
   type FormEvent,
 } from 'react';
 
-import { login, signup } from '@/app/actions/auth';
+import { login, register } from '@/app/actions/auth';
 import { routes } from '@/lib/routes';
 import { AuthFormState } from '@/lib/validation';
 import Link from 'next/link';
@@ -18,7 +18,7 @@ import Link from 'next/link';
 import { PasswordStrengthMeter } from './PasswordStrengthMeter';
 
 type AuthFormProps = {
-  mode: 'login' | 'signup';
+  mode: 'login' | 'register';
   returnTo?: string;
 };
 
@@ -50,7 +50,7 @@ type UsernameAvailabilityResponse = {
 };
 
 export function AuthForm({ mode, returnTo }: AuthFormProps) {
-  const isSignup = mode === 'signup';
+  const isRegister = mode === 'register';
   const [clientErrors, setClientErrors] = useState<Record<string, string>>({});
   const [editedFields, setEditedFields] = useState<Record<string, boolean>>({});
   const [dismissServerMessage, setDismissServerMessage] = useState(false);
@@ -73,7 +73,7 @@ export function AuthForm({ mode, returnTo }: AuthFormProps) {
       status: 'idle',
       suggestions: [],
     });
-  const fieldLabelClass = isSignup
+  const fieldLabelClass = isRegister
     ? 'text-[0.78rem] font-medium tracking-[0.01em] text-foreground/76'
     : 'text-[0.68rem] font-bold uppercase tracking-[0.08em] text-foreground/64';
 
@@ -85,7 +85,7 @@ export function AuthForm({ mode, returnTo }: AuthFormProps) {
     const value = rawValue.trim();
 
     if (fieldName === 'name') {
-      if (!isSignup) {
+      if (!isRegister) {
         return undefined;
       }
 
@@ -101,7 +101,7 @@ export function AuthForm({ mode, returnTo }: AuthFormProps) {
     }
 
     if (fieldName === 'email') {
-      if (!isSignup) {
+      if (!isRegister) {
         return undefined;
       }
 
@@ -118,7 +118,7 @@ export function AuthForm({ mode, returnTo }: AuthFormProps) {
     }
 
     if (fieldName === 'identifier') {
-      if (isSignup) {
+      if (isRegister) {
         return undefined;
       }
 
@@ -147,7 +147,7 @@ export function AuthForm({ mode, returnTo }: AuthFormProps) {
     }
 
     if (fieldName === 'username') {
-      if (!isSignup) {
+      if (!isRegister) {
         return undefined;
       }
 
@@ -175,7 +175,7 @@ export function AuthForm({ mode, returnTo }: AuthFormProps) {
         return 'Password is required.';
       }
 
-      if (isSignup) {
+      if (isRegister) {
         if (value.length < 8) {
           return 'Password must be at least 8 characters.';
         }
@@ -193,7 +193,7 @@ export function AuthForm({ mode, returnTo }: AuthFormProps) {
     }
 
     if (fieldName === 'confirmPassword') {
-      if (!isSignup) {
+      if (!isRegister) {
         return undefined;
       }
 
@@ -276,7 +276,7 @@ export function AuthForm({ mode, returnTo }: AuthFormProps) {
     setDismissServerMessage(true);
     updateClientValidation(fieldName, value, nextValues);
 
-    if (isSignup && fieldName === 'username') {
+    if (isRegister && fieldName === 'username') {
       const candidate = value.trim();
       const isUsernameFormatValid =
         candidate.length >= 3 &&
@@ -290,7 +290,7 @@ export function AuthForm({ mode, returnTo }: AuthFormProps) {
       });
     }
 
-    if (isSignup && fieldName === 'password' && nextValues.confirmPassword) {
+    if (isRegister && fieldName === 'password' && nextValues.confirmPassword) {
       updateClientValidation(
         'confirmPassword',
         nextValues.confirmPassword,
@@ -312,7 +312,7 @@ export function AuthForm({ mode, returnTo }: AuthFormProps) {
       password: String(formData.get('password') ?? ''),
       username: String(formData.get('username') ?? ''),
     };
-    const fieldsToValidate: Array<keyof FormValues> = isSignup
+    const fieldsToValidate: Array<keyof FormValues> = isRegister
       ? ['name', 'username', 'email', 'password', 'confirmPassword']
       : ['identifier', 'password'];
     const nextErrors: Record<string, string> = {};
@@ -325,7 +325,7 @@ export function AuthForm({ mode, returnTo }: AuthFormProps) {
       }
     }
 
-    if (isSignup) {
+    if (isRegister) {
       const normalizedUsername = submitValues.username.trim().toLowerCase();
       if (
         usernameAvailability.checkedUsername === normalizedUsername &&
@@ -348,14 +348,14 @@ export function AuthForm({ mode, returnTo }: AuthFormProps) {
     }
   };
 
-  const action = mode === 'signup' ? signup : login;
+  const action = mode === 'register' ? register : login;
   const [state, formAction, pending] = useActionState<AuthFormState, FormData>(
     action,
     {},
   );
 
   useEffect(() => {
-    if (!isSignup) {
+    if (!isRegister) {
       return;
     }
 
@@ -443,7 +443,7 @@ export function AuthForm({ mode, returnTo }: AuthFormProps) {
     return () => {
       window.clearTimeout(timeoutId);
     };
-  }, [formValues.username, isSignup]);
+  }, [formValues.username, isRegister]);
 
   const applySuggestedUsername = (suggestedUsername: string) => {
     const nextValues = {
@@ -464,7 +464,7 @@ export function AuthForm({ mode, returnTo }: AuthFormProps) {
       onSubmit={handleSubmit}
       className={[
         'grid gap-4 border shadow-panel',
-        isSignup
+        isRegister
           ? 'rounded-lg border-line bg-warning-soft p-4 sm:p-6'
           : 'rounded-2xl border-line bg-success-soft p-4 shadow-panel-strong backdrop-blur-[2px] sm:p-6',
       ].join(' ')}
@@ -474,19 +474,19 @@ export function AuthForm({ mode, returnTo }: AuthFormProps) {
       ) : null}
       <div className="grid gap-1.5">
         <p className="text-[0.62rem] font-bold uppercase tracking-widest text-accent-strong/90">
-          {isSignup ? 'Registration' : 'Welcome back'}
+          {isRegister ? 'Registration' : 'Welcome back'}
         </p>
         <h1 className="auth-display-heading">
-          {isSignup ? 'Register' : 'Log in'}
+          {isRegister ? 'Register' : 'Log in'}
         </h1>
-        {!isSignup && (
+        {!isRegister && (
           <p className="text-[0.95rem] leading-6 text-foreground/68">
             Pick up your progress and chase a cleaner solve.
           </p>
         )}
       </div>
 
-      {isSignup && (
+      {isRegister && (
         <div className="grid items-start gap-4 sm:grid-cols-2">
           <div className="grid gap-2">
             <label className={fieldLabelClass} htmlFor="name">
@@ -590,7 +590,7 @@ export function AuthForm({ mode, returnTo }: AuthFormProps) {
         </div>
       )}
 
-      {isSignup ? (
+      {isRegister ? (
         <div className="grid gap-2">
           <label className={fieldLabelClass} htmlFor="email">
             Email{' '}
@@ -653,7 +653,7 @@ export function AuthForm({ mode, returnTo }: AuthFormProps) {
 
       <div
         className={
-          isSignup ? 'grid items-start gap-4 sm:grid-cols-2' : 'grid gap-2'
+          isRegister ? 'grid items-start gap-4 sm:grid-cols-2' : 'grid gap-2'
         }
       >
         <div className="grid gap-2">
@@ -683,11 +683,11 @@ export function AuthForm({ mode, returnTo }: AuthFormProps) {
               id="password"
               name="password"
               type={visiblePasswords.password ? 'text' : 'password'}
-              autoComplete={isSignup ? 'new-password' : 'current-password'}
-              minLength={isSignup ? 8 : 1}
+              autoComplete={isRegister ? 'new-password' : 'current-password'}
+              minLength={isRegister ? 8 : 1}
               onChange={handleFieldChange}
               placeholder={
-                isSignup ? '8+ chars, letters & numbers' : 'Your password'
+                isRegister ? '8+ chars, letters & numbers' : 'Your password'
               }
               required
               value={formValues.password}
@@ -707,14 +707,14 @@ export function AuthForm({ mode, returnTo }: AuthFormProps) {
               )}
             </button>
           </div>
-          {isSignup && <PasswordStrengthMeter password={formValues.password} />}
+          {isRegister && <PasswordStrengthMeter password={formValues.password} />}
           {getFieldError('password') && (
             <p className="text-[0.9rem] text-danger" id="password-error">
               {getFieldError('password')}
             </p>
           )}
         </div>
-        {isSignup && (
+        {isRegister && (
           <div className="grid gap-2">
             <label className={fieldLabelClass} htmlFor="confirmPassword">
               Confirm Password{' '}
@@ -778,7 +778,7 @@ export function AuthForm({ mode, returnTo }: AuthFormProps) {
         disabled={pending}
         type="submit"
       >
-        {pending ? 'Working...' : isSignup ? 'Register' : 'Enter pond'}
+        {pending ? 'Working...' : isRegister ? 'Register' : 'Enter pond'}
       </button>
     </form>
   );

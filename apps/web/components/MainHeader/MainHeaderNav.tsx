@@ -192,15 +192,15 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
           </Link>
           <Link
             aria-current={
-              isRouteActive(pathname, routes.signup) ? 'page' : undefined
+              isRouteActive(pathname, routes.register) ? 'page' : undefined
             }
             className={[
               baseLinkClass,
-              isRouteActive(pathname, routes.signup)
+              isRouteActive(pathname, routes.register)
                 ? 'border-primary-strong/50 bg-primary-strong px-3.5 font-bold text-primary-contrast'
                 : 'border-primary bg-primary font-bold text-primary-contrast',
             ].join(' ')}
-            href={routes.signup}
+            href={routes.register}
             onClick={closeDrawer}
           >
             Register
@@ -307,10 +307,10 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
           </Link>
           <Link
             aria-current={
-              isRouteActive(pathname, routes.signup) ? 'page' : undefined
+              isRouteActive(pathname, routes.register) ? 'page' : undefined
             }
             className="flex min-h-12 items-center rounded-[7px] border border-primary bg-primary px-3 text-left text-[1.05rem] font-bold text-primary-contrast transition-colors hover:bg-primary-strong"
-            href={routes.signup}
+            href={routes.register}
             onClick={closeDrawer}
           >
             Register

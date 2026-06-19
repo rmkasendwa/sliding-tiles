@@ -469,7 +469,7 @@ export class AuthService {
     });
   }
 
-  async signup({
+  async register({
     email,
     name,
     username,

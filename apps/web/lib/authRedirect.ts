@@ -16,7 +16,7 @@ export function getSafeReturnTo(
   }
 
   const pathname = returnTo.split(/[?#]/, 1)[0];
-  if (pathname === routes.login || pathname === routes.signup) {
+  if (pathname === routes.login || pathname === routes.register) {
     return fallback;
   }
 

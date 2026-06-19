@@ -66,7 +66,6 @@ export const reservedUsernames = new Set([
   'reset_password',
   'reset-password',
   'settings',
-  'signup',
   'support',
   'terms',
 ]);
@@ -90,7 +89,7 @@ export const nameSchema = z
   .trim()
   .min(2, 'Name must be at least 2 characters.');
 
-export const signupSchema = z.object({
+export const registerSchema = z.object({
   email: z.string().trim().email('Enter a valid email address.'),
   name: nameSchema,
   username: usernameSchema,
@@ -157,8 +156,8 @@ export const anonymousAnalyticsEventNames = [
   'full_image_peeked',
   'auto_play_started',
   'auto_play_completed',
-  'signup_prompt_shown',
-  'signup_clicked',
+  'register_prompt_shown',
+  'register_clicked',
 ] as const;
 
 const anonymousAnalyticsEventSchema = z

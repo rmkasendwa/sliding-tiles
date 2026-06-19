@@ -19,15 +19,15 @@ import {
   forgotPasswordSchema,
   loginSchema,
   resetPasswordSchema,
-  signupSchema,
+  registerSchema,
   updateProfileSchema,
 } from '@/lib/validation';
 
-export async function signup(
+export async function register(
   _state: AuthFormState,
   formData: FormData,
 ): Promise<AuthFormState> {
-  const validatedFields = signupSchema.safeParse({
+  const validatedFields = registerSchema.safeParse({
     name: formData.get('name'),
     username: formData.get('username'),
     email: formData.get('email'),
@@ -44,7 +44,7 @@ export async function signup(
   const { name, username, email, password } = validatedFields.data;
 
   try {
-    const response = await apiRequest<AuthResponse>('/auth/signup', {
+    const response = await apiRequest<AuthResponse>('/auth/register', {
       body: { email, name, password, username },
       method: 'POST',
       token: null,

@@ -9,7 +9,7 @@ export const routes = {
   forgotPassword: '/forgot-password',
   resetPassword: '/reset-password',
   runs: '/runs',
-  signup: '/signup',
+  register: '/register',
   terms: '/terms',
   verifyEmail: '/verify-email',
   profile: '/profile',
