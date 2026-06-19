@@ -25,7 +25,7 @@ const sections = [
   },
   {
     heading: 'Analytics usage',
-    body: 'For anonymous players who accept storage, we collect lightweight gameplay events such as level starts, moves, completions, resets, pauses, and signup prompt interactions. Events may include a random player ID, a per-play session ID, level and puzzle details, timer and move counts, timestamp, screen size, and browser user agent. We do not intentionally include names, email addresses, account IDs, or other contact details in these events.',
+    body: 'For anonymous players who accept storage, we collect lightweight gameplay events such as level starts, moves, completions, resets, pauses, and registration prompt interactions. Events may include a random player ID, a per-play session ID, level and puzzle details, timer and move counts, timestamp, screen size, and browser user agent. We do not intentionally include names, email addresses, account IDs, or other contact details in these events.',
   },
   {
     heading: 'Data retention',

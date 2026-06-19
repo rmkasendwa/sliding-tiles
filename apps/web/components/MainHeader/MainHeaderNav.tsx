@@ -203,7 +203,7 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
             href={routes.signup}
             onClick={closeDrawer}
           >
-            Sign up
+            Register
           </Link>
         </>
       ) : null}
@@ -313,7 +313,7 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
             href={routes.signup}
             onClick={closeDrawer}
           >
-            Sign up
+            Register
           </Link>
         </>
       )}

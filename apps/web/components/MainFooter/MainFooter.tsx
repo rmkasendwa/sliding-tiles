@@ -14,7 +14,7 @@ const footerLinks = [
   { href: routes.play, label: 'Play' },
   { href: routes.leaderboard, label: 'Leaderboard' },
   { href: routes.login, label: 'Log in' },
-  { href: routes.signup, label: 'Sign up' },
+  { href: routes.signup, label: 'Register' },
 ];
 
 const utilityLinks = [

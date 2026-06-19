@@ -246,16 +246,16 @@ export function GameInfoPanel({
         {!isSignedIn && (
           <div className="grid gap-2 text-sm leading-6 text-muted">
             <p>
-              Anonymous progress stays in this browser. Create an account to
-              sync your board and post leaderboard times.
+              Anonymous progress stays in this browser.{' '}
+              <Link
+                className="font-bold text-accent-strong underline decoration-accent/40 underline-offset-4"
+                href={routes.signup}
+                onClick={onSignupClick}
+              >
+                Register
+              </Link>{' '}
+              to sync your board and post leaderboard times.
             </p>
-            <Link
-              className="font-bold text-accent-strong underline decoration-accent/40 underline-offset-4"
-              href={routes.signup}
-              onClick={onSignupClick}
-            >
-              Create account
-            </Link>
           </div>
         )}
 

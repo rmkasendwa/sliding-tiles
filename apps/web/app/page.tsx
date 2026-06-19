@@ -301,7 +301,7 @@ export default async function HomePage() {
             Start with a quick board
           </h2>
           <p className="max-w-[60ch] leading-7 text-muted">
-            No account is required to play. Sign up later when you want saved
+            No account is required to play. Register later when you want saved
             progress and leaderboard entries attached to your name.
           </p>
           <div className="flex flex-wrap gap-3 max-[560px]:grid">
@@ -316,7 +316,7 @@ export default async function HomePage() {
                 className="inline-flex min-h-10 items-center justify-center rounded-[7px] border border-accent/30 px-3.5 font-bold text-accent-strong max-[560px]:w-full"
                 href={routes.signup}
               >
-                Create account
+                Register
               </Link>
             ) : null}
           </div>

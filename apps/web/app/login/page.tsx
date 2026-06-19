@@ -98,12 +98,12 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               </p>
               <AuthForm mode="login" returnTo={returnTo} />
               <p className="mt-4 text-center text-[0.9rem] leading-normal text-muted">
-                No account yet?{' '}
+                Need an account?{' '}
                 <Link
                   className="font-bold text-accent-strong transition-colors hover:text-accent"
                   href={`${routes.signup}?${new URLSearchParams({ returnTo })}`}
                 >
-                  Create one
+                  Register
                 </Link>
               </p>
             </div>

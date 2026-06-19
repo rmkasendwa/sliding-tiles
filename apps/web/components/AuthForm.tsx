@@ -474,10 +474,10 @@ export function AuthForm({ mode, returnTo }: AuthFormProps) {
       ) : null}
       <div className="grid gap-1.5">
         <p className="text-[0.62rem] font-bold uppercase tracking-widest text-accent-strong/90">
-          {isSignup ? 'Create account' : 'Welcome back'}
+          {isSignup ? 'Registration' : 'Welcome back'}
         </p>
         <h1 className="auth-display-heading">
-          {isSignup ? 'Sign up' : 'Log in'}
+          {isSignup ? 'Register' : 'Log in'}
         </h1>
         {!isSignup && (
           <p className="text-[0.95rem] leading-6 text-foreground/68">
@@ -778,7 +778,7 @@ export function AuthForm({ mode, returnTo }: AuthFormProps) {
         disabled={pending}
         type="submit"
       >
-        {pending ? 'Working...' : isSignup ? 'Create account' : 'Enter pond'}
+        {pending ? 'Working...' : isSignup ? 'Register' : 'Enter pond'}
       </button>
     </form>
   );

@@ -51,7 +51,7 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
                 Start your first streak in the pond.
               </h1>
               <p className="max-w-[34ch] text-[1rem] leading-7 text-foreground/72">
-                Create your account to save progress automatically, climb the
+                Register to save progress automatically, climb the
                 leaderboard, and build your own solve history.
               </p>
             </div>

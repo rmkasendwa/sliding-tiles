@@ -9,7 +9,7 @@ NestJS, and PostgreSQL.
 - `apps/api`: the NestJS API shared by web now and future clients later.
 - Root-level Prisma, Docker, and orchestration scripts.
 - Anonymous play with browser-local progress.
-- Email/password signup and login with HTTP-only signed sessions.
+- Email/password registration and login with HTTP-only signed sessions.
 - Email verification with expiring links sent through Resend.
 - Signed-in game-state persistence in PostgreSQL.
 - Leaderboard entries for completed signed-in levels.
@@ -151,7 +151,7 @@ npm run api:dev
 
 By default it listens on `http://localhost:4001`. Browser clients can use the
 HTTP-only session cookie; mobile clients can use the `accessToken` returned by
-login/signup as a bearer token.
+login/registration as a bearer token.
 
 ## Docker Deployment
 

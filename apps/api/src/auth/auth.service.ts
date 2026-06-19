@@ -517,7 +517,7 @@ export class AuthService {
         await this.issueVerificationEmail(user, { enforceCooldown: false });
       } catch (error) {
         console.error(
-          `[auth] Could not send signup verification email to ${user.email}.`,
+          `[auth] Could not send registration verification email to ${user.email}.`,
           error,
         );
       }
