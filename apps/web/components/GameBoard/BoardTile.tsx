@@ -1,5 +1,6 @@
 import { Slot, slotKey, Tile } from '@/lib/board';
 import {
+  memo,
   useEffect,
   useRef,
   useState,
@@ -39,6 +40,27 @@ type TileDragSession = {
   start: DragPoint;
 };
 
+const resetTileDragVars = (element: HTMLElement | null) => {
+  if (!element) {
+    return;
+  }
+
+  element.style.setProperty('--tile-drag-x', '0px');
+  element.style.setProperty('--tile-drag-y', '0px');
+};
+
+const setTileDragVars = (
+  element: HTMLElement | null,
+  offset: { x: number; y: number },
+) => {
+  if (!element) {
+    return;
+  }
+
+  element.style.setProperty('--tile-drag-x', `${offset.x}px`);
+  element.style.setProperty('--tile-drag-y', `${offset.y}px`);
+};
+
 export type BoardTileProps = {
   columns: number;
   emptySlot: Slot;
@@ -51,7 +73,7 @@ export type BoardTileProps = {
   isResetting: boolean;
   isShowingSolvedHint: boolean;
   onHint: (slot: string | null) => void;
-  onInvalidMove: () => void;
+  onInvalidMove: (slotKey: string) => void;
   onMove: (slot: Slot) => void;
   rows: number;
   suppressNextClickRef: MutableRefObject<boolean>;
@@ -61,7 +83,7 @@ export type BoardTileProps = {
   tileWidth: number;
 };
 
-export function BoardTile({
+function BoardTileComponent({
   columns,
   emptySlot,
   hintedSlot,
@@ -82,17 +104,18 @@ export function BoardTile({
   tileRotationSeed,
   tileWidth,
 }: BoardTileProps) {
+  const tileRef = useRef<HTMLButtonElement | null>(null);
   const tileDragSessionRef = useRef<TileDragSession | null>(null);
   const clickSuppressionTimeoutRef = useRef<number | null>(null);
   const pendingMoveTimeoutRef = useRef<number | null>(null);
   const transitionRestoreFrameRef = useRef<number | null>(null);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isDraggingTile, setIsDraggingTile] = useState(false);
   const [isCommittingAtDestination, setIsCommittingAtDestination] =
     useState(false);
   const [dismissedInvalidMoveKey, setDismissedInvalidMoveKey] = useState(0);
   const [homeRow, homeColumn] = tile.homeSlot;
   const [row, column] = isShowingSolvedHint ? tile.homeSlot : tile.slot;
+  const currentSlotKey = slotKey(tile.slot);
   const isHintPlaceholder = tile.type === 'PLACEHOLDER';
   const tileCenterX = column * tileWidth + tileWidth / 2;
   const tileCenterY = row * tileHeight + tileHeight / 2;
@@ -133,12 +156,13 @@ export function BoardTile({
       if (transitionRestoreFrameRef.current !== null) {
         window.cancelAnimationFrame(transitionRestoreFrameRef.current);
       }
+      resetTileDragVars(tileRef.current);
     },
     [],
   );
 
   const showInvalidMoveFeedback = () => {
-    onInvalidMove();
+    onInvalidMove(currentSlotKey);
     onHint(slotKey(tile.homeSlot));
   };
   const suppressNextClick = (durationMs = 0) => {
@@ -213,7 +237,7 @@ export function BoardTile({
       },
     };
     event.currentTarget.setPointerCapture(event.pointerId);
-    setDragOffset({ x: 0, y: 0 });
+    resetTileDragVars(event.currentTarget);
     setIsDraggingTile(false);
   };
   const updateTileDrag = (event: PointerEvent<HTMLButtonElement>) => {
@@ -232,7 +256,7 @@ export function BoardTile({
       dragSession.maxDistancePx,
     );
 
-    setDragOffset(nextOffset);
+    setTileDragVars(event.currentTarget, nextOffset);
 
     if (
       !isDraggingTile &&
@@ -297,7 +321,7 @@ export function BoardTile({
 
       if (isAtDestination) {
         setIsCommittingAtDestination(true);
-        setDragOffset({ x: 0, y: 0 });
+        resetTileDragVars(event.currentTarget);
         onMove(tile.slot);
         transitionRestoreFrameRef.current = window.requestAnimationFrame(() => {
           transitionRestoreFrameRef.current = window.requestAnimationFrame(
@@ -325,16 +349,16 @@ export function BoardTile({
         dragSession.maxDistancePx,
       );
 
-      setDragOffset(destinationOffset);
+      setTileDragVars(event.currentTarget, destinationOffset);
       pendingMoveTimeoutRef.current = window.setTimeout(() => {
         pendingMoveTimeoutRef.current = null;
-        setDragOffset({ x: 0, y: 0 });
+        resetTileDragVars(tileRef.current);
         onMove(tile.slot);
       }, TILE_DRAG_SETTLE_MS);
       return;
     }
 
-    setDragOffset({ x: 0, y: 0 });
+    resetTileDragVars(event.currentTarget);
   };
   const cancelTileDrag = (event: PointerEvent<HTMLButtonElement>) => {
     const dragSession = tileDragSessionRef.current;
@@ -351,7 +375,7 @@ export function BoardTile({
     }
     tileDragSessionRef.current = null;
     setIsDraggingTile(false);
-    setDragOffset({ x: 0, y: 0 });
+    resetTileDragVars(event.currentTarget);
   };
   const tileClasses = [
     'board-tile absolute cursor-pointer rounded-md border border-foreground/20 bg-no-repeat shadow-tile hover:z-[8] focus-visible:z-[8]',
@@ -362,7 +386,7 @@ export function BoardTile({
       : '',
     isHintPlaceholder ? 'pointer-events-none' : '',
     isDraggingTile ? 'z-[12]' : '',
-    hintedSlot === slotKey(tile.homeSlot)
+      hintedSlot === slotKey(tile.homeSlot)
       ? 'z-[9] shadow-tile-active'
       : '',
   ]
@@ -391,13 +415,14 @@ export function BoardTile({
       }}
       onPointerMove={updateTileDrag}
       onPointerUp={finishTileDrag}
+      ref={tileRef}
       onDragStart={(event) => event.preventDefault()}
       style={
         {
           width: `${(tileWidth / BOARD_SIZE) * 100}%`,
           height: `${(tileHeight / BOARD_SIZE) * 100}%`,
-          top: `${((row * tileHeight) / BOARD_SIZE) * 100}%`,
-          left: `${((column * tileWidth) / BOARD_SIZE) * 100}%`,
+          top: 0,
+          left: 0,
           backgroundImage: TILE_BACKGROUND,
           backgroundSize: `${columns * 100}% ${rows * 100}%`,
           backgroundPosition: `${
@@ -408,9 +433,13 @@ export function BoardTile({
           touchAction: isMovable ? 'none' : 'manipulation',
           userSelect: 'none',
           transform:
-            dragOffset.x !== 0 || dragOffset.y !== 0
-              ? `translate3d(${dragOffset.x}px, ${dragOffset.y}px, 0)`
+            'translate3d(calc(var(--tile-translate-x) + var(--tile-drag-x, 0px)), calc(var(--tile-translate-y) + var(--tile-drag-y, 0px)), 0)',
+          willChange:
+            isMovable || isDraggingTile || isCommittingAtDestination
+              ? 'transform'
               : undefined,
+          '--tile-translate-x': `${column * 100}%`,
+          '--tile-translate-y': `${row * 100}%`,
           '--tile-entry-x': `${entryX}%`,
           '--tile-entry-y': `${entryY}%`,
           '--tile-entry-rotation': `${entryRotation}deg`,
@@ -425,7 +454,7 @@ export function BoardTile({
             ? 'none'
             : isHintPlaceholder
               ? HINT_PLACEHOLDER_TRANSITION
-              : `${TILE_TRANSITION}, transform 160ms ease`,
+              : TILE_TRANSITION,
         } as CSSProperties
       }
       type="button"
@@ -445,3 +474,33 @@ export function BoardTile({
     </button>
   );
 }
+
+const areSlotsEqual = (first: Slot, second: Slot) =>
+  first[0] === second[0] && first[1] === second[1];
+
+export const BoardTile = memo(BoardTileComponent, (previous, next) => {
+  const needsEmptySlot =
+    previous.isMovable || next.isMovable || previous.isShowingSolvedHint;
+
+  return (
+    previous.columns === next.columns &&
+    previous.hintedSlot === next.hintedSlot &&
+    previous.isHintPlaceholderVisible === next.isHintPlaceholderVisible &&
+    previous.isEntering === next.isEntering &&
+    previous.isInteractionBlocked === next.isInteractionBlocked &&
+    previous.invalidMoveKey === next.invalidMoveKey &&
+    previous.isMovable === next.isMovable &&
+    previous.isResetting === next.isResetting &&
+    previous.isShowingSolvedHint === next.isShowingSolvedHint &&
+    previous.onHint === next.onHint &&
+    previous.onInvalidMove === next.onInvalidMove &&
+    previous.onMove === next.onMove &&
+    previous.rows === next.rows &&
+    previous.suppressNextClickRef === next.suppressNextClickRef &&
+    previous.tile === next.tile &&
+    previous.tileHeight === next.tileHeight &&
+    previous.tileRotationSeed === next.tileRotationSeed &&
+    previous.tileWidth === next.tileWidth &&
+    (!needsEmptySlot || areSlotsEqual(previous.emptySlot, next.emptySlot))
+  );
+});

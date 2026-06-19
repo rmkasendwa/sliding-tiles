@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import type { MutableRefObject, PointerEventHandler, RefObject } from 'react';
 
 import { BoardState, Slot, slotKey } from '@/lib/board';
@@ -76,6 +77,85 @@ type GameStageProps = {
   tileRotationSeed: number;
 };
 
+type BoardTilesLayerProps = Pick<
+  GameStageProps,
+  | 'board'
+  | 'boardEntryAnimationKey'
+  | 'columns'
+  | 'hintedSlot'
+  | 'invalidMoveTile'
+  | 'isAutoPlayActive'
+  | 'isBoardEntering'
+  | 'isResetting'
+  | 'isShowingHintPlaceholder'
+  | 'isShowingSolvedHint'
+  | 'movableSlotKeys'
+  | 'onHint'
+  | 'onInvalidMove'
+  | 'onMove'
+  | 'rows'
+  | 'suppressNextClickRef'
+  | 'tileRotationSeed'
+>;
+
+const BoardTilesLayer = memo(function BoardTilesLayer({
+  board,
+  boardEntryAnimationKey,
+  columns,
+  hintedSlot,
+  invalidMoveTile,
+  isAutoPlayActive,
+  isBoardEntering,
+  isResetting,
+  isShowingHintPlaceholder,
+  isShowingSolvedHint,
+  movableSlotKeys,
+  onHint,
+  onInvalidMove,
+  onMove,
+  rows,
+  suppressNextClickRef,
+  tileRotationSeed,
+}: BoardTilesLayerProps) {
+  const tileWidth = BOARD_SIZE / columns;
+  const tileHeight = BOARD_SIZE / rows;
+
+  return board.tileGrid.flat().map((tile) => {
+    if (tile.type === 'PLACEHOLDER' && !isShowingSolvedHint) {
+      return null;
+    }
+
+    const currentSlotKey = slotKey(tile.slot);
+
+    return (
+      <BoardTile
+        columns={columns}
+        emptySlot={board.emptySlot}
+        hintedSlot={hintedSlot}
+        isHintPlaceholderVisible={isShowingHintPlaceholder}
+        isEntering={isBoardEntering}
+        invalidMoveKey={
+          invalidMoveTile.slotKey === currentSlotKey ? invalidMoveTile.key : 0
+        }
+        isMovable={movableSlotKeys.has(currentSlotKey)}
+        isInteractionBlocked={isAutoPlayActive}
+        isResetting={isResetting}
+        isShowingSolvedHint={isShowingSolvedHint}
+        key={`${boardEntryAnimationKey}:${tile.position}`}
+        onHint={onHint}
+        onInvalidMove={onInvalidMove}
+        onMove={onMove}
+        rows={rows}
+        suppressNextClickRef={suppressNextClickRef}
+        tile={tile}
+        tileHeight={tileHeight}
+        tileRotationSeed={tileRotationSeed}
+        tileWidth={tileWidth}
+      />
+    );
+  });
+});
+
 export function GameStage({
   board,
   boardEntryAnimationKey,
@@ -129,9 +209,6 @@ export function GameStage({
   suppressNextClickRef,
   tileRotationSeed,
 }: GameStageProps) {
-  const tileWidth = BOARD_SIZE / columns;
-  const tileHeight = BOARD_SIZE / rows;
-
   return (
     <section
       aria-label="Sliding tile board"
@@ -164,40 +241,25 @@ export function GameStage({
           touchAction: isAutoPlayActive ? 'auto' : 'none',
         }}
       >
-        {board.tileGrid.flat().map((tile) => {
-          if (tile.type === 'PLACEHOLDER' && !isShowingSolvedHint) {
-            return null;
-          }
-
-          return (
-            <BoardTile
-              columns={columns}
-              emptySlot={board.emptySlot}
-              hintedSlot={hintedSlot}
-              isHintPlaceholderVisible={isShowingHintPlaceholder}
-              isEntering={isBoardEntering}
-              invalidMoveKey={
-                invalidMoveTile.slotKey === slotKey(tile.slot)
-                  ? invalidMoveTile.key
-                  : 0
-              }
-              isMovable={movableSlotKeys.has(slotKey(tile.slot))}
-              isInteractionBlocked={isAutoPlayActive}
-              isResetting={isResetting}
-              isShowingSolvedHint={isShowingSolvedHint}
-              key={`${boardEntryAnimationKey}:${tile.position}`}
-              onHint={tile.type === 'PLACEHOLDER' ? () => undefined : onHint}
-              onInvalidMove={() => onInvalidMove(slotKey(tile.slot))}
-              onMove={onMove}
-              rows={rows}
-              suppressNextClickRef={suppressNextClickRef}
-              tile={tile}
-              tileHeight={tileHeight}
-              tileRotationSeed={tileRotationSeed}
-              tileWidth={tileWidth}
-            />
-          );
-        })}
+        <BoardTilesLayer
+          board={board}
+          boardEntryAnimationKey={boardEntryAnimationKey}
+          columns={columns}
+          hintedSlot={hintedSlot}
+          invalidMoveTile={invalidMoveTile}
+          isAutoPlayActive={isAutoPlayActive}
+          isBoardEntering={isBoardEntering}
+          isResetting={isResetting}
+          isShowingHintPlaceholder={isShowingHintPlaceholder}
+          isShowingSolvedHint={isShowingSolvedHint}
+          movableSlotKeys={movableSlotKeys}
+          onHint={onHint}
+          onInvalidMove={onInvalidMove}
+          onMove={onMove}
+          rows={rows}
+          suppressNextClickRef={suppressNextClickRef}
+          tileRotationSeed={tileRotationSeed}
+        />
         <CompletionEffects
           confettiBurstKey={confettiBurstKey}
           isCelebrating={isCelebrating}

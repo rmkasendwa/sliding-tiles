@@ -11,9 +11,9 @@ export const TILE_ENTRY_LOCK_IN_DELAY_MS = 2300;
 export const TILE_INVALID_MOVE_FEEDBACK_MS = 260;
 
 export const TILE_TRANSITION =
-  'left 180ms ease, top 180ms ease, box-shadow 180ms ease';
+  'transform 145ms cubic-bezier(0.2, 0.78, 0.2, 1), box-shadow 145ms ease';
 export const HINT_PLACEHOLDER_TRANSITION =
-  'left 180ms ease, top 180ms ease, opacity 360ms ease, box-shadow 180ms ease, filter 180ms ease';
+  'transform 145ms cubic-bezier(0.2, 0.78, 0.2, 1), opacity 240ms ease, box-shadow 145ms ease';
 export const AUTO_PLAY_DEFAULT_STEP_DELAY_MS = 280;
 export const AUTO_PLAY_FASTEST_STEP_DELAY_MS = 120;
 export const AUTO_PLAY_SLOWEST_STEP_DELAY_MS = 720;
