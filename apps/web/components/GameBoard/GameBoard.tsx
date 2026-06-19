@@ -88,6 +88,7 @@ function GameBoardContent({
     prepareClockForBoardChange,
     resetClock,
     startClockForValidMove,
+    stopClockForAssistedPlay,
     timerStatus,
   } = useGameTimer(initialBoard, initialTimerStatus);
   const {
@@ -603,7 +604,7 @@ function GameBoardContent({
       setBoard(nextBoard);
 
       if (nextBoard !== currentBoard) {
-        const effectiveLevelStartedAtMs = isAutoPlayMove
+        const effectiveLevelStartedAtMs = isAutoPlayMove || isAutoPlayCompletion
           ? Date.now()
           : startClockForValidMove();
         const currentElapsedTimeMs = Math.max(
@@ -630,6 +631,7 @@ function GameBoardContent({
       cancelBoardSolve,
       completeLevel,
       isCelebrating,
+      isAutoPlayCompletion,
       isShuffleAnimationRunning,
       getAnalyticsMetadata,
       playSound,
@@ -717,6 +719,7 @@ function GameBoardContent({
     boardSolveGenerationRef.current = solveGeneration;
     isAutoPlaySolvingRef.current = true;
     setIsAutoPlaySolving(true);
+    stopClockForAssistedPlay();
     clearBoardHint();
     setAutoPlayStatusMessage(null);
 
@@ -802,6 +805,7 @@ function GameBoardContent({
     playSound,
     replayResult,
     showSolvedBoard,
+    stopClockForAssistedPlay,
     trackAnonymousEvent,
   ]);
 

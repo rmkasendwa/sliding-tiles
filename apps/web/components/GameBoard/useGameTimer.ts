@@ -118,6 +118,15 @@ export function useGameTimer(
     return levelStart;
   }, [clockNowMs, isFocusPaused, levelStartedAtMs]);
 
+  const stopClockForAssistedPlay = useCallback(() => {
+    const stoppedAtMs = isFocusPaused ? clockNowMs : Date.now();
+
+    isClockRunningRef.current = false;
+    setClockNowMs(stoppedAtMs);
+    setIsClockRunning(false);
+    setIsFocusPaused(false);
+  }, [clockNowMs, isFocusPaused]);
+
   const completeClock = useCallback((effectiveLevelStartedAtMs: number) => {
     const completedAtMs = Date.now();
     const elapsedTimeMs = Math.max(
@@ -154,6 +163,7 @@ export function useGameTimer(
     prepareClockForBoardChange,
     resetClock,
     startClockForValidMove,
+    stopClockForAssistedPlay,
     timerStatus,
   };
 }

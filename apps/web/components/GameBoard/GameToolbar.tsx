@@ -115,7 +115,7 @@ export function GameToolbar({
       >
         Level {level} · {columns}x{rows}
       </div>
-      {isFocusPaused ? (
+      {isFocusPaused && !isAutoPlayAssisted ? (
         <div
           aria-live="polite"
           className="board-overlay absolute bottom-18 left-1/2 z-40 -translate-x-1/2 whitespace-nowrap rounded-[7px] border px-3 py-2 text-center text-xs font-bold text-foreground max-[480px]:bottom-33 max-[480px]:max-w-[calc(100%-2rem)] max-[480px]:whitespace-normal"
