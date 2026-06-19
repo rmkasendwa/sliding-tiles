@@ -1,9 +1,17 @@
 import { BoardState, Slot } from './board';
 
+/**
+ * Represents the outcome of solving a sliding tiles puzzle.
+ * Either returns the solution with moves, or explains why it couldn't be solved.
+ */
 type SolverOutcome =
   | { moves: Slot[]; quality: 'direct'; status: 'solved' }
   | { reason: string; status: 'already-solved' | 'invalid' | 'not-solvable' };
 
+/**
+ * Represents a node in the A* search algorithm.
+ * Tracks the current board state, cost, heuristic estimate, and path information.
+ */
 type SearchNode = {
   blankIndex: number;
   cost: number;
@@ -14,27 +22,38 @@ type SearchNode = {
   state: number[];
 };
 
+/** Maximum number of nodes to explore during direct search */
 const MAX_SEARCH_NODES = 220_000;
+/** Maximum number of nodes to explore during each staged search phase */
 const MAX_STAGED_SEARCH_NODES = 4_000_000;
+/** Weight multiplier for heuristic during staged search */
 const STAGED_HEURISTIC_WEIGHT = 5;
 
+/**
+ * A generic min-heap priority queue implementation.
+ * Used for efficient retrieval of the lowest-cost node during A* search.
+ */
 class MinHeap<T> {
   private values: T[] = [];
   private score: (value: T) => number;
 
+  /** Initializes the heap with a scoring function to determine priority */
   constructor(score: (value: T) => number) {
     this.score = score;
   }
 
+  /** Returns the number of elements in the heap */
   get size() {
     return this.values.length;
   }
 
+  /** Adds a value to the heap and maintains heap property */
   push(value: T) {
     this.values.push(value);
     this.bubbleUp(this.values.length - 1);
   }
 
+  /** Removes and returns the element with the lowest score */
   pop(): T | undefined {
     const first = this.values[0];
     const last = this.values.pop();
@@ -47,6 +66,7 @@ class MinHeap<T> {
     return first;
   }
 
+  /** Moves an element up the heap to restore heap property */
   private bubbleUp(index: number) {
     let currentIndex = index;
     const value = this.values[currentIndex];
@@ -66,6 +86,7 @@ class MinHeap<T> {
     }
   }
 
+  /** Moves an element down the heap to restore heap property */
   private sinkDown(index: number) {
     let currentIndex = index;
     const length = this.values.length;
@@ -110,14 +131,21 @@ class MinHeap<T> {
   }
 }
 
+/** Converts a flat array index to a 2D board position [row, column] */
 function indexToSlot(index: number, columns: number): Slot {
   return [Math.floor(index / columns), index % columns];
 }
 
+/** Creates a unique string identifier for a board state */
 function getStateId(state: number[]) {
   return state.join(',');
 }
 
+/**
+ * Counts inversions in the board state.
+ * An inversion is when a larger number appears before a smaller number.
+ * Used to determine if a puzzle is solvable.
+ */
 function getInversionCount(state: number[], blankTile: number) {
   let inversions = 0;
 
@@ -136,6 +164,10 @@ function getInversionCount(state: number[], blankTile: number) {
   return inversions;
 }
 
+/**
+ * Determines if a puzzle configuration is solvable.
+ * Solvability depends on the number of inversions and board dimensions.
+ */
 function isSolvableState(state: number[], columns: number, blankTile: number) {
   const inversions = getInversionCount(state, blankTile);
 
@@ -151,7 +183,15 @@ function isSolvableState(state: number[], columns: number, blankTile: number) {
     : inversions % 2 === 0;
 }
 
-function getManhattanDistance(state: number[], columns: number, blankTile: number) {
+/**
+ * Calculates the Manhattan distance heuristic for the entire board.
+ * Sum of distances each tile must move to reach its target position.
+ */
+function getManhattanDistance(
+  state: number[],
+  columns: number,
+  blankTile: number,
+) {
   let distance = 0;
 
   for (let index = 0; index < state.length; index++) {
@@ -172,6 +212,10 @@ function getManhattanDistance(state: number[], columns: number, blankTile: numbe
   return distance;
 }
 
+/**
+ * Returns the valid neighboring positions the blank tile can move to.
+ * Considers board boundaries.
+ */
 function getNeighborIndexes(blankIndex: number, columns: number, rows: number) {
   const row = Math.floor(blankIndex / columns);
   const column = blankIndex % columns;
@@ -193,6 +237,11 @@ function getNeighborIndexes(blankIndex: number, columns: number, rows: number) {
   return neighbors;
 }
 
+/**
+ * Converts a BoardState object into a flat array representation.
+ * Validates the board configuration for integrity.
+ * Returns null if the board state is invalid.
+ */
 function buildBoardState(board: BoardState) {
   const [columns, rows] = board.dimensions;
   const tileCount = columns * rows;
@@ -234,6 +283,10 @@ function buildBoardState(board: BoardState) {
   return { blankTile, columns, rows, state };
 }
 
+/**
+ * Reconstructs the sequence of moves from the goal state back to the initial state.
+ * Returns moves in the correct order (from initial to goal).
+ */
 function reconstructMoves(node: SearchNode) {
   const moves: Slot[] = [];
   let current: SearchNode | null = node;
@@ -246,14 +299,17 @@ function reconstructMoves(node: SearchNode) {
   return moves.reverse();
 }
 
+/** Creates the goal state where tiles are in order [0, 1, 2, ..., length-1] */
 function createTargetState(length: number) {
   return Array.from({ length }, (_, index) => index);
 }
 
+/** Finds the position of a tile in the current board state */
 function getTileIndex(state: number[], tile: number) {
   return state.indexOf(tile);
 }
 
+/** Calculates the Manhattan distance between two board positions */
 function getIndexDistance(index: number, targetIndex: number, columns: number) {
   return (
     Math.abs(Math.floor(index / columns) - Math.floor(targetIndex / columns)) +
@@ -261,6 +317,10 @@ function getIndexDistance(index: number, targetIndex: number, columns: number) {
   );
 }
 
+/**
+ * Calculates Manhattan distance for a board state, excluding locked tiles.
+ * Used during staged solving to focus on unlocked portions.
+ */
 function getStateManhattanDistance(
   state: number[],
   columns: number,
@@ -282,6 +342,11 @@ function getStateManhattanDistance(
   return distance;
 }
 
+/**
+ * A* search algorithm implementation to find moves solving the puzzle.
+ * Uses a heuristic function to guide the search efficiently.
+ * Returns the solution path or null if no solution found within node limit.
+ */
 function searchMoves({
   blankIndex,
   blankTile,
@@ -379,6 +444,10 @@ function searchMoves({
   return null;
 }
 
+/**
+ * Generates groups of tile positions for staged solving.
+ * Solves tiles row-by-row, then handles the final 2x2 corner.
+ */
 function getStagedTargetGroups(columns: number, rows: number) {
   const groups: number[][] = [];
 
@@ -400,6 +469,11 @@ function getStagedTargetGroups(columns: number, rows: number) {
   return groups;
 }
 
+/**
+ * Solves the puzzle using a staged approach.
+ * Solves groups of tiles progressively, locking solved tiles to reduce search space.
+ * Falls back to full board search for the final steps.
+ */
 function solveWithStagedSearch({
   blankTile,
   columns,
@@ -418,7 +492,11 @@ function solveWithStagedSearch({
   const targetState = createTargetState(state.length);
 
   for (const targetIndexes of getStagedTargetGroups(columns, rows)) {
-    if (targetIndexes.every((targetIndex) => currentState[targetIndex] === targetIndex)) {
+    if (
+      targetIndexes.every(
+        (targetIndex) => currentState[targetIndex] === targetIndex,
+      )
+    ) {
       targetIndexes.forEach((targetIndex) => lockedIndexes.add(targetIndex));
       continue;
     }
@@ -467,7 +545,8 @@ function solveWithStagedSearch({
     blankIndex,
     blankTile,
     columns,
-    goal: (candidateState) => getStateId(candidateState) === getStateId(targetState),
+    goal: (candidateState) =>
+      getStateId(candidateState) === getStateId(targetState),
     heuristic: (candidateState) =>
       getStateManhattanDistance(
         candidateState,
@@ -489,6 +568,11 @@ function solveWithStagedSearch({
   return [...moves, ...result.moves];
 }
 
+/**
+ * Main entry point for solving a sliding tiles puzzle.
+ * Validates the board, checks solvability, and attempts to find a solution.
+ * Returns the solution or an explanation if the puzzle cannot be solved.
+ */
 export function solveSlidingTilesBoard(board: BoardState): SolverOutcome {
   const parsedBoard = buildBoardState(board);
 
@@ -532,11 +616,11 @@ export function solveSlidingTilesBoard(board: BoardState): SolverOutcome {
   });
 
   if (directResult) {
-      return {
-        moves: directResult.moves,
-        quality: 'direct',
-        status: 'solved',
-      };
+    return {
+      moves: directResult.moves,
+      quality: 'direct',
+      status: 'solved',
+    };
   }
 
   const stagedMoves = solveWithStagedSearch({
