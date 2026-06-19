@@ -8,7 +8,7 @@ export const runtime = 'edge';
 export const size = ogImageSize;
 
 function getDisplayUrl() {
-  const fallbackHostname = 'sliding-tiles.rmkasendwa.com';
+  const fallbackHostname = 'slidingtiles.infinitedebugger.com';
   const baseUrl =
     process.env.WEB_BASE_URL ??
     process.env.NEXT_PUBLIC_WEB_BASE_URL ??
