@@ -105,6 +105,7 @@ export function GameToolbar({
   const autoPlayTimeLabel = `${Math.floor(autoPlaySeconds / 60)}:${String(
     autoPlaySeconds % 60,
   ).padStart(2, '0')}`;
+  const shouldHidePlaybackBlockedTools = isAutoPlayActive;
 
   return (
     <>
@@ -161,55 +162,61 @@ export function GameToolbar({
           </div>
         </div>
         <div className="board-overlay flex max-w-full shrink-0 flex-wrap items-center justify-end gap-1 self-end rounded-[7px] border p-1 text-accent-strong max-[560px]:w-full max-[560px]:justify-center max-[560px]:self-center">
-          <GameToolButton
-            aria-label={
-              controlsLocked ? 'Puzzle is updating' : 'Reset current puzzle'
-            }
-            className={controlsLocked ? 'disabled:cursor-wait' : undefined}
-            description="Return the current puzzle to its starting configuration."
-            disabled={controlsLocked}
-            icon={
-              <RotateCcw
-                aria-hidden="true"
-                className={[
-                  'size-4',
-                  isShuffleAnimationRunning
-                    ? 'animate-spin motion-reduce:animate-none'
-                    : '',
-                ]
-                  .filter(Boolean)
-                  .join(' ')}
-                strokeWidth={2.2}
+          {!shouldHidePlaybackBlockedTools ? (
+            <>
+              <GameToolButton
+                aria-label={
+                  controlsLocked ? 'Puzzle is updating' : 'Reset current puzzle'
+                }
+                className={controlsLocked ? 'disabled:cursor-wait' : undefined}
+                description="Return the current puzzle to its starting configuration."
+                disabled={controlsLocked}
+                icon={
+                  <RotateCcw
+                    aria-hidden="true"
+                    className={[
+                      'size-4',
+                      isShuffleAnimationRunning
+                        ? 'animate-spin motion-reduce:animate-none'
+                        : '',
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
+                    strokeWidth={2.2}
+                  />
+                }
+                onClick={onReset}
+                tooltip={
+                  controlsLocked
+                    ? 'Updating the puzzle'
+                    : 'Reset the current puzzle (R)'
+                }
+                type="button"
               />
-            }
-            onClick={onReset}
-            tooltip={
-              controlsLocked
-                ? 'Updating the puzzle'
-                : 'Reset the current puzzle (R)'
-            }
-            type="button"
-          />
-          <GameToolButton
-            aria-label={
-              controlsLocked ? 'Puzzle is shuffling' : 'Shuffle puzzle'
-            }
-            className={controlsLocked ? 'disabled:cursor-wait' : undefined}
-            description="Create a new puzzle configuration for this level."
-            disabled={controlsLocked}
-            icon={
-              <Shuffle
-                aria-hidden="true"
-                className="size-4"
-                strokeWidth={2.2}
+              <GameToolButton
+                aria-label={
+                  controlsLocked ? 'Puzzle is shuffling' : 'Shuffle puzzle'
+                }
+                className={controlsLocked ? 'disabled:cursor-wait' : undefined}
+                description="Create a new puzzle configuration for this level."
+                disabled={controlsLocked}
+                icon={
+                  <Shuffle
+                    aria-hidden="true"
+                    className="size-4"
+                    strokeWidth={2.2}
+                  />
+                }
+                onClick={onShuffle}
+                tooltip={
+                  controlsLocked
+                    ? 'Shuffling the puzzle'
+                    : 'Shuffle the puzzle (S)'
+                }
+                type="button"
               />
-            }
-            onClick={onShuffle}
-            tooltip={
-              controlsLocked ? 'Shuffling the puzzle' : 'Shuffle the puzzle (S)'
-            }
-            type="button"
-          />
+            </>
+          ) : null}
           {isSoundEnabled ? (
             <GameToolButton
               aria-label={isMuted ? 'Turn sound on' : 'Turn sound off'}
@@ -283,22 +290,28 @@ export function GameToolbar({
             }
             type="button"
           />
-          <GameToolButton
-            aria-label="Peek full image"
-            className="active:bg-accent/15"
-            description="Temporarily reveal the complete puzzle image while pressed."
-            disabled={isCelebrating || controlsLocked}
-            icon={
-              <Search aria-hidden="true" className="size-4" strokeWidth={2.2} />
-            }
-            onClick={(event) => event.preventDefault()}
-            onPointerCancel={onPeekCancel}
-            onPointerDown={onPeekDown}
-            onPointerLeave={onPeekLeave}
-            onPointerUp={onPeekUp}
-            tooltip="Hold to preview the full image"
-            type="button"
-          />
+          {!shouldHidePlaybackBlockedTools ? (
+            <GameToolButton
+              aria-label="Peek full image"
+              className="active:bg-accent/15"
+              description="Temporarily reveal the complete puzzle image while pressed."
+              disabled={isCelebrating || controlsLocked}
+              icon={
+                <Search
+                  aria-hidden="true"
+                  className="size-4"
+                  strokeWidth={2.2}
+                />
+              }
+              onClick={(event) => event.preventDefault()}
+              onPointerCancel={onPeekCancel}
+              onPointerDown={onPeekDown}
+              onPointerLeave={onPeekLeave}
+              onPointerUp={onPeekUp}
+              tooltip="Hold to preview the full image"
+              type="button"
+            />
+          ) : null}
           <GameToolButton
             aria-label={
               isBoardFullscreen
