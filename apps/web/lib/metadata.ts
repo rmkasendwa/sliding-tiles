@@ -18,7 +18,7 @@ type PageMetadataConfig = {
 const defaultSocialImage = {
   alt: `${siteConfig.name}: ${siteConfig.tagline}`,
   height: 630,
-  path: '/opengraph-image',
+  path: '/og-image.png',
   width: 1200,
 } as const;
 

@@ -11,7 +11,6 @@ type OpenGraphImageProps = {
   eyebrow?: string;
   tagline?: string;
   title?: string;
-  url?: string;
 };
 
 const tileValues = ['1', '2', '3', '4', '5', '6', '7', '8', ''];
@@ -127,7 +126,7 @@ const styles = {
     letterSpacing: 0,
     lineHeight: 1.1,
   },
-  url: {
+  description: {
     color: 'rgba(255, 250, 241, 0.74)',
     display: 'flex',
     fontSize: 28,
@@ -207,7 +206,6 @@ export function OpenGraphImage({
   eyebrow = 'Race the board',
   tagline = siteConfig.tagline,
   title = siteConfig.name,
-  url = 'sliding-tiles.rmkasendwa.com',
 }: OpenGraphImageProps) {
   return (
     <div style={styles.background}>
@@ -226,7 +224,10 @@ export function OpenGraphImage({
             <div style={styles.tagline}>{tagline}</div>
           </div>
 
-          <div style={styles.url}>{url}</div>
+          <div style={styles.description}>
+            Move the tiles, find the picture, and see how few moves it takes to
+            make the pond whole again.
+          </div>
         </div>
 
         <div style={styles.visualWrap}>
