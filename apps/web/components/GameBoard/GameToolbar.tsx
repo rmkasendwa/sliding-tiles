@@ -2,6 +2,7 @@
 
 import {
   Gauge,
+  LoaderCircle,
   Maximize2,
   Minimize2,
   Pause,
@@ -25,6 +26,7 @@ type GameToolbarProps = {
   isMuted: boolean;
   isAutoPlayActive: boolean;
   isAutoPlayBlocked: boolean;
+  isAutoPlaySolving: boolean;
   autoPlaySpeed: {
     delayMs: number;
     fastestDelayMs: number;
@@ -61,6 +63,7 @@ export function GameToolbar({
   isMuted,
   isAutoPlayActive,
   isAutoPlayBlocked,
+  isAutoPlaySolving,
   autoPlaySpeed,
   autoPlayStats,
   autoPlayStatusMessage,
@@ -82,7 +85,11 @@ export function GameToolbar({
 }: GameToolbarProps) {
   const FullscreenIcon = isBoardFullscreen ? Minimize2 : Maximize2;
   const SoundIcon = isMuted ? VolumeX : Volume2;
-  const AutoPlayIcon = isAutoPlayActive ? Pause : Play;
+  const AutoPlayIcon = isAutoPlaySolving
+    ? LoaderCircle
+    : isAutoPlayActive
+      ? Pause
+      : Play;
   const controlsLocked = isShuffleAnimationRunning || isAutoPlayActive;
   const speedPercent = Math.round(
     ((autoPlaySpeed.slowestDelayMs - autoPlaySpeed.delayMs) /
@@ -90,7 +97,10 @@ export function GameToolbar({
       100,
   );
   const isAutoPlayAssisted =
-    isAutoPlayActive || autoPlayStats.moves > 0 || autoPlayStats.elapsedMs > 0;
+    isAutoPlaySolving ||
+    isAutoPlayActive ||
+    autoPlayStats.moves > 0 ||
+    autoPlayStats.elapsedMs > 0;
   const autoPlaySeconds = Math.floor(autoPlayStats.elapsedMs / 1000);
   const autoPlayTimeLabel = `${Math.floor(autoPlaySeconds / 60)}:${String(
     autoPlaySeconds % 60,
@@ -119,9 +129,11 @@ export function GameToolbar({
           className="board-overlay absolute left-1/2 top-4 z-40 max-w-[min(26rem,calc(100%-2rem))] -translate-x-1/2 rounded-[7px] border px-3 py-2 text-center text-xs font-bold leading-snug text-accent-strong max-[480px]:top-17"
           role="status"
         >
-          {isAutoPlayActive
-            ? 'Auto Play demo active. Moves are not ranked. Pause anytime.'
-            : 'Auto Play paused. This attempt is still AI-assisted.'}
+          {isAutoPlaySolving
+            ? 'Auto Play is planning a route. The board is still responsive.'
+            : isAutoPlayActive
+              ? 'Auto Play demo active. Moves are not ranked. Pause anytime.'
+              : 'Auto Play paused. This attempt is still AI-assisted.'}
         </div>
       ) : null}
       {autoPlayStatusMessage ? (
@@ -223,6 +235,8 @@ export function GameToolbar({
             aria-label={
               isAutoPlayActive
                 ? 'Pause Auto Play'
+                : isAutoPlaySolving
+                  ? 'Auto Play is planning'
                 : isAutoPlayAssisted
                   ? 'Resume Auto Play'
                   : 'Start Auto Play'
@@ -234,15 +248,26 @@ export function GameToolbar({
             description={
               isAutoPlayActive
                 ? 'Pause the AI demonstration.'
+                : isAutoPlaySolving
+                  ? 'Wait for the AI to finish planning this route.'
                 : isAutoPlayAssisted
                   ? 'Continue the AI demonstration from the current board.'
                   : 'Let the built-in AI solve the current puzzle.'
             }
-            disabled={!isAutoPlayActive && isAutoPlayBlocked}
+            disabled={
+              isAutoPlaySolving || (!isAutoPlayActive && isAutoPlayBlocked)
+            }
             icon={
               <AutoPlayIcon
                 aria-hidden="true"
-                className="size-4"
+                className={[
+                  'size-4',
+                  isAutoPlaySolving
+                    ? 'animate-spin motion-reduce:animate-none'
+                    : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
                 strokeWidth={2.2}
               />
             }
@@ -250,6 +275,8 @@ export function GameToolbar({
             tooltip={
               isAutoPlayActive
                 ? 'Pause Auto Play'
+                : isAutoPlaySolving
+                  ? 'Planning Auto Play'
                 : isAutoPlayAssisted
                   ? 'Resume Auto Play'
                   : 'Auto Play'

@@ -1,10 +1,24 @@
 import { BoardState, Slot } from './board';
 
+export type BoardSolverOptions = {
+  maxSearchNodes?: number;
+  maxStagedSearchNodes?: number;
+  stagedHeuristicWeight?: number;
+};
+
+export type BoardSolverPayload = {
+  boardState: number[];
+  dimensions: Slot;
+  emptySlot: Slot;
+  options?: BoardSolverOptions;
+  targetState: number[];
+};
+
 /**
  * Represents the outcome of solving a sliding tiles puzzle.
  * Either returns the solution with moves, or explains why it couldn't be solved.
  */
-type SolverOutcome =
+export type SolverOutcome =
   | { moves: Slot[]; quality: 'direct'; status: 'solved' }
   | { reason: string; status: 'already-solved' | 'invalid' | 'not-solvable' };
 
@@ -23,11 +37,11 @@ type SearchNode = {
 };
 
 /** Maximum number of nodes to explore during direct search */
-const MAX_SEARCH_NODES = 220_000;
+const DEFAULT_MAX_SEARCH_NODES = 220_000;
 /** Maximum number of nodes to explore during each staged search phase */
-const MAX_STAGED_SEARCH_NODES = 4_000_000;
+const DEFAULT_MAX_STAGED_SEARCH_NODES = 4_000_000;
 /** Weight multiplier for heuristic during staged search */
-const STAGED_HEURISTIC_WEIGHT = 5;
+const DEFAULT_STAGED_HEURISTIC_WEIGHT = 5;
 
 /**
  * A generic min-heap priority queue implementation.
@@ -191,6 +205,7 @@ function getManhattanDistance(
   state: number[],
   columns: number,
   blankTile: number,
+  targetPositions: ReadonlyMap<number, number>,
 ) {
   let distance = 0;
 
@@ -201,10 +216,16 @@ function getManhattanDistance(
       continue;
     }
 
+    const targetIndex = targetPositions.get(tile);
+
+    if (targetIndex === undefined) {
+      return Number.POSITIVE_INFINITY;
+    }
+
     const currentRow = Math.floor(index / columns);
     const currentColumn = index % columns;
-    const targetRow = Math.floor(tile / columns);
-    const targetColumn = tile % columns;
+    const targetRow = Math.floor(targetIndex / columns);
+    const targetColumn = targetIndex % columns;
     distance +=
       Math.abs(currentRow - targetRow) + Math.abs(currentColumn - targetColumn);
   }
@@ -300,13 +321,23 @@ function reconstructMoves(node: SearchNode) {
 }
 
 /** Creates the goal state where tiles are in order [0, 1, 2, ..., length-1] */
-function createTargetState(length: number) {
+export function createTargetState(length: number) {
   return Array.from({ length }, (_, index) => index);
 }
 
 /** Finds the position of a tile in the current board state */
 function getTileIndex(state: number[], tile: number) {
   return state.indexOf(tile);
+}
+
+function getTargetPositions(targetState: number[]) {
+  const targetPositions = new Map<number, number>();
+
+  targetState.forEach((tile, index) => {
+    targetPositions.set(tile, index);
+  });
+
+  return targetPositions;
 }
 
 /** Calculates the Manhattan distance between two board positions */
@@ -326,6 +357,7 @@ function getStateManhattanDistance(
   columns: number,
   blankTile: number,
   lockedIndexes: ReadonlySet<number>,
+  targetPositions: ReadonlyMap<number, number>,
 ) {
   let distance = 0;
 
@@ -336,7 +368,13 @@ function getStateManhattanDistance(
       continue;
     }
 
-    distance += getIndexDistance(index, tile, columns);
+    const targetIndex = targetPositions.get(tile);
+
+    if (targetIndex === undefined) {
+      return Number.POSITIVE_INFINITY;
+    }
+
+    distance += getIndexDistance(index, targetIndex, columns);
   }
 
   return distance;
@@ -477,19 +515,25 @@ function getStagedTargetGroups(columns: number, rows: number) {
 function solveWithStagedSearch({
   blankTile,
   columns,
+  maxStagedSearchNodes,
   rows,
+  stagedHeuristicWeight,
   state,
+  targetState,
 }: {
   blankTile: number;
   columns: number;
+  maxStagedSearchNodes: number;
   rows: number;
+  stagedHeuristicWeight: number;
   state: number[];
+  targetState: number[];
 }) {
   let currentState = state;
   let blankIndex = state.indexOf(blankTile);
   const lockedIndexes = new Set<number>();
   const moves: Slot[] = [];
-  const targetState = createTargetState(state.length);
+  const targetPositions = getTargetPositions(targetState);
 
   for (const targetIndexes of getStagedTargetGroups(columns, rows)) {
     if (
@@ -520,10 +564,10 @@ function solveWithStagedSearch({
             ),
           0,
         ),
-      heuristicWeight: STAGED_HEURISTIC_WEIGHT,
+      heuristicWeight: stagedHeuristicWeight,
       initialState: currentState,
       lockedIndexes,
-      maxNodes: MAX_STAGED_SEARCH_NODES,
+      maxNodes: maxStagedSearchNodes,
       rows,
     });
 
@@ -553,11 +597,12 @@ function solveWithStagedSearch({
         columns,
         blankTile,
         lockedIndexes,
+        targetPositions,
       ),
-    heuristicWeight: STAGED_HEURISTIC_WEIGHT,
+    heuristicWeight: stagedHeuristicWeight,
     initialState: currentState,
     lockedIndexes,
-    maxNodes: MAX_STAGED_SEARCH_NODES,
+    maxNodes: maxStagedSearchNodes,
     rows,
   });
 
@@ -569,24 +614,90 @@ function solveWithStagedSearch({
 }
 
 /**
- * Main entry point for solving a sliding tiles puzzle.
- * Validates the board, checks solvability, and attempts to find a solution.
- * Returns the solution or an explanation if the puzzle cannot be solved.
+ * Converts a BoardState into the serializable payload used by the worker.
  */
-export function solveSlidingTilesBoard(board: BoardState): SolverOutcome {
+export function createBoardSolverPayload(
+  board: BoardState,
+  options?: BoardSolverOptions,
+): BoardSolverPayload | null {
   const parsedBoard = buildBoardState(board);
 
   if (!parsedBoard) {
+    return null;
+  }
+
+  return {
+    boardState: parsedBoard.state,
+    dimensions: board.dimensions,
+    emptySlot: board.emptySlot,
+    options,
+    targetState: createTargetState(parsedBoard.state.length),
+  };
+}
+
+function normalizeSolverOptions(options: BoardSolverOptions | undefined) {
+  return {
+    maxSearchNodes:
+      options?.maxSearchNodes && options.maxSearchNodes > 0
+        ? Math.trunc(options.maxSearchNodes)
+        : DEFAULT_MAX_SEARCH_NODES,
+    maxStagedSearchNodes:
+      options?.maxStagedSearchNodes && options.maxStagedSearchNodes > 0
+        ? Math.trunc(options.maxStagedSearchNodes)
+        : DEFAULT_MAX_STAGED_SEARCH_NODES,
+    stagedHeuristicWeight:
+      options?.stagedHeuristicWeight && options.stagedHeuristicWeight > 0
+        ? options.stagedHeuristicWeight
+        : DEFAULT_STAGED_HEURISTIC_WEIGHT,
+  };
+}
+
+function isValidSolverPayload(payload: BoardSolverPayload) {
+  const [columns, rows] = payload.dimensions;
+  const tileCount = columns * rows;
+  const blankTile = tileCount - 1;
+  const emptyIndex = payload.emptySlot[0] * columns + payload.emptySlot[1];
+  const expectedTiles = new Set(Array.from({ length: tileCount }, (_, i) => i));
+  const boardTiles = new Set(payload.boardState);
+  const targetTiles = new Set(payload.targetState);
+
+  return (
+    Number.isInteger(columns) &&
+    Number.isInteger(rows) &&
+    columns > 0 &&
+    rows > 0 &&
+    payload.boardState.length === tileCount &&
+    payload.targetState.length === tileCount &&
+    payload.boardState.every((tile) => expectedTiles.has(tile)) &&
+    payload.targetState.every((tile) => expectedTiles.has(tile)) &&
+    boardTiles.size === tileCount &&
+    targetTiles.size === tileCount &&
+    payload.boardState[emptyIndex] === blankTile
+  );
+}
+
+/**
+ * Main pure solver entry point for serializable board data.
+ * Validates the board, checks solvability, and attempts to find a solution.
+ */
+export function solveBoardSolverPayload(
+  payload: BoardSolverPayload,
+): SolverOutcome {
+  if (!isValidSolverPayload(payload)) {
     return {
       reason: 'The current board state is invalid.',
       status: 'invalid',
     };
   }
 
-  const { blankTile, columns, rows, state } = parsedBoard;
-  const targetState = createTargetState(state.length);
+  const [columns, rows] = payload.dimensions;
+  const state = payload.boardState;
+  const targetState = payload.targetState;
+  const blankTile = columns * rows - 1;
   const targetId = getStateId(targetState);
   const initialId = getStateId(state);
+  const targetPositions = getTargetPositions(targetState);
+  const solverOptions = normalizeSolverOptions(payload.options);
 
   if (initialId === targetId) {
     return {
@@ -608,10 +719,15 @@ export function solveSlidingTilesBoard(board: BoardState): SolverOutcome {
     columns,
     goal: (candidateState) => getStateId(candidateState) === targetId,
     heuristic: (candidateState) =>
-      getManhattanDistance(candidateState, columns, blankTile),
+      getManhattanDistance(
+        candidateState,
+        columns,
+        blankTile,
+        targetPositions,
+      ),
     initialState: state,
     lockedIndexes: new Set(),
-    maxNodes: MAX_SEARCH_NODES,
+    maxNodes: solverOptions.maxSearchNodes,
     rows,
   });
 
@@ -626,8 +742,11 @@ export function solveSlidingTilesBoard(board: BoardState): SolverOutcome {
   const stagedMoves = solveWithStagedSearch({
     blankTile,
     columns,
+    maxStagedSearchNodes: solverOptions.maxStagedSearchNodes,
     rows,
+    stagedHeuristicWeight: solverOptions.stagedHeuristicWeight,
     state,
+    targetState,
   });
 
   if (stagedMoves) {
@@ -642,4 +761,23 @@ export function solveSlidingTilesBoard(board: BoardState): SolverOutcome {
     reason: 'The AI could not find a solution for this board.',
     status: 'invalid',
   };
+}
+
+/**
+ * Compatibility helper for existing callers that still hold a BoardState.
+ */
+export function solveSlidingTilesBoard(
+  board: BoardState,
+  options?: BoardSolverOptions,
+): SolverOutcome {
+  const payload = createBoardSolverPayload(board, options);
+
+  if (!payload) {
+    return {
+      reason: 'The current board state is invalid.',
+      status: 'invalid',
+    };
+  }
+
+  return solveBoardSolverPayload(payload);
 }

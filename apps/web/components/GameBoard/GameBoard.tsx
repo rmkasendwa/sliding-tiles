@@ -16,7 +16,8 @@ import {
   resetBoardAttempt,
   slotKey,
 } from '@/lib/board';
-import { solveSlidingTilesBoard } from '@/lib/boardSolver';
+import { createBoardSolverPayload } from '@/lib/boardSolver';
+import { BoardSolverWorkerClient } from '@/lib/board-solver/worker-client';
 
 import { SoundProvider, useSound } from '../SoundProvider';
 import {
@@ -140,6 +141,7 @@ function GameBoardContent({
   const [autoPlayStatusMessage, setAutoPlayStatusMessage] = useState<
     string | null
   >(null);
+  const [isAutoPlaySolving, setIsAutoPlaySolving] = useState(false);
   const isShuffleAnimationRunning = isResetting || isShuffleInProgress;
   const playHintSound = useCallback(() => playSound('hint'), [playSound]);
   const getAnalyticsMetadata = useCallback(
@@ -197,7 +199,11 @@ function GameBoardContent({
   const autoPlayStepDelayRef = useRef(autoPlayStepDelayMs);
   const autoPlayElapsedMsRef = useRef(0);
   const autoPlayStartedAtRef = useRef<number | null>(null);
+  const runNextAutoPlayMoveRef = useRef<(() => void) | null>(null);
   const isAutoPlayRunningRef = useRef(false);
+  const isAutoPlaySolvingRef = useRef(false);
+  const boardSolverClientRef = useRef<BoardSolverWorkerClient | null>(null);
+  const boardSolveGenerationRef = useRef(0);
   const shuffleInProgressRef = useRef(false);
   const hasPlayedInitialEntrySoundRef = useRef(false);
   const previousTimerStatusRef = useRef(timerStatus);
@@ -214,6 +220,17 @@ function GameBoardContent({
   useEffect(() => {
     autoPlayStepDelayRef.current = autoPlayStepDelayMs;
   }, [autoPlayStepDelayMs]);
+
+  const cancelBoardSolve = useCallback((clearStatus = false) => {
+    boardSolveGenerationRef.current += 1;
+    isAutoPlaySolvingRef.current = false;
+    setIsAutoPlaySolving(false);
+    boardSolverClientRef.current?.cancel();
+
+    if (clearStatus) {
+      setAutoPlayStatusMessage(null);
+    }
+  }, []);
 
   useEffect(() => {
     if (!isAutoPlayRunning) {
@@ -542,6 +559,7 @@ function GameBoardContent({
     [
       activeReplayOfId,
       attemptStartBoard,
+      cancelAutoPlay,
       clearBoardHint,
       completeClock,
       currentReplayBest,
@@ -560,6 +578,10 @@ function GameBoardContent({
   const moveTile = useCallback(
     (slot: Slot, source: 'auto-play' | 'player' = 'player') => {
       const isAutoPlayMove = source === 'auto-play';
+
+      if (!isAutoPlayMove && isAutoPlaySolvingRef.current) {
+        cancelBoardSolve();
+      }
 
       if (
         isCelebrating ||
@@ -601,7 +623,7 @@ function GameBoardContent({
     },
     [
       board,
-      cancelAutoPlay,
+      cancelBoardSolve,
       completeLevel,
       isCelebrating,
       isShuffleAnimationRunning,
@@ -633,11 +655,20 @@ function GameBoardContent({
       return;
     }
 
-    autoPlayTimeoutRef.current = window.setTimeout(
-      runNextAutoPlayMove,
-      autoPlayStepDelayRef.current,
-    );
+    autoPlayTimeoutRef.current = window.setTimeout(() => {
+      runNextAutoPlayMoveRef.current?.();
+    }, autoPlayStepDelayRef.current);
   }, [cancelAutoPlay, moveTile]);
+
+  useEffect(() => {
+    runNextAutoPlayMoveRef.current = runNextAutoPlayMove;
+
+    return () => {
+      if (runNextAutoPlayMoveRef.current === runNextAutoPlayMove) {
+        runNextAutoPlayMoveRef.current = null;
+      }
+    };
+  }, [runNextAutoPlayMove]);
 
   const updateAutoPlaySpeed = useCallback((delayMs: number) => {
     const nextDelay = Math.min(
@@ -649,7 +680,11 @@ function GameBoardContent({
     setAutoPlayStepDelayMs(nextDelay);
   }, []);
 
-  const toggleAutoPlay = useCallback(() => {
+  const toggleAutoPlay = useCallback(async () => {
+    if (isAutoPlaySolvingRef.current) {
+      return;
+    }
+
     if (isAutoPlayRunningRef.current) {
       cancelAutoPlay();
       return;
@@ -664,7 +699,65 @@ function GameBoardContent({
       return;
     }
 
-    const solution = solveSlidingTilesBoard(boardRef.current);
+    const payload = createBoardSolverPayload(boardRef.current);
+
+    if (!payload) {
+      setAutoPlayStatusMessage(
+        'The current board could not be read. Try reset or shuffle to start from a clean board.',
+      );
+      playSound('invalid');
+      return;
+    }
+
+    const solveGeneration = boardSolveGenerationRef.current + 1;
+    boardSolveGenerationRef.current = solveGeneration;
+    isAutoPlaySolvingRef.current = true;
+    setIsAutoPlaySolving(true);
+    clearBoardHint();
+    setAutoPlayStatusMessage(null);
+
+    let solution;
+
+    try {
+      if (!boardSolverClientRef.current) {
+        boardSolverClientRef.current = new BoardSolverWorkerClient();
+      }
+
+      solution = await boardSolverClientRef.current.solve(payload);
+    } catch (error) {
+      if (boardSolveGenerationRef.current !== solveGeneration) {
+        return;
+      }
+
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'The board solver failed unexpectedly.';
+
+      isAutoPlaySolvingRef.current = false;
+      setIsAutoPlaySolving(false);
+
+      if (
+        message.includes('cancelled') ||
+        message.includes('newer board solve')
+      ) {
+        setAutoPlayStatusMessage(null);
+        return;
+      }
+
+      setAutoPlayStatusMessage(
+        `${message} Try reset or shuffle to start from a clean board.`,
+      );
+      playSound('invalid');
+      return;
+    }
+
+    if (boardSolveGenerationRef.current !== solveGeneration) {
+      return;
+    }
+
+    isAutoPlaySolvingRef.current = false;
+    setIsAutoPlaySolving(false);
 
     if (solution.status !== 'solved') {
       if (solution.status === 'already-solved') {
@@ -678,7 +771,6 @@ function GameBoardContent({
       return;
     }
 
-    clearBoardHint();
     setAutoPlayStatusMessage(null);
     if (!isAutoPlayCompletion) {
       autoPlayElapsedMsRef.current = 0;
@@ -692,17 +784,19 @@ function GameBoardContent({
     autoPlayStartedAtRef.current = Date.now();
     setIsAutoPlayRunning(true);
     trackAnonymousEvent('auto_play_started', getAnalyticsMetadata());
-    autoPlayTimeoutRef.current = window.setTimeout(runNextAutoPlayMove, 0);
+    autoPlayTimeoutRef.current = window.setTimeout(() => {
+      runNextAutoPlayMoveRef.current?.();
+    }, 0);
   }, [
     activeReplayOfId,
     cancelAutoPlay,
     clearBoardHint,
     getAnalyticsMetadata,
+    isAutoPlayCompletion,
     isCelebrating,
     isShuffleAnimationRunning,
     playSound,
     replayResult,
-    runNextAutoPlayMove,
     showSolvedBoard,
     trackAnonymousEvent,
   ]);
@@ -711,6 +805,7 @@ function GameBoardContent({
 
   useEffect(() => {
     return () => {
+      cancelBoardSolve();
       clearEntryMotionSoundTimers();
       if (celebrationTimeoutRef.current !== null) {
         window.clearTimeout(celebrationTimeoutRef.current);
@@ -736,7 +831,7 @@ function GameBoardContent({
       shuffleInProgressRef.current = false;
       isAutoPlayRunningRef.current = false;
     };
-  }, [clearEntryMotionSoundTimers]);
+  }, [cancelBoardSolve, clearEntryMotionSoundTimers]);
 
   const selectLevel = useCallback(
     (level: number) => {
@@ -755,6 +850,7 @@ function GameBoardContent({
       }
 
       cancelAutoPlay();
+      cancelBoardSolve(true);
       setIsAutoPlayCompletion(false);
       setIsAutoPlaySolvedNoticeVisible(false);
       setAutoPlayStatusMessage(null);
@@ -826,6 +922,7 @@ function GameBoardContent({
       scheduleLockInSound,
       trackAnonymousEvent,
       cancelAutoPlay,
+      cancelBoardSolve,
     ],
   );
 
@@ -836,6 +933,7 @@ function GameBoardContent({
       }
 
       cancelAutoPlay();
+      cancelBoardSolve(true);
       setIsAutoPlayCompletion(false);
       setIsAutoPlaySolvedNoticeVisible(false);
       setAutoPlayStatusMessage(null);
@@ -895,12 +993,14 @@ function GameBoardContent({
       resetClock,
       scheduleLockInSound,
       cancelAutoPlay,
+      cancelBoardSolve,
     ],
   );
 
   const resetLevel = useCallback(() => {
     trackAnonymousEvent('reset_level_clicked', getAnalyticsMetadata());
     cancelAutoPlay();
+    cancelBoardSolve(true);
     setIsAutoPlayCompletion(false);
     setIsAutoPlaySolvedNoticeVisible(false);
     setAutoPlayStatusMessage(null);
@@ -916,6 +1016,7 @@ function GameBoardContent({
     attemptStartBoard,
     board.moves,
     cancelAutoPlay,
+    cancelBoardSolve,
     getAnalyticsMetadata,
     refreshBoard,
     trackAnonymousEvent,
@@ -923,6 +1024,7 @@ function GameBoardContent({
 
   const shuffleLevel = useCallback(() => {
     cancelAutoPlay();
+    cancelBoardSolve(true);
     setIsAutoPlayCompletion(false);
     setIsAutoPlaySolvedNoticeVisible(false);
     setAutoPlayStatusMessage(null);
@@ -939,12 +1041,14 @@ function GameBoardContent({
     board.level,
     board.moves,
     cancelAutoPlay,
+    cancelBoardSolve,
     getAnalyticsMetadata,
     refreshBoard,
     trackAnonymousEvent,
   ]);
   const replayAgain = useCallback(() => {
     cancelAutoPlay();
+    cancelBoardSolve(true);
     setIsAutoPlayCompletion(false);
     setIsAutoPlaySolvedNoticeVisible(false);
     setAutoPlayStatusMessage(null);
@@ -954,9 +1058,10 @@ function GameBoardContent({
     setAutoPlayMoveCount(0);
     setReplayResult(null);
     refreshBoard(() => resetBoardAttempt(attemptStartBoard), false);
-  }, [attemptStartBoard, cancelAutoPlay, refreshBoard]);
+  }, [attemptStartBoard, cancelAutoPlay, cancelBoardSolve, refreshBoard]);
   const continueProgress = useCallback(() => {
     cancelAutoPlay();
+    cancelBoardSolve(true);
     setIsAutoPlayCompletion(false);
     setIsAutoPlaySolvedNoticeVisible(false);
     setAutoPlayStatusMessage(null);
@@ -974,7 +1079,13 @@ function GameBoardContent({
         ),
       false,
     );
-  }, [cancelAutoPlay, exitReplayMode, highestReachedLevel, refreshBoard]);
+  }, [
+    cancelAutoPlay,
+    cancelBoardSolve,
+    exitReplayMode,
+    highestReachedLevel,
+    refreshBoard,
+  ]);
 
   const gameModeLabel = activeReplayOfId
     ? 'Replay run'
@@ -1033,11 +1144,13 @@ function GameBoardContent({
         isMuted={isMuted}
         isAutoPlayActive={isAutoPlayRunning}
         isAutoPlayBlocked={
+          isAutoPlaySolving ||
           Boolean(activeReplayOfId) ||
           isCelebrating ||
           isShuffleAnimationRunning ||
           Boolean(replayResult)
         }
+        isAutoPlaySolving={isAutoPlaySolving}
         isAutoPlaySolvedNoticeVisible={isAutoPlaySolvedNoticeVisible}
         autoPlaySpeed={{
           delayMs: autoPlayStepDelayMs,

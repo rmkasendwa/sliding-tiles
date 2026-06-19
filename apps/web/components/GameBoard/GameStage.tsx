@@ -29,6 +29,7 @@ type GameStageProps = {
   isMuted: boolean;
   isAutoPlayActive: boolean;
   isAutoPlayBlocked: boolean;
+  isAutoPlaySolving: boolean;
   isAutoPlaySolvedNoticeVisible: boolean;
   autoPlaySpeed: {
     delayMs: number;
@@ -88,6 +89,7 @@ export function GameStage({
   isMuted,
   isAutoPlayActive,
   isAutoPlayBlocked,
+  isAutoPlaySolving,
   isAutoPlaySolvedNoticeVisible,
   autoPlaySpeed,
   autoPlayStats,
@@ -201,6 +203,7 @@ export function GameStage({
         isMuted={isMuted}
         isAutoPlayActive={isAutoPlayActive}
         isAutoPlayBlocked={isAutoPlayBlocked}
+        isAutoPlaySolving={isAutoPlaySolving}
         autoPlaySpeed={autoPlaySpeed}
         autoPlayStats={autoPlayStats}
         autoPlayStatusMessage={autoPlayStatusMessage}
