@@ -390,6 +390,15 @@
     animation: play-overlay-float 3200ms ease-in-out infinite;
   }
 
+  .board-tile-invalid-move-indicator {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: color-mix(in srgb, var(--color-danger) 28%, transparent);
+    animation: tile-invalid-move 260ms ease-out both;
+  }
+
   .auth-display-heading {
     font-size: clamp(1.55rem, 3.3vw, 2.35rem);
     line-height: 0.96;
@@ -439,9 +448,36 @@
   }
 }
 
+@keyframes tile-invalid-move {
+  0% {
+    opacity: 0;
+    box-shadow:
+      0 0 0 0 color-mix(in srgb, var(--color-danger) 0%, transparent),
+      inset 0 0 0 1px color-mix(in srgb, var(--color-danger) 18%, transparent);
+  }
+
+  28% {
+    opacity: 1;
+    box-shadow:
+      0 0 20px 6px color-mix(in srgb, var(--color-danger) 34%, transparent),
+      inset 0 0 0 1px color-mix(in srgb, var(--color-danger) 34%, transparent);
+  }
+
+  100% {
+    opacity: 0;
+    box-shadow:
+      0 0 0 0 color-mix(in srgb, var(--color-danger) 0%, transparent),
+      inset 0 0 0 1px color-mix(in srgb, var(--color-danger) 0%, transparent);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .board-tile {
     animation: none !important;
+  }
+
+  .board-tile-invalid-move-indicator {
+    animation-duration: 120ms !important;
   }
 }
 

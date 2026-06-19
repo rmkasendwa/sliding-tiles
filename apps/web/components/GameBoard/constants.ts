@@ -8,6 +8,7 @@ export const LEVEL_COMPLETE_CONFETTI_DURATION_MS =
 export const RESET_GATHER_DELAY_MS = 500;
 export const TILE_ENTRY_ANIMATION_MS = 2800;
 export const TILE_ENTRY_LOCK_IN_DELAY_MS = 2300;
+export const TILE_INVALID_MOVE_FEEDBACK_MS = 260;
 
 export const TILE_TRANSITION =
   'left 180ms ease, top 180ms ease, box-shadow 180ms ease';

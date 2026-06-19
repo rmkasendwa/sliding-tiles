@@ -13,6 +13,7 @@ import {
   HINT_PLACEHOLDER_TRANSITION,
   TILE_BACKGROUND,
   TILE_ENTRY_ANIMATION_MS,
+  TILE_INVALID_MOVE_FEEDBACK_MS,
   TILE_TRANSITION,
 } from './constants';
 import {
@@ -45,6 +46,7 @@ export type BoardTileProps = {
   isHintPlaceholderVisible: boolean;
   isEntering: boolean;
   isInteractionBlocked: boolean;
+  invalidMoveKey: number;
   isMovable: boolean;
   isResetting: boolean;
   isShowingSolvedHint: boolean;
@@ -66,6 +68,7 @@ export function BoardTile({
   isHintPlaceholderVisible,
   isEntering,
   isInteractionBlocked,
+  invalidMoveKey,
   isMovable,
   isResetting,
   isShowingSolvedHint,
@@ -87,6 +90,7 @@ export function BoardTile({
   const [isDraggingTile, setIsDraggingTile] = useState(false);
   const [isCommittingAtDestination, setIsCommittingAtDestination] =
     useState(false);
+  const [dismissedInvalidMoveKey, setDismissedInvalidMoveKey] = useState(0);
   const [homeRow, homeColumn] = tile.homeSlot;
   const [row, column] = isShowingSolvedHint ? tile.homeSlot : tile.slot;
   const isHintPlaceholder = tile.type === 'PLACEHOLDER';
@@ -133,6 +137,21 @@ export function BoardTile({
     [],
   );
 
+  const showInvalidMoveFeedback = () => {
+    onInvalidMove();
+    onHint(slotKey(tile.homeSlot));
+  };
+  const suppressNextClick = (durationMs = 0) => {
+    suppressNextClickRef.current = true;
+    if (clickSuppressionTimeoutRef.current !== null) {
+      window.clearTimeout(clickSuppressionTimeoutRef.current);
+    }
+    clickSuppressionTimeoutRef.current = window.setTimeout(() => {
+      clickSuppressionTimeoutRef.current = null;
+      suppressNextClickRef.current = false;
+    }, durationMs);
+  };
+
   const activateTile = () => {
     if (isInteractionBlocked || isHintPlaceholder) {
       return;
@@ -146,8 +165,7 @@ export function BoardTile({
     if (isMovable) {
       onMove(tile.slot);
     } else {
-      onInvalidMove();
-      onHint(slotKey(tile.homeSlot));
+      showInvalidMoveFeedback();
     }
   };
   const startTileDrag = (event: PointerEvent<HTMLButtonElement>) => {
@@ -173,6 +191,10 @@ export function BoardTile({
 
     if (!isMovable || isHintPlaceholder || !allowedDirection) {
       tileDragSessionRef.current = null;
+      if (!isHintPlaceholder) {
+        showInvalidMoveFeedback();
+        suppressNextClick(220);
+      }
       return;
     }
 
@@ -259,11 +281,7 @@ export function BoardTile({
 
     event.preventDefault();
     event.stopPropagation();
-    suppressNextClickRef.current = true;
-    clickSuppressionTimeoutRef.current = window.setTimeout(() => {
-      clickSuppressionTimeoutRef.current = null;
-      suppressNextClickRef.current = false;
-    }, 0);
+    suppressNextClick();
     setIsDraggingTile(false);
 
     const shouldCommitMove =
@@ -411,6 +429,19 @@ export function BoardTile({
         } as CSSProperties
       }
       type="button"
-    />
+    >
+      {invalidMoveKey > 0 &&
+      invalidMoveKey !== dismissedInvalidMoveKey &&
+      !isInteractionBlocked &&
+      !isHintPlaceholder ? (
+        <span
+          aria-hidden="true"
+          className="board-tile-invalid-move-indicator"
+          key={invalidMoveKey}
+          onAnimationEnd={() => setDismissedInvalidMoveKey(invalidMoveKey)}
+          style={{ animationDuration: `${TILE_INVALID_MOVE_FEEDBACK_MS}ms` }}
+        />
+      ) : null}
+    </button>
   );
 }

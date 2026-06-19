@@ -127,6 +127,10 @@ function GameBoardContent({
   const [boardEntryAnimationKey, setBoardEntryAnimationKey] = useState(0);
   const [isBoardEntering, setIsBoardEntering] = useState(true);
   const [tileRotationSeed, setTileRotationSeed] = useState(0);
+  const [invalidMoveTile, setInvalidMoveTile] = useState<{
+    key: number;
+    slotKey: string | null;
+  }>({ key: 0, slotKey: null });
   const [isResetting, setIsResetting] = useState(false);
   const [isShuffleInProgress, setIsShuffleInProgress] = useState(false);
   const [isAutoPlayRunning, setIsAutoPlayRunning] = useState(false);
@@ -1110,6 +1114,16 @@ function GameBoardContent({
       immediate: true,
     });
   }, [getAnalyticsMetadata, trackAnonymousEvent]);
+  const showInvalidMoveFeedback = useCallback(
+    (targetSlotKey: string) => {
+      playSound('invalid');
+      setInvalidMoveTile((current) => ({
+        key: current.key + 1,
+        slotKey: targetSlotKey,
+      }));
+    },
+    [playSound],
+  );
 
   useGameKeyboardControls({
     board,
@@ -1162,6 +1176,7 @@ function GameBoardContent({
           moves: autoPlayMoveCount,
         }}
         autoPlayStatusMessage={autoPlayStatusMessage}
+        invalidMoveTile={invalidMoveTile}
         isResetting={isResetting}
         isShowingHintPlaceholder={isShowingHintPlaceholder}
         isShowingSolvedHint={isShowingSolvedHint}
@@ -1175,7 +1190,7 @@ function GameBoardContent({
         onBoardPointerUp={clearBoardHintFromPointer}
         onContinueReplay={continueProgress}
         onHint={setHintedSlot}
-        onInvalidMove={() => playSound('invalid')}
+        onInvalidMove={showInvalidMoveFeedback}
         onMove={moveTile}
         onOpenDetails={openInfoModal}
         onPeekCancel={stopPeekButtonPreview}

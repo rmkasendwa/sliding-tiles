@@ -41,6 +41,10 @@ type GameStageProps = {
     moves: number;
   };
   autoPlayStatusMessage: string | null;
+  invalidMoveTile: {
+    key: number;
+    slotKey: string | null;
+  };
   isResetting: boolean;
   isShowingHintPlaceholder: boolean;
   isShowingSolvedHint: boolean;
@@ -54,7 +58,7 @@ type GameStageProps = {
   onBoardPointerUp: PointerEventHandler<HTMLDivElement>;
   onContinueReplay: () => void;
   onHint: (slot: string | null) => void;
-  onInvalidMove: () => void;
+  onInvalidMove: (slotKey: string) => void;
   onMove: (slot: Slot) => void;
   onOpenDetails: () => void;
   onPeekCancel: PointerEventHandler<HTMLButtonElement>;
@@ -94,6 +98,7 @@ export function GameStage({
   autoPlaySpeed,
   autoPlayStats,
   autoPlayStatusMessage,
+  invalidMoveTile,
   isResetting,
   isShowingHintPlaceholder,
   isShowingSolvedHint,
@@ -171,13 +176,18 @@ export function GameStage({
               hintedSlot={hintedSlot}
               isHintPlaceholderVisible={isShowingHintPlaceholder}
               isEntering={isBoardEntering}
+              invalidMoveKey={
+                invalidMoveTile.slotKey === slotKey(tile.slot)
+                  ? invalidMoveTile.key
+                  : 0
+              }
               isMovable={movableSlotKeys.has(slotKey(tile.slot))}
               isInteractionBlocked={isAutoPlayActive}
               isResetting={isResetting}
               isShowingSolvedHint={isShowingSolvedHint}
               key={`${boardEntryAnimationKey}:${tile.position}`}
               onHint={tile.type === 'PLACEHOLDER' ? () => undefined : onHint}
-              onInvalidMove={onInvalidMove}
+              onInvalidMove={() => onInvalidMove(slotKey(tile.slot))}
               onMove={onMove}
               rows={rows}
               suppressNextClickRef={suppressNextClickRef}
