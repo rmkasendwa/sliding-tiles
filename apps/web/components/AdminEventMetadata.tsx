@@ -1,7 +1,7 @@
 import {
   Clock3,
-  Compass,
   Expand,
+  Globe,
   Monitor,
   MonitorSmartphone,
   MousePointer2,
@@ -20,12 +20,15 @@ type AdminEventMetadataProps = {
 };
 
 type MetadataItem = {
+  browserIcon?: BrowserIconName;
   icon: LucideIcon;
   label: string;
   title?: string;
   tone?: string;
   value: string;
 };
+
+type BrowserIconName = 'chrome' | 'edge' | 'firefox' | 'safari' | 'unknown';
 
 function formatDuration(valueMs: number) {
   const seconds = Math.round(valueMs / 1000);
@@ -41,6 +44,7 @@ function getBrowserInfo(userAgent: string | null) {
 
   if (/Edg\//.test(userAgent)) {
     return {
+      icon: 'edge' as const,
       label: 'Edge',
       tone: 'border-info/30 bg-info-soft text-info-strong',
     };
@@ -48,6 +52,7 @@ function getBrowserInfo(userAgent: string | null) {
 
   if (/Firefox\//.test(userAgent)) {
     return {
+      icon: 'firefox' as const,
       label: 'Firefox',
       tone: 'border-warning/35 bg-warning-soft text-warning-strong',
     };
@@ -55,6 +60,7 @@ function getBrowserInfo(userAgent: string | null) {
 
   if (/Chrome\//.test(userAgent) && !/Chromium\//.test(userAgent)) {
     return {
+      icon: 'chrome' as const,
       label: 'Chrome',
       tone: 'border-success/30 bg-success-soft text-success-strong',
     };
@@ -62,12 +68,14 @@ function getBrowserInfo(userAgent: string | null) {
 
   if (/Safari\//.test(userAgent) && !/Chrome\//.test(userAgent)) {
     return {
+      icon: 'safari' as const,
       label: 'Safari',
       tone: 'border-accent/30 bg-accent/10 text-accent-strong',
     };
   }
 
   return {
+    icon: 'unknown' as const,
     label: 'Browser',
     tone: 'border-line bg-panel text-foreground',
   };
@@ -89,13 +97,63 @@ function getDeviceInfo(userAgent: string | null, screenWidth: number | null) {
   return { icon: Monitor, value: 'Desktop' };
 }
 
+function BrowserIcon({ name }: { name: BrowserIconName }) {
+  if (name === 'chrome') {
+    return (
+      <span
+        aria-hidden="true"
+        className="relative size-4 rounded-full bg-[conic-gradient(#e94635_0_33%,#f4c542_0_66%,#2ba84a_0_100%)]"
+      >
+        <span className="absolute left-1/2 top-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/80 bg-[#2f7de1]" />
+      </span>
+    );
+  }
+
+  if (name === 'firefox') {
+    return (
+      <span
+        aria-hidden="true"
+        className="relative size-4 rounded-full bg-[radial-gradient(circle_at_62%_62%,#673ab7_0_28%,transparent_29%),conic-gradient(from_225deg,#ffb000,#ff6b2f,#d7386c,#6b3cc8,#ffb000)]"
+      >
+        <span className="absolute right-0.5 top-0.5 size-2 rounded-full bg-[#ff8a1f]" />
+      </span>
+    );
+  }
+
+  if (name === 'safari') {
+    return (
+      <span
+        aria-hidden="true"
+        className="relative grid size-4 place-items-center rounded-full bg-[#1c8ee8]"
+      >
+        <span className="absolute size-3 rounded-full border border-white/90" />
+        <span className="h-3 w-0.5 rotate-45 rounded-full bg-[#ef3d3d]" />
+      </span>
+    );
+  }
+
+  if (name === 'edge') {
+    return (
+      <span
+        aria-hidden="true"
+        className="relative size-4 overflow-hidden rounded-full bg-[conic-gradient(from_215deg,#28c2a0,#2c92dc,#2354a6,#28c2a0)]"
+      >
+        <span className="absolute bottom-0 left-1 size-2.5 rounded-full bg-info-soft/90" />
+      </span>
+    );
+  }
+
+  return <Globe aria-hidden="true" className="size-3.5" />;
+}
+
 export function AdminEventMetadata({ event }: AdminEventMetadataProps) {
   const browser = getBrowserInfo(event.userAgent);
   const device = getDeviceInfo(event.userAgent, event.screenWidth);
   const metadataItems: Array<MetadataItem | null> = [
     browser
       ? {
-          icon: Compass,
+          browserIcon: browser.icon,
+          icon: Globe,
           label: 'Browser',
           title: event.userAgent ?? browser.label,
           tone: browser.tone,
@@ -157,7 +215,11 @@ export function AdminEventMetadata({ event }: AdminEventMetadataProps) {
             key={item.label}
             title={item.title ?? item.label}
           >
-            <Icon aria-hidden="true" className="size-3.5" />
+            {item.browserIcon ? (
+              <BrowserIcon name={item.browserIcon} />
+            ) : (
+              <Icon aria-hidden="true" className="size-3.5" />
+            )}
             <span className={item.tone ? 'opacity-75' : 'text-muted'}>
               {item.label}
             </span>
