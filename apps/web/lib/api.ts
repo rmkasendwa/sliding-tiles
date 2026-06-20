@@ -117,6 +117,19 @@ export type AdminAnalyticsEventName =
   | 'signup_prompt_shown'
   | 'signup_clicked';
 
+export type AdminAnalyticsEvent = {
+  eventName: AdminAnalyticsEventName;
+  id: string;
+  level: number | null;
+  moveCount: number | null;
+  occurredAt: string;
+  puzzleSize: string | null;
+  screenHeight: number | null;
+  screenWidth: number | null;
+  sessionId: string;
+  timerValueMs: number | null;
+};
+
 export type AdminAnalyticsResponse = {
   eventCounts: Array<{
     count: number;
@@ -139,18 +152,7 @@ export type AdminAnalyticsResponse = {
     totalAnonymousSessions: number;
   };
   nextCursor: string | null;
-  recentEvents: Array<{
-    eventName: AdminAnalyticsEventName;
-    id: string;
-    level: number | null;
-    moveCount: number | null;
-    occurredAt: string;
-    puzzleSize: string | null;
-    screenHeight: number | null;
-    screenWidth: number | null;
-    sessionId: string;
-    timerValueMs: number | null;
-  }>;
+  recentEvents: AdminAnalyticsEvent[];
 };
 
 function getApiBaseUrl() {

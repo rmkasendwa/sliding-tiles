@@ -1,8 +1,8 @@
 import { ChevronRight, MousePointerClick } from 'lucide-react';
 import Link from 'next/link';
 
+import { AdminAnalyticsEventsTable } from '@/components/AdminAnalyticsEventsTable';
 import { AdminAnalyticsFilters } from '@/components/AdminAnalyticsFilters';
-import { AdminEventMetadata } from '@/components/AdminEventMetadata';
 import type { AdminAnalyticsResponse } from '@/lib/api';
 import { apiRequest } from '@/lib/api';
 import { routes } from '@/lib/routes';
@@ -13,20 +13,6 @@ type AdminEventsPageProps = {
 
 function getParam(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
-}
-
-function humanizeEventName(eventName: string) {
-  return eventName.replaceAll('_', ' ');
-}
-
-function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat('en', {
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(value));
 }
 
 function buildQuery(
@@ -84,44 +70,7 @@ export default async function AdminEventsPage({
           </div>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-245 border-collapse text-left text-sm">
-            <thead className="bg-panel text-xs uppercase text-muted">
-              <tr>
-                <th className="px-4 py-3">Event</th>
-                <th className="px-4 py-3">Session</th>
-                <th className="px-4 py-3">Level</th>
-                <th className="px-4 py-3">Board</th>
-                <th className="px-4 py-3">Metadata</th>
-                <th className="px-4 py-3">Timestamp</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-line">
-              {analytics.recentEvents.map((event) => (
-                <tr key={event.id}>
-                  <td className="px-4 py-3 font-bold">
-                    {humanizeEventName(event.eventName)}
-                  </td>
-                  <td className="max-w-52 truncate px-4 py-3 font-mono text-xs text-muted">
-                    {event.sessionId}
-                  </td>
-                  <td className="px-4 py-3 text-muted">
-                    {event.level ?? 'n/a'}
-                  </td>
-                  <td className="px-4 py-3 text-muted">
-                    {event.puzzleSize ?? 'n/a'}
-                  </td>
-                  <td className="px-4 py-3">
-                    <AdminEventMetadata event={event} />
-                  </td>
-                  <td className="px-4 py-3 text-muted">
-                    <time dateTime={event.occurredAt}>
-                      {formatDateTime(event.occurredAt)}
-                    </time>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <AdminAnalyticsEventsTable events={analytics.recentEvents} />
         </div>
         {analytics.nextCursor ? (
           <div className="border-t border-line p-4 text-right">
