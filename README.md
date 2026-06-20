@@ -72,7 +72,22 @@ npm run db:migrate
 npm run db:generate
 ```
 
-8. Run the full development stack:
+8. Bootstrap the first admin only after that person has created an account
+   through the normal Sliding Tiles registration flow. There is no default
+   admin account.
+
+```sql
+UPDATE users
+SET role = 'ADMIN',
+    promoted_at = now()
+WHERE email = 'your-email@example.com';
+```
+
+After this one-time database update, that admin can manage future promotions
+and demotions from `/admin/users`. Role changes made in the admin UI record
+`promoted_by_id` and `promoted_at`.
+
+9. Run the full development stack:
 
 ```bash
 npm run dev
@@ -152,6 +167,9 @@ that future web and mobile clients can share:
 - `POST /api/auth/login`
 - `POST /api/auth/logout`
 - `GET /api/auth/me`
+- `GET /api/admin/analytics`
+- `GET /api/admin/users`
+- `PATCH /api/admin/users/:userId/role`
 - `POST /api/auth/verify-email`
 - `POST /api/auth/resend-verification-email`
 - `GET /api/game-state`
