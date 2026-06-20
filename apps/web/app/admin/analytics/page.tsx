@@ -1,17 +1,11 @@
-import {
-  BarChart3,
-  ChevronDown,
-  ChevronRight,
-  Filter,
-  MousePointerClick,
-} from 'lucide-react';
+import { BarChart3, ChevronRight, MousePointerClick } from 'lucide-react';
 import Link from 'next/link';
 
+import { AdminAnalyticsFilters } from '@/components/AdminAnalyticsFilters';
 import { AdminEventMetadata } from '@/components/AdminEventMetadata';
 import type { AdminAnalyticsResponse } from '@/lib/api';
 import { apiRequest } from '@/lib/api';
 import { routes } from '@/lib/routes';
-import { AdminAnalyticsFilters } from '@/components/AdminAnalyticsFilters';
 
 type AdminAnalyticsPageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -208,12 +202,12 @@ export default async function AdminAnalyticsPage({
             <table className="w-full min-w-245 border-collapse text-left text-sm">
               <thead className="bg-panel text-xs uppercase text-muted">
                 <tr>
-                  <th className="px-4 py-3">Event</th>
+                  <th className="px-4 py-3 min-w-47.5">Event</th>
                   <th className="px-4 py-3">Session</th>
                   <th className="px-4 py-3">Level</th>
                   <th className="px-4 py-3">Board</th>
                   <th className="px-4 py-3">Metadata</th>
-                  <th className="px-4 py-3">Timestamp</th>
+                  <th className="px-4 py-3 w-50">Timestamp</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
