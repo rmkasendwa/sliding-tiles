@@ -1,6 +1,6 @@
 'use client';
 
-import { History, LogOut, Trophy, User } from 'lucide-react';
+import { History, LogOut, ShieldCheck, Trophy, User } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -19,6 +19,7 @@ type MainHeaderNavProps = {
     avatarUrl?: string | null;
     email: string;
     name: string;
+    role: 'USER' | 'ADMIN';
     username: string;
   } | null;
 };
@@ -64,6 +65,7 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const sessionDisplayName = session ? getUserDisplayName(session) : null;
+  const isAdmin = session?.role === 'ADMIN';
   const shouldRevealHeader =
     !(isHomePage || isPlayPage) || hasScrolledRevealPage;
   const closeDrawer = () => setIsDrawerOpen(false);
@@ -276,6 +278,26 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
               />
             ) : null}
           </Link>
+          {isAdmin ? (
+            <Link
+              aria-current={
+                isRouteActive(pathname, routes.admin) ? 'page' : undefined
+              }
+              className={getDrawerLinkClass(
+                isRouteActive(pathname, routes.admin),
+              )}
+              href={routes.admin}
+              onClick={closeDrawer}
+            >
+              <span>Admin</span>
+              {isRouteActive(pathname, routes.admin) ? (
+                <span
+                  className="h-2 w-2 rounded-full bg-accent"
+                  aria-hidden="true"
+                />
+              ) : null}
+            </Link>
+          ) : null}
           <form action={logout}>
             <button
               className="flex min-h-12 w-full cursor-pointer items-center rounded-[7px] px-3 text-left text-[1.05rem] font-bold text-danger transition-colors hover:bg-danger/8"
@@ -436,6 +458,20 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
                       />
                       Leaderboard
                     </Link>
+                    {isAdmin ? (
+                      <Link
+                        className="flex min-h-11 items-center gap-2.5 rounded-[10px] px-3 text-[0.95rem] transition-colors hover:bg-accent/8"
+                        href={routes.admin}
+                        onClick={closeAccountMenu}
+                        role="menuitem"
+                      >
+                        <ShieldCheck
+                          className="h-4 w-4 text-muted"
+                          aria-hidden="true"
+                        />
+                        Admin
+                      </Link>
+                    ) : null}
                     <form action={logout} onSubmit={closeAccountMenu}>
                       <button
                         className="flex min-h-11 w-full items-center gap-2.5 rounded-[10px] px-3 text-left text-[0.95rem] font-bold text-danger transition-colors hover:bg-danger/8"
