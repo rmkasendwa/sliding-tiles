@@ -25,3 +25,29 @@ export function buildAnalyticsEventsQuery(
 
   return query;
 }
+
+export function formatAnalyticsMetric(
+  value: number | null,
+  type: 'duration' | 'number' | 'percent' = 'number',
+) {
+  if (value === null) {
+    return 'n/a';
+  }
+
+  if (type === 'percent') {
+    return `${value.toFixed(1)}%`;
+  }
+
+  if (type === 'duration') {
+    const seconds = Math.round(value / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const remainder = seconds % 60;
+    return `${minutes}:${String(remainder).padStart(2, '0')}`;
+  }
+
+  return Number.isInteger(value) ? value.toLocaleString() : value.toFixed(1);
+}
+
+export function humanizeAnalyticsEventName(eventName: string) {
+  return eventName.replaceAll('_', ' ');
+}

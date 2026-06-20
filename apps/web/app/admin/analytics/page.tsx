@@ -3,7 +3,11 @@ import Link from 'next/link';
 
 import { AdminAnalyticsEventsList } from '@/components/AdminAnalyticsEventsList';
 import { AdminAnalyticsFilters } from '@/components/AdminAnalyticsFilters';
-import { buildAnalyticsEventsQuery } from '@/lib/admin';
+import {
+  buildAnalyticsEventsQuery,
+  formatAnalyticsMetric,
+  humanizeAnalyticsEventName,
+} from '@/lib/admin';
 import type { AdminAnalyticsResponse } from '@/lib/api';
 import { apiRequest } from '@/lib/api';
 import { routes } from '@/lib/routes';
@@ -39,32 +43,6 @@ const metricLabels: Array<{
   { key: 'signupClicks', label: 'Signup clicks' },
 ];
 
-function formatMetric(
-  value: number | null,
-  type: 'duration' | 'number' | 'percent' = 'number',
-) {
-  if (value === null) {
-    return 'n/a';
-  }
-
-  if (type === 'percent') {
-    return `${value.toFixed(1)}%`;
-  }
-
-  if (type === 'duration') {
-    const seconds = Math.round(value / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const remainder = seconds % 60;
-    return `${minutes}:${String(remainder).padStart(2, '0')}`;
-  }
-
-  return Number.isInteger(value) ? value.toLocaleString() : value.toFixed(1);
-}
-
-function humanizeEventName(eventName: string) {
-  return eventName.replaceAll('_', ' ');
-}
-
 export default async function AdminAnalyticsPage({
   searchParams,
 }: AdminAnalyticsPageProps) {
@@ -93,7 +71,10 @@ export default async function AdminAnalyticsPage({
               {metric.label}
             </p>
             <p className="mt-2 text-3xl font-black leading-none text-foreground">
-              {formatMetric(analytics.metrics[metric.key], metric.type)}
+              {formatAnalyticsMetric(
+                analytics.metrics[metric.key],
+                metric.type,
+              )}
             </p>
           </article>
         ))}
@@ -113,7 +94,7 @@ export default async function AdminAnalyticsPage({
               >
                 <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
                   <span className="truncate text-sm font-bold">
-                    {humanizeEventName(event.eventName)}
+                    {humanizeAnalyticsEventName(event.eventName)}
                   </span>
                   <span className="text-sm font-black">
                     {event.count.toLocaleString()}

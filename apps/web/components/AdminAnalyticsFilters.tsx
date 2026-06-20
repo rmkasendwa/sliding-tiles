@@ -1,14 +1,7 @@
 import { ChevronDown, Filter } from 'lucide-react';
 
+import { getAnalyticsParam, humanizeAnalyticsEventName } from '@/lib/admin';
 import type { AdminAnalyticsResponse } from '@/lib/api';
-
-function getParam(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] : value;
-}
-
-function humanizeEventName(eventName: string) {
-  return eventName.replaceAll('_', ' ');
-}
 
 export function AdminAnalyticsFilters({
   action,
@@ -19,7 +12,7 @@ export function AdminAnalyticsFilters({
   eventNames: AdminAnalyticsResponse['eventNames'];
   params: Record<string, string | string[] | undefined>;
 }) {
-  const selectedEvent = getParam(params.eventName) ?? '';
+  const selectedEvent = getAnalyticsParam(params.eventName) ?? '';
   const hasActiveFilters = [
     'boardSize',
     'dateFrom',
@@ -27,7 +20,7 @@ export function AdminAnalyticsFilters({
     'eventName',
     'level',
     'sessionId',
-  ].some((key) => Boolean(getParam(params[key])));
+  ].some((key) => Boolean(getAnalyticsParam(params[key])));
 
   return (
     <details className="overflow-hidden rounded-lg border border-line bg-surface shadow-panel">
@@ -72,7 +65,7 @@ export function AdminAnalyticsFilters({
             <option value="">All events</option>
             {eventNames.map((eventName) => (
               <option key={eventName} value={eventName}>
-                {humanizeEventName(eventName)}
+                {humanizeAnalyticsEventName(eventName)}
               </option>
             ))}
           </select>
@@ -81,7 +74,7 @@ export function AdminAnalyticsFilters({
           From
           <input
             className="min-h-11 min-w-0 rounded-[7px] border border-line bg-panel px-3 text-base outline-none focus:border-accent"
-            defaultValue={getParam(params.dateFrom) ?? ''}
+            defaultValue={getAnalyticsParam(params.dateFrom) ?? ''}
             name="dateFrom"
             type="date"
           />
@@ -90,7 +83,7 @@ export function AdminAnalyticsFilters({
           To
           <input
             className="min-h-11 min-w-0 rounded-[7px] border border-line bg-panel px-3 text-base outline-none focus:border-accent"
-            defaultValue={getParam(params.dateTo) ?? ''}
+            defaultValue={getAnalyticsParam(params.dateTo) ?? ''}
             name="dateTo"
             type="date"
           />
@@ -99,7 +92,7 @@ export function AdminAnalyticsFilters({
           Level
           <input
             className="min-h-11 min-w-0 rounded-[7px] border border-line bg-panel px-3 text-base outline-none focus:border-accent"
-            defaultValue={getParam(params.level) ?? ''}
+            defaultValue={getAnalyticsParam(params.level) ?? ''}
             min="1"
             name="level"
             type="number"
@@ -109,7 +102,7 @@ export function AdminAnalyticsFilters({
           Board size
           <input
             className="min-h-11 min-w-0 rounded-[7px] border border-line bg-panel px-3 text-base outline-none focus:border-accent"
-            defaultValue={getParam(params.boardSize) ?? ''}
+            defaultValue={getAnalyticsParam(params.boardSize) ?? ''}
             name="boardSize"
             placeholder="4x4"
           />
@@ -118,7 +111,7 @@ export function AdminAnalyticsFilters({
           Session ID
           <input
             className="min-h-11 min-w-0 rounded-[7px] border border-line bg-panel px-3 text-base outline-none focus:border-accent"
-            defaultValue={getParam(params.sessionId) ?? ''}
+            defaultValue={getAnalyticsParam(params.sessionId) ?? ''}
             name="sessionId"
             placeholder="UUID"
           />

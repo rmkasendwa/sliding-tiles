@@ -1,9 +1,6 @@
 import { AdminAnalyticsEvent } from '@/lib/api';
 import { AdminEventMetadata } from './AdminEventMetadata';
-
-function humanizeEventName(eventName: string) {
-  return eventName.replaceAll('_', ' ');
-}
+import { humanizeAnalyticsEventName } from '@/lib/admin';
 
 function formatDateTime(value: string) {
   return new Intl.DateTimeFormat('en', {
@@ -38,7 +35,7 @@ export function AdminAnalyticsEventsList({
         {events.map((event) => (
           <tr key={event.id}>
             <td className="px-4 py-3 font-bold">
-              {humanizeEventName(event.eventName)}
+              {humanizeAnalyticsEventName(event.eventName)}
             </td>
             <td className="max-w-52 truncate px-4 py-3 font-mono text-xs text-muted">
               {event.sessionId}
