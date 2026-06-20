@@ -45,7 +45,7 @@ export default async function AdminEventsPage({
         </div>
         <AdminAnalyticsEventsList events={analytics.recentEvents} />
         {analytics.nextCursor ? (
-          <div className="border-t border-line p-4 text-right">
+          <div className="border-t border-line p-4 text-right sticky bottom-0 bg-surface rounded-b-lg">
             <Link
               className="inline-flex min-h-10 items-center justify-center gap-2 rounded-[7px] border border-line bg-panel px-3 text-sm font-bold text-foreground shadow-sm transition hover:border-accent/50 hover:text-accent-strong"
               href={`${routes.adminEvents}?${nextQuery}`}
