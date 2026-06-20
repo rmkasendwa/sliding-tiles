@@ -1,7 +1,7 @@
 import { ChevronRight, MousePointerClick } from 'lucide-react';
 import Link from 'next/link';
 
-import { AdminAnalyticsEventsTable } from '@/components/AdminAnalyticsEventsTable';
+import { AdminAnalyticsEventsList } from '@/components/AdminAnalyticsEventsList';
 import { AdminAnalyticsFilters } from '@/components/AdminAnalyticsFilters';
 import type { AdminAnalyticsResponse } from '@/lib/api';
 import { apiRequest } from '@/lib/api';
@@ -69,7 +69,7 @@ export default async function AdminEventsPage({
             <h2 className="text-xl">Recent Events</h2>
           </div>
         </div>
-        <AdminAnalyticsEventsTable events={analytics.recentEvents} />
+        <AdminAnalyticsEventsList events={analytics.recentEvents} />
         {analytics.nextCursor ? (
           <div className="border-t border-line p-4 text-right">
             <Link

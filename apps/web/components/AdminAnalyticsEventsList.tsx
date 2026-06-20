@@ -19,7 +19,7 @@ export type AdminAnalyticsEventsTableProps = {
   events: AdminAnalyticsEvent[];
 };
 
-export function AdminAnalyticsEventsTable({
+export function AdminAnalyticsEventsList({
   events,
 }: AdminAnalyticsEventsTableProps) {
   return (

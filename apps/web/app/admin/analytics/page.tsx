@@ -1,7 +1,7 @@
 import { BarChart3, ChevronRight, MousePointerClick } from 'lucide-react';
 import Link from 'next/link';
 
-import { AdminAnalyticsEventsTable } from '@/components/AdminAnalyticsEventsTable';
+import { AdminAnalyticsEventsList } from '@/components/AdminAnalyticsEventsList';
 import { AdminAnalyticsFilters } from '@/components/AdminAnalyticsFilters';
 import type { AdminAnalyticsResponse } from '@/lib/api';
 import { apiRequest } from '@/lib/api';
@@ -188,7 +188,7 @@ export default async function AdminAnalyticsPage({
               />
             </Link>
           </div>
-          <AdminAnalyticsEventsTable events={analytics.recentEvents} />
+          <AdminAnalyticsEventsList events={analytics.recentEvents} />
         </div>
       </section>
     </div>
