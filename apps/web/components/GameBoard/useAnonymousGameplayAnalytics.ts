@@ -43,6 +43,7 @@ type QueuedAnalyticsEvent = AnonymousGameplayMetadata & {
   screenWidth?: number;
   sessionId: string;
   timestamp: string;
+  userAgent?: string;
 };
 
 function createId() {
@@ -131,6 +132,7 @@ export function useAnonymousGameplayAnalytics(isSignedIn: boolean) {
           screenWidth: window.screen.width,
           sessionId: sessionIdRef.current,
           timestamp: new Date().toISOString(),
+          userAgent: navigator.userAgent.slice(0, 512),
         };
 
         if (options?.immediate) {

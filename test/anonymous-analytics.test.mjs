@@ -15,6 +15,8 @@ const validEvent = {
   sessionId: 'e3c512bd-2330-4d20-9e9e-10e1be9eeed6',
   timerValueMs: 42000,
   timestamp: '2026-06-13T12:00:00.000Z',
+  userAgent:
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/126.0.0.0 Safari/537.36',
 };
 
 test('validates and stores anonymous gameplay event batches', async () => {
@@ -46,6 +48,7 @@ test('validates and stores anonymous gameplay event batches', async () => {
     screenWidth: 1440,
     sessionId: validEvent.sessionId,
     timerValueMs: 42000,
+    userAgent: validEvent.userAgent,
   });
 });
 

@@ -213,6 +213,7 @@ const anonymousAnalyticsEventSchema = z
     sessionId: z.string().uuid(),
     timerValueMs: z.number().int().nonnegative().max(604_800_000).optional(),
     timestamp: z.string().datetime(),
+    userAgent: z.string().trim().max(512).optional(),
   })
   .strict();
 

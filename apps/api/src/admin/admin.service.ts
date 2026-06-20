@@ -205,6 +205,7 @@ export class AdminService {
           screenWidth: true,
           sessionId: true,
           timerValueMs: true,
+          userAgent: true,
         },
         skip: query.cursor ? 1 : 0,
         take: recentTake + 1,

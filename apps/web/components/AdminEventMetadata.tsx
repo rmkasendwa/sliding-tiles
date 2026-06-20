@@ -1,8 +1,11 @@
 import {
   Clock3,
+  Compass,
   Expand,
   Monitor,
+  MonitorSmartphone,
   MousePointer2,
+  Smartphone,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -12,7 +15,16 @@ type AdminEventMetadataProps = {
     screenHeight: number | null;
     screenWidth: number | null;
     timerValueMs: number | null;
+    userAgent: string | null;
   };
+};
+
+type MetadataItem = {
+  icon: LucideIcon;
+  label: string;
+  title?: string;
+  tone?: string;
+  value: string;
 };
 
 function formatDuration(valueMs: number) {
@@ -22,8 +34,79 @@ function formatDuration(valueMs: number) {
   return `${minutes}:${String(remainder).padStart(2, '0')}`;
 }
 
+function getBrowserInfo(userAgent: string | null) {
+  if (!userAgent) {
+    return null;
+  }
+
+  if (/Edg\//.test(userAgent)) {
+    return {
+      label: 'Edge',
+      tone: 'border-info/30 bg-info-soft text-info-strong',
+    };
+  }
+
+  if (/Firefox\//.test(userAgent)) {
+    return {
+      label: 'Firefox',
+      tone: 'border-warning/35 bg-warning-soft text-warning-strong',
+    };
+  }
+
+  if (/Chrome\//.test(userAgent) && !/Chromium\//.test(userAgent)) {
+    return {
+      label: 'Chrome',
+      tone: 'border-success/30 bg-success-soft text-success-strong',
+    };
+  }
+
+  if (/Safari\//.test(userAgent) && !/Chrome\//.test(userAgent)) {
+    return {
+      label: 'Safari',
+      tone: 'border-accent/30 bg-accent/10 text-accent-strong',
+    };
+  }
+
+  return {
+    label: 'Browser',
+    tone: 'border-line bg-panel text-foreground',
+  };
+}
+
+function getDeviceInfo(userAgent: string | null, screenWidth: number | null) {
+  const ua = userAgent ?? '';
+  if (/Mobi|Android|iPhone|iPod/i.test(ua) || (screenWidth ?? 0) < 640) {
+    return { icon: Smartphone, value: 'Phone' };
+  }
+
+  if (
+    /iPad|Tablet/i.test(ua) ||
+    ((screenWidth ?? 0) >= 640 && (screenWidth ?? 0) < 1024)
+  ) {
+    return { icon: MonitorSmartphone, value: 'Tablet' };
+  }
+
+  return { icon: Monitor, value: 'Desktop' };
+}
+
 export function AdminEventMetadata({ event }: AdminEventMetadataProps) {
-  const metadata = [
+  const browser = getBrowserInfo(event.userAgent);
+  const device = getDeviceInfo(event.userAgent, event.screenWidth);
+  const metadataItems: Array<MetadataItem | null> = [
+    browser
+      ? {
+          icon: Compass,
+          label: 'Browser',
+          title: event.userAgent ?? browser.label,
+          tone: browser.tone,
+          value: browser.label,
+        }
+      : null,
+    {
+      icon: device.icon,
+      label: 'Device',
+      value: device.value,
+    },
     event.moveCount === null
       ? null
       : {
@@ -52,14 +135,9 @@ export function AdminEventMetadata({ event }: AdminEventMetadataProps) {
           label: 'Viewport class',
           value: event.screenWidth >= 1024 ? 'Desktop' : 'Small screen',
         },
-  ].filter(
-    (
-      item,
-    ): item is {
-      icon: LucideIcon;
-      label: string;
-      value: string;
-    } => Boolean(item),
+  ];
+  const metadata = metadataItems.filter(
+    (item): item is MetadataItem => Boolean(item),
   );
 
   if (metadata.length === 0) {
@@ -67,17 +145,22 @@ export function AdminEventMetadata({ event }: AdminEventMetadataProps) {
   }
 
   return (
-    <div className="flex min-w-64 flex-wrap gap-2">
+    <div className="flex min-w-0 flex-wrap gap-2">
       {metadata.map((item) => {
         const Icon = item.icon;
         return (
           <span
-            className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-line bg-panel px-2.5 text-xs font-bold text-foreground"
+            className={[
+              'inline-flex min-h-8 items-center gap-1.5 rounded-full border px-2.5 text-xs font-bold',
+              item.tone ?? 'border-line bg-panel text-foreground',
+            ].join(' ')}
             key={item.label}
-            title={item.label}
+            title={item.title ?? item.label}
           >
-            <Icon aria-hidden="true" className="size-3.5 text-accent" />
-            <span className="text-muted">{item.label}</span>
+            <Icon aria-hidden="true" className="size-3.5" />
+            <span className={item.tone ? 'opacity-75' : 'text-muted'}>
+              {item.label}
+            </span>
             <span>{item.value}</span>
           </span>
         );

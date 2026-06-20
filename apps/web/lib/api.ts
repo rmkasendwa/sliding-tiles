@@ -128,6 +128,7 @@ export type AdminAnalyticsEvent = {
   screenWidth: number | null;
   sessionId: string;
   timerValueMs: number | null;
+  userAgent: string | null;
 };
 
 export type AdminAnalyticsResponse = {
