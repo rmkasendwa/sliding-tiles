@@ -24,7 +24,7 @@ export function AdminAnalyticsEventsTable({
 }: AdminAnalyticsEventsTableProps) {
   return (
     <table className="w-full min-w-245 border-collapse text-left text-sm">
-      <thead className="bg-panel text-xs uppercase text-muted">
+      <thead className="bg-panel text-xs uppercase text-muted sticky top-18.25 z-10">
         <tr>
           <th className="px-4 py-3 min-w-47.5">Event</th>
           <th className="px-4 py-3">Session</th>

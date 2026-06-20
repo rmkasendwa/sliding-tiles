@@ -59,7 +59,7 @@ export default async function AdminEventsPage({
         params={params}
       />
 
-      <section className="overflow-hidden rounded-lg border border-line bg-surface shadow-panel">
+      <section className="rounded-lg border border-line bg-surface shadow-panel">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-3">
           <div className="flex items-center gap-2">
             <MousePointerClick
@@ -69,9 +69,7 @@ export default async function AdminEventsPage({
             <h2 className="text-xl">Recent Events</h2>
           </div>
         </div>
-        <div className="overflow-x-auto">
-          <AdminAnalyticsEventsTable events={analytics.recentEvents} />
-        </div>
+        <AdminAnalyticsEventsTable events={analytics.recentEvents} />
         {analytics.nextCursor ? (
           <div className="border-t border-line p-4 text-right">
             <Link

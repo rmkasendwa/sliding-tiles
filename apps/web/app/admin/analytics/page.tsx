@@ -167,7 +167,7 @@ export default async function AdminAnalyticsPage({
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-lg border border-line bg-surface shadow-panel">
+        <div className="rounded-lg border border-line bg-surface shadow-panel">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-3">
             <div className="flex items-center gap-2">
               <MousePointerClick
@@ -188,9 +188,7 @@ export default async function AdminAnalyticsPage({
               />
             </Link>
           </div>
-          <div className="overflow-x-auto">
-            <AdminAnalyticsEventsTable events={analytics.recentEvents} />
-          </div>
+          <AdminAnalyticsEventsTable events={analytics.recentEvents} />
         </div>
       </section>
     </div>
