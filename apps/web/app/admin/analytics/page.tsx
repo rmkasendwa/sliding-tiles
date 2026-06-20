@@ -1,6 +1,13 @@
-import { BarChart3, ChevronRight, MousePointerClick } from 'lucide-react';
+import {
+  BarChart3,
+  ChevronDown,
+  ChevronRight,
+  Filter,
+  MousePointerClick,
+} from 'lucide-react';
 import Link from 'next/link';
 
+import { AdminEventMetadata } from '@/components/AdminEventMetadata';
 import type { AdminAnalyticsResponse } from '@/lib/api';
 import { apiRequest } from '@/lib/api';
 import { routes } from '@/lib/routes';
@@ -19,8 +26,16 @@ const metricLabels: Array<{
   { key: 'gamesCompleted', label: 'Games completed' },
   { key: 'completionRate', label: 'Completion rate', type: 'percent' },
   { key: 'averageMovesPerCompletedGame', label: 'Avg moves / completed game' },
-  { key: 'averageActivePlayTimeMs', label: 'Avg active play time', type: 'duration' },
-  { key: 'averageTotalPlayTimeMs', label: 'Avg total play time', type: 'duration' },
+  {
+    key: 'averageActivePlayTimeMs',
+    label: 'Avg active play time',
+    type: 'duration',
+  },
+  {
+    key: 'averageTotalPlayTimeMs',
+    label: 'Avg total play time',
+    type: 'duration',
+  },
   { key: 'autoPlayUsage', label: 'Auto Play usage' },
   { key: 'replayUsage', label: 'Replay usage' },
   { key: 'peekImageUsage', label: 'Peek image usage' },
@@ -68,8 +83,11 @@ function humanizeEventName(eventName: string) {
   return eventName.replaceAll('_', ' ');
 }
 
-function buildQuery(params: Record<string, string | string[] | undefined>) {
-  const query = new URLSearchParams({ take: '25' });
+function buildQuery(
+  params: Record<string, string | string[] | undefined>,
+  take = '5',
+) {
+  const query = new URLSearchParams({ take });
   for (const key of [
     'boardSize',
     'cursor',
@@ -88,6 +106,123 @@ function buildQuery(params: Record<string, string | string[] | undefined>) {
   return query;
 }
 
+function AnalyticsFilters({
+  action,
+  eventNames,
+  params,
+}: {
+  action: string;
+  eventNames: AdminAnalyticsResponse['eventNames'];
+  params: Record<string, string | string[] | undefined>;
+}) {
+  const selectedEvent = getParam(params.eventName) ?? '';
+  const hasActiveFilters = [
+    'boardSize',
+    'dateFrom',
+    'dateTo',
+    'eventName',
+    'level',
+    'sessionId',
+  ].some((key) => Boolean(getParam(params[key])));
+
+  return (
+    <details className="overflow-hidden rounded-lg border border-line bg-surface shadow-panel">
+      <summary className="group flex min-h-13 cursor-pointer list-none items-center justify-between gap-3 px-4 marker:hidden">
+        <span className="flex min-w-0 items-center gap-2">
+          <Filter aria-hidden="true" className="size-4 text-accent" strokeWidth={2.2} />
+          <span className="grid min-w-0 gap-0.5">
+            <span className="text-sm font-extrabold uppercase text-accent-strong">
+              Filters are collapsed
+            </span>
+            <span className="truncate text-xs font-bold text-muted">
+              {hasActiveFilters
+                ? 'Some filters are active. Expand to review or change them.'
+                : 'Expand to filter by event, date, level, board size, or session.'}
+            </span>
+          </span>
+        </span>
+        <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-line bg-panel px-2.5 py-1 text-xs font-bold text-foreground">
+          Expand
+          <ChevronDown
+            aria-hidden="true"
+            className="size-3.5 transition-transform group-open:rotate-180"
+            strokeWidth={2.2}
+          />
+        </span>
+      </summary>
+      <form
+        action={action}
+        className="grid gap-3 border-t border-line p-4 sm:grid-cols-2 min-[1180px]:grid-cols-6 min-[1180px]:items-end"
+      >
+        <label className="grid min-w-0 gap-2 text-sm font-bold">
+          Event type
+          <select
+            className="min-h-11 min-w-0 rounded-[7px] border border-line bg-panel px-3 text-base outline-none focus:border-accent"
+            defaultValue={selectedEvent}
+            name="eventName"
+          >
+            <option value="">All events</option>
+            {eventNames.map((eventName) => (
+              <option key={eventName} value={eventName}>
+                {humanizeEventName(eventName)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="grid min-w-0 gap-2 text-sm font-bold">
+          From
+          <input
+            className="min-h-11 min-w-0 rounded-[7px] border border-line bg-panel px-3 text-base outline-none focus:border-accent"
+            defaultValue={getParam(params.dateFrom) ?? ''}
+            name="dateFrom"
+            type="date"
+          />
+        </label>
+        <label className="grid min-w-0 gap-2 text-sm font-bold">
+          To
+          <input
+            className="min-h-11 min-w-0 rounded-[7px] border border-line bg-panel px-3 text-base outline-none focus:border-accent"
+            defaultValue={getParam(params.dateTo) ?? ''}
+            name="dateTo"
+            type="date"
+          />
+        </label>
+        <label className="grid min-w-0 gap-2 text-sm font-bold">
+          Level
+          <input
+            className="min-h-11 min-w-0 rounded-[7px] border border-line bg-panel px-3 text-base outline-none focus:border-accent"
+            defaultValue={getParam(params.level) ?? ''}
+            min="1"
+            name="level"
+            type="number"
+          />
+        </label>
+        <label className="grid min-w-0 gap-2 text-sm font-bold">
+          Board size
+          <input
+            className="min-h-11 min-w-0 rounded-[7px] border border-line bg-panel px-3 text-base outline-none focus:border-accent"
+            defaultValue={getParam(params.boardSize) ?? ''}
+            name="boardSize"
+            placeholder="4x4"
+          />
+        </label>
+        <label className="grid min-w-0 gap-2 text-sm font-bold">
+          Session ID
+          <input
+            className="min-h-11 min-w-0 rounded-[7px] border border-line bg-panel px-3 text-base outline-none focus:border-accent"
+            defaultValue={getParam(params.sessionId) ?? ''}
+            name="sessionId"
+            placeholder="UUID"
+          />
+        </label>
+        <button className="inline-flex min-h-11 min-w-0 items-center justify-center rounded-[7px] border border-primary bg-primary px-5 text-sm font-bold text-primary-contrast shadow-button-primary transition hover:bg-primary-strong sm:col-span-2 min-[1180px]:col-span-6">
+          Apply Filters
+        </button>
+      </form>
+    </details>
+  );
+}
+
 export default async function AdminAnalyticsPage({
   searchParams,
 }: AdminAnalyticsPageProps) {
@@ -96,83 +231,15 @@ export default async function AdminAnalyticsPage({
   const analytics = await apiRequest<AdminAnalyticsResponse>(
     `/admin/analytics?${query}`,
   );
-  const selectedEvent = getParam(params.eventName) ?? '';
-  const nextQuery = new URLSearchParams(query);
-  if (analytics.nextCursor) {
-    nextQuery.set('cursor', analytics.nextCursor);
-  }
+  const eventQuery = buildQuery(params, '50');
 
   return (
     <div className="grid gap-5">
-      <form
+      <AnalyticsFilters
         action={routes.adminAnalytics}
-        className="grid gap-3 rounded-lg border border-line bg-surface p-4 shadow-panel min-[920px]:grid-cols-6 min-[920px]:items-end"
-      >
-        <label className="grid gap-2 text-sm font-bold">
-          Event type
-          <select
-            className="min-h-11 rounded-[7px] border border-line bg-panel px-3 text-base outline-none focus:border-accent"
-            defaultValue={selectedEvent}
-            name="eventName"
-          >
-            <option value="">All events</option>
-            {analytics.eventNames.map((eventName) => (
-              <option key={eventName} value={eventName}>
-                {humanizeEventName(eventName)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="grid gap-2 text-sm font-bold">
-          From
-          <input
-            className="min-h-11 rounded-[7px] border border-line bg-panel px-3 text-base outline-none focus:border-accent"
-            defaultValue={getParam(params.dateFrom) ?? ''}
-            name="dateFrom"
-            type="date"
-          />
-        </label>
-        <label className="grid gap-2 text-sm font-bold">
-          To
-          <input
-            className="min-h-11 rounded-[7px] border border-line bg-panel px-3 text-base outline-none focus:border-accent"
-            defaultValue={getParam(params.dateTo) ?? ''}
-            name="dateTo"
-            type="date"
-          />
-        </label>
-        <label className="grid gap-2 text-sm font-bold">
-          Level
-          <input
-            className="min-h-11 rounded-[7px] border border-line bg-panel px-3 text-base outline-none focus:border-accent"
-            defaultValue={getParam(params.level) ?? ''}
-            min="1"
-            name="level"
-            type="number"
-          />
-        </label>
-        <label className="grid gap-2 text-sm font-bold">
-          Board size
-          <input
-            className="min-h-11 rounded-[7px] border border-line bg-panel px-3 text-base outline-none focus:border-accent"
-            defaultValue={getParam(params.boardSize) ?? ''}
-            name="boardSize"
-            placeholder="4x4"
-          />
-        </label>
-        <label className="grid gap-2 text-sm font-bold">
-          Session ID
-          <input
-            className="min-h-11 rounded-[7px] border border-line bg-panel px-3 text-base outline-none focus:border-accent"
-            defaultValue={getParam(params.sessionId) ?? ''}
-            name="sessionId"
-            placeholder="UUID"
-          />
-        </label>
-        <button className="inline-flex min-h-11 items-center justify-center rounded-[7px] border border-primary bg-primary px-5 text-sm font-bold text-primary-contrast shadow-button-primary transition hover:bg-primary-strong min-[920px]:col-span-6">
-          Apply Filters
-        </button>
-      </form>
+        eventNames={analytics.eventNames}
+        params={params}
+      />
 
       <section className="grid gap-3 sm:grid-cols-2 min-[1080px]:grid-cols-4">
         {metricLabels.map((metric) => (
@@ -190,13 +257,13 @@ export default async function AdminAnalyticsPage({
         ))}
       </section>
 
-      <section className="grid gap-4 min-[980px]:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+      <section className="grid gap-4">
         <div className="rounded-lg border border-line bg-surface p-4 shadow-panel">
           <div className="mb-3 flex items-center gap-2">
             <BarChart3 aria-hidden="true" className="size-5 text-accent" />
             <h2 className="text-xl">Event Counts</h2>
           </div>
-          <div className="grid gap-2">
+          <div className="grid gap-2 md:grid-cols-2 min-[1180px]:grid-cols-3">
             {analytics.eventCounts.map((event) => (
               <div
                 className="grid gap-2 rounded-[7px] border border-line bg-panel px-3 py-2"
@@ -210,7 +277,10 @@ export default async function AdminAnalyticsPage({
                     {event.count.toLocaleString()}
                   </span>
                 </div>
-                <div className="grid h-8 grid-cols-7 items-end gap-1" aria-hidden="true">
+                <div
+                  className="grid h-8 grid-cols-7 items-end gap-1"
+                  aria-hidden="true"
+                >
                   {event.trend.map((value, index) => {
                     const max = Math.max(...event.trend, 1);
                     return (
@@ -230,9 +300,25 @@ export default async function AdminAnalyticsPage({
         </div>
 
         <div className="overflow-hidden rounded-lg border border-line bg-surface shadow-panel">
-          <div className="flex items-center gap-2 border-b border-line px-4 py-3">
-            <MousePointerClick aria-hidden="true" className="size-5 text-accent" />
-            <h2 className="text-xl">Recent Events</h2>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-3">
+            <div className="flex items-center gap-2">
+              <MousePointerClick
+                aria-hidden="true"
+                className="size-5 text-accent"
+              />
+              <h2 className="text-xl">Recent Events</h2>
+            </div>
+            <Link
+              className="inline-flex min-h-9 items-center justify-center gap-2 rounded-[7px] border border-line bg-panel px-3 text-sm font-bold text-foreground shadow-sm transition hover:border-accent/50 hover:text-accent-strong"
+              href={`${routes.adminEvents}?${eventQuery}`}
+            >
+              View All
+              <ChevronRight
+                aria-hidden="true"
+                className="size-4"
+                strokeWidth={2.2}
+              />
+            </Link>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[980px] border-collapse text-left text-sm">
@@ -261,14 +347,8 @@ export default async function AdminAnalyticsPage({
                     <td className="px-4 py-3 text-muted">
                       {event.puzzleSize ?? 'n/a'}
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted">
-                      {JSON.stringify({
-                        moveCount: event.moveCount,
-                        screen: event.screenWidth
-                          ? `${event.screenWidth}x${event.screenHeight}`
-                          : null,
-                        timerValueMs: event.timerValueMs,
-                      })}
+                    <td className="px-4 py-3">
+                      <AdminEventMetadata event={event} />
                     </td>
                     <td className="px-4 py-3 text-muted">
                       <time dateTime={event.occurredAt}>
@@ -280,21 +360,6 @@ export default async function AdminAnalyticsPage({
               </tbody>
             </table>
           </div>
-          {analytics.nextCursor ? (
-            <div className="border-t border-line p-4 text-right">
-              <Link
-                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-[7px] border border-line bg-panel px-3 text-sm font-bold text-foreground shadow-sm transition hover:border-accent/50 hover:text-accent-strong"
-                href={`${routes.adminAnalytics}?${nextQuery}`}
-              >
-                Next Page
-                <ChevronRight
-                  aria-hidden="true"
-                  className="size-4"
-                  strokeWidth={2.2}
-                />
-              </Link>
-            </div>
-          ) : null}
         </div>
       </section>
     </div>

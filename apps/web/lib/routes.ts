@@ -1,6 +1,7 @@
 export const routes = {
   admin: '/admin',
   adminAnalytics: '/admin/analytics',
+  adminEvents: '/admin/events',
   adminUsers: '/admin/users',
   home: '/',
   play: '/play',
