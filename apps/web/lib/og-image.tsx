@@ -8,6 +8,7 @@ export const ogImageSize = {
 } as const;
 
 type OpenGraphImageProps = {
+  description?: string;
   eyebrow?: string;
   tagline?: string;
   title?: string;
@@ -201,6 +202,7 @@ const styles = {
 } satisfies Record<string, CSSProperties>;
 
 export function OpenGraphImage({
+  description = 'A little pond, a scrambled picture, and one clean path hiding in plain sight.',
   eyebrow = 'Race the board',
   tagline = siteConfig.tagline,
   title = siteConfig.name,
@@ -223,8 +225,7 @@ export function OpenGraphImage({
           </div>
 
           <div style={styles.description}>
-            Move the tiles, find the picture, and see how few moves it takes to
-            make the pond whole again.
+            {description}
           </div>
         </div>
 

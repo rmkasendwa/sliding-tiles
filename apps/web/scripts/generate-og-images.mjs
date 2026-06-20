@@ -201,7 +201,7 @@ const styles = {
   },
 };
 
-function OgImage({ eyebrow, tagline, title }) {
+function OgImage({ description, eyebrow, tagline, title }) {
   return h(
     'div',
     { style: styles.background },
@@ -228,7 +228,7 @@ function OgImage({ eyebrow, tagline, title }) {
         h(
           'div',
           { style: styles.description },
-          'Move the tiles, find the picture, and see how few moves it takes to make the pond whole again.',
+          description,
         ),
       ),
       h(
