@@ -9,6 +9,8 @@
   ],
   "scripts": {
     "dev": "node scripts/dev.mjs",
+    "web:og": "node apps/web/scripts/generate-og-images.mjs",
+    "preweb:build": "npm run web:og",
     "web:dev": "next dev apps/web",
     "web:build": "next build apps/web",
     "web:start": "next start apps/web",

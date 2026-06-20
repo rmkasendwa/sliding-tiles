@@ -1,0 +1,80 @@
+{
+  "contact": {
+    "eyebrow": "Support channel",
+    "file": "contact.png",
+    "tagline": "Questions, ideas, and fixes.",
+    "title": "Contact"
+  },
+  "emailVerification": {
+    "eyebrow": "Account security",
+    "file": "email-verification.png",
+    "tagline": "Confirm your game identity.",
+    "title": "Email Verification"
+  },
+  "forgotPassword": {
+    "eyebrow": "Account recovery",
+    "file": "forgot-password.png",
+    "tagline": "Get back to your saved board.",
+    "title": "Forgot Password"
+  },
+  "home": {
+    "eyebrow": "Race the board",
+    "file": "home.png",
+    "tagline": "Fast. Simple. Competitive.",
+    "title": "Sliding Tiles"
+  },
+  "leaderboard": {
+    "eyebrow": "Global rankings",
+    "file": "leaderboard.png",
+    "tagline": "Fast frogs. Clean runs.",
+    "title": "Leaderboard"
+  },
+  "login": {
+    "eyebrow": "Saved progress",
+    "file": "login.png",
+    "tagline": "Pick up where you left off.",
+    "title": "Login"
+  },
+  "play": {
+    "eyebrow": "Puzzle sprint",
+    "file": "play.png",
+    "tagline": "Slide fast. Solve clean.",
+    "title": "Play"
+  },
+  "privacy": {
+    "eyebrow": "Player data",
+    "file": "privacy.png",
+    "tagline": "Clear rules for progress and records.",
+    "title": "Privacy Policy"
+  },
+  "profile": {
+    "eyebrow": "Personal stats",
+    "file": "profile.png",
+    "tagline": "Runs, pace, and saved progress.",
+    "title": "Profile"
+  },
+  "register": {
+    "eyebrow": "Join the race",
+    "file": "register.png",
+    "tagline": "Save runs and climb the board.",
+    "title": "Register"
+  },
+  "resetPassword": {
+    "eyebrow": "Secure reset",
+    "file": "reset-password.png",
+    "tagline": "Return to the puzzle safely.",
+    "title": "Reset Password"
+  },
+  "runs": {
+    "eyebrow": "Run history",
+    "file": "runs.png",
+    "tagline": "Replay, compare, improve.",
+    "title": "Run History"
+  },
+  "terms": {
+    "eyebrow": "Fair play",
+    "file": "terms.png",
+    "tagline": "Rules for clean competition.",
+    "title": "Terms of Service"
+  }
+}

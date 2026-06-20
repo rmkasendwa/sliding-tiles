@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 
+import ogPages from '@/lib/og-pages.json';
 import { routes, type AppRoute } from '@/lib/routes';
 import { siteConfig } from '@/lib/site';
 
@@ -15,11 +16,16 @@ type PageMetadataConfig = {
   title: string;
 };
 
+const ogImageSize = {
+  height: 630,
+  width: 1200,
+} as const;
+
 const defaultSocialImage = {
   alt: `${siteConfig.name}: ${siteConfig.tagline}`,
-  height: 630,
-  path: '/og-image.png',
-  width: 1200,
+  height: ogImageSize.height,
+  path: `/og/${ogPages.home.file}`,
+  width: ogImageSize.width,
 } as const;
 
 export const siteUrl = new URL(
@@ -114,6 +120,19 @@ export const pageMetadataConfig = {
   },
 } satisfies Record<string, PageMetadataConfig>;
 
+type PageMetadataKey = keyof typeof pageMetadataConfig;
+
+function staticOgImage(page: PageMetadataKey) {
+  const ogPage = ogPages[page];
+
+  return {
+    alt: `${siteConfig.name}: ${ogPage.title}`,
+    height: ogImageSize.height,
+    path: `/og/${ogPage.file}`,
+    width: ogImageSize.width,
+  };
+}
+
 function pageTitle(title: string) {
   return title === siteConfig.name
     ? `${siteConfig.name} | ${siteConfig.tagline}`
@@ -166,6 +185,9 @@ export function createPageMetadata(config: PageMetadataConfig): Metadata {
 export const pageMetadata = Object.fromEntries(
   Object.entries(pageMetadataConfig).map(([key, config]) => [
     key,
-    createPageMetadata(config),
+    createPageMetadata({
+      ...config,
+      image: staticOgImage(key as PageMetadataKey),
+    }),
   ]),
 ) as Record<keyof typeof pageMetadataConfig, Metadata>;

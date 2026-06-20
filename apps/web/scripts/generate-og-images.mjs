@@ -1,17 +1,18 @@
-import type { CSSProperties } from 'react';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-import { siteConfig } from '@/lib/site';
+import { ImageResponse } from 'next/og.js';
+import React from 'react';
 
-export const ogImageSize = {
-  height: 630,
-  width: 1200,
-} as const;
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const webRoot = path.resolve(__dirname, '..');
+const pagesPath = path.join(webRoot, 'lib', 'og-pages.json');
+const outputDir = path.join(webRoot, 'public', 'og');
+const size = { height: 630, width: 1200 };
+const siteName = 'Sliding Tiles';
 
-type OpenGraphImageProps = {
-  eyebrow?: string;
-  tagline?: string;
-  title?: string;
-};
+const h = React.createElement;
 
 const tileValues = ['1', '2', '3', '4', '5', '6', '7', '8', ''];
 const tileRows = [
@@ -198,63 +199,95 @@ const styles = {
     right: 112,
     transform: 'rotate(4deg)',
   },
-} satisfies Record<string, CSSProperties>;
+};
 
-export function OpenGraphImage({
-  eyebrow = 'Race the board',
-  tagline = siteConfig.tagline,
-  title = siteConfig.name,
-}: OpenGraphImageProps) {
-  return (
-    <div style={styles.background}>
-      <div style={styles.shell}>
-        <div style={styles.glowTop} />
-        <div style={styles.glowBottom} />
+function OgImage({ eyebrow, tagline, title }) {
+  return h(
+    'div',
+    { style: styles.background },
+    h(
+      'div',
+      { style: styles.shell },
+      h('div', { style: styles.glowTop }),
+      h('div', { style: styles.glowBottom }),
+      h(
+        'div',
+        { style: styles.content },
+        h(
+          'div',
+          { style: styles.brandRow },
+          h('div', { style: styles.logo }, 'ST'),
+          h('div', { style: styles.eyebrow }, eyebrow),
+        ),
+        h(
+          'div',
+          { style: styles.titleGroup },
+          h('div', { style: styles.title }, title),
+          h('div', { style: styles.tagline }, tagline),
+        ),
+        h(
+          'div',
+          { style: styles.description },
+          'Move the tiles, find the picture, and see how few moves it takes to make the pond whole again.',
+        ),
+      ),
+      h(
+        'div',
+        { style: styles.visualWrap },
+        h(
+          'div',
+          { style: styles.board },
+          ...tileRows.map((row, rowIndex) =>
+            h(
+              'div',
+              { key: `row-${rowIndex}`, style: styles.tileRow },
+              ...row.map((value, tileIndex) => {
+                const isEmpty = value === '';
+                const isAccent = value === '5';
 
-        <div style={styles.content}>
-          <div style={styles.brandRow}>
-            <div style={styles.logo}>ST</div>
-            <div style={styles.eyebrow}>{eyebrow}</div>
-          </div>
-
-          <div style={styles.titleGroup}>
-            <div style={styles.title}>{title}</div>
-            <div style={styles.tagline}>{tagline}</div>
-          </div>
-
-          <div style={styles.description}>
-            Move the tiles, find the picture, and see how few moves it takes to
-            make the pond whole again.
-          </div>
-        </div>
-
-        <div style={styles.visualWrap}>
-          <div style={styles.board}>
-            {tileRows.map((row, rowIndex) => (
-              <div key={`row-${rowIndex}`} style={styles.tileRow}>
-                {row.map((value, tileIndex) => {
-                  const isEmpty = value === '';
-                  const isAccent = value === '5';
-
-                  return (
-                    <div
-                      key={`${value || 'empty'}-${rowIndex}-${tileIndex}`}
-                      style={{
-                        ...styles.tile,
-                        ...(isAccent ? styles.accentTile : {}),
-                        ...(isEmpty ? styles.emptyTile : {}),
-                      }}
-                    >
-                      {value}
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
-          <div style={styles.badge}>Puzzle Sprint</div>
-        </div>
-      </div>
-    </div>
+                return h(
+                  'div',
+                  {
+                    key: `${value || 'empty'}-${rowIndex}-${tileIndex}`,
+                    style: {
+                      ...styles.tile,
+                      ...(isAccent ? styles.accentTile : {}),
+                      ...(isEmpty ? styles.emptyTile : {}),
+                    },
+                  },
+                  value,
+                );
+              }),
+            ),
+          ),
+        ),
+        h('div', { style: styles.badge }, 'Puzzle Sprint'),
+      ),
+    ),
   );
 }
+
+async function main() {
+  const pages = JSON.parse(await readFile(pagesPath, 'utf8'));
+
+  await mkdir(outputDir, { recursive: true });
+
+  for (const [key, page] of Object.entries(pages)) {
+    const response = new ImageResponse(h(OgImage, page), size);
+    const buffer = Buffer.from(await response.arrayBuffer());
+    const filePath = path.join(outputDir, page.file);
+
+    await writeFile(filePath, buffer);
+    console.log(`[og] generated ${path.relative(webRoot, filePath)} for ${key}`);
+  }
+
+  console.log(
+    `[og] generated ${Object.keys(pages).length} ${size.width}x${size.height} PNG images for ${siteName}`,
+  );
+}
+
+main().catch((error) => {
+  console.error('[og] image generation failed');
+  console.error(error);
+  process.exitCode = 1;
+});

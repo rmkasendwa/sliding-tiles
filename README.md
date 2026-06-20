@@ -106,6 +106,23 @@ npm run build        # generate Prisma, build API, then build web
 npm run docker:up    # build and run Postgres, migrations, API, and web
 ```
 
+## Open Graph Images
+
+Static social preview images are generated at build time with `next/og`.
+The generator reads `apps/web/lib/og-pages.json`, renders 1200x630 PNG files,
+and writes them to `apps/web/public/og`.
+
+Run the generator manually when changing social copy or the OG design:
+
+```bash
+npm run web:og
+```
+
+`npm run web:build` runs this automatically before `next build`, including in
+CI/CD and Docker builds. Page metadata should reference files in `/og/*.png`.
+Keep runtime `opengraph-image.tsx` routes only for pages whose preview content
+is genuinely dynamic and cannot be known during the build.
+
 ## Contributing Rules
 
 Project conventions and contribution rules are documented in [CONTRIBUTING.md](CONTRIBUTING.md).

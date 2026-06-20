@@ -2,6 +2,8 @@
   "name": "@sliding-tiles/web",
   "private": true,
   "scripts": {
+    "og": "node scripts/generate-og-images.mjs",
+    "prebuild": "npm run og",
     "build": "next build",
     "dev": "next dev",
     "start": "next start",
