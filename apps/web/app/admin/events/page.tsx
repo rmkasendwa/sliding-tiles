@@ -77,7 +77,11 @@ function EventsFilters({
     <details className="overflow-hidden rounded-lg border border-line bg-surface shadow-panel">
       <summary className="group flex min-h-13 cursor-pointer list-none items-center justify-between gap-3 px-4 marker:hidden">
         <span className="flex min-w-0 items-center gap-2">
-          <Filter aria-hidden="true" className="size-4 text-accent" strokeWidth={2.2} />
+          <Filter
+            aria-hidden="true"
+            className="size-4 text-accent"
+            strokeWidth={2.2}
+          />
           <span className="grid min-w-0 gap-0.5">
             <span className="text-sm font-extrabold uppercase text-accent-strong">
               Filters are collapsed
@@ -199,7 +203,7 @@ export default async function AdminEventsPage({
           </div>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[980px] border-collapse text-left text-sm">
+          <table className="w-full min-w-245 border-collapse text-left text-sm">
             <thead className="bg-panel text-xs uppercase text-muted">
               <tr>
                 <th className="px-4 py-3">Event</th>
