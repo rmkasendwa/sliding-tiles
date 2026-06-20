@@ -3,6 +3,7 @@ import Link from 'next/link';
 
 import { AdminAnalyticsEventsList } from '@/components/AdminAnalyticsEventsList';
 import { AdminAnalyticsFilters } from '@/components/AdminAnalyticsFilters';
+import { AdminEventTrendBar } from '@/components/AdminEventTrendBar';
 import {
   buildAnalyticsEventsQuery,
   formatAnalyticsMetric,
@@ -43,6 +44,60 @@ const metricLabels: Array<{
   { key: 'signupClicks', label: 'Signup clicks' },
 ];
 
+function getTrendDays() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(today);
+    date.setDate(today.getDate() - 6 + index);
+    return new Intl.DateTimeFormat('en', {
+      day: '2-digit',
+      month: 'short',
+    }).format(date);
+  });
+}
+
+function EventCountCard({
+  event,
+  trendDays,
+}: {
+  event: AdminAnalyticsResponse['eventCounts'][number];
+  trendDays: string[];
+}) {
+  const max = Math.max(...event.trend, 1);
+  const eventLabel = humanizeAnalyticsEventName(event.eventName);
+
+  return (
+    <div className="grid gap-2 rounded-[7px] border border-line bg-panel px-3 py-2 transition hover:border-accent/45 hover:bg-accent/5">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+        <span className="truncate text-sm font-bold">{eventLabel}</span>
+        <span className="text-sm font-black">
+          {event.count.toLocaleString()}
+        </span>
+      </div>
+      <div className="grid h-10 grid-cols-7 items-end gap-1 pt-2">
+        {event.trend.map((value, index) => {
+          const previousValue = index > 0 ? event.trend[index - 1] : null;
+          const delta =
+            previousValue === null ? null : value - previousValue;
+
+          return (
+            <AdminEventTrendBar
+              dateLabel={trendDays[index] ?? 'n/a'}
+              delta={delta}
+              eventLabel={eventLabel}
+              key={`${event.eventName}-${index}`}
+              max={max}
+              value={value}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default async function AdminAnalyticsPage({
   searchParams,
 }: AdminAnalyticsPageProps) {
@@ -52,6 +107,7 @@ export default async function AdminAnalyticsPage({
     `/admin/analytics?${query}`,
   );
   const eventQuery = buildAnalyticsEventsQuery(params, '50');
+  const trendDays = getTrendDays();
 
   return (
     <div className="grid gap-5">
@@ -88,36 +144,11 @@ export default async function AdminAnalyticsPage({
           </div>
           <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
             {analytics.eventCounts.map((event) => (
-              <div
-                className="grid gap-2 rounded-[7px] border border-line bg-panel px-3 py-2"
+              <EventCountCard
+                event={event}
                 key={event.eventName}
-              >
-                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-                  <span className="truncate text-sm font-bold">
-                    {humanizeAnalyticsEventName(event.eventName)}
-                  </span>
-                  <span className="text-sm font-black">
-                    {event.count.toLocaleString()}
-                  </span>
-                </div>
-                <div
-                  className="grid h-8 grid-cols-7 items-end gap-1"
-                  aria-hidden="true"
-                >
-                  {event.trend.map((value, index) => {
-                    const max = Math.max(...event.trend, 1);
-                    return (
-                      <span
-                        className="rounded-t-[3px] bg-accent/70"
-                        key={`${event.eventName}-${index}`}
-                        style={{
-                          height: `${Math.max(10, (value / max) * 100)}%`,
-                        }}
-                      />
-                    );
-                  })}
-                </div>
-              </div>
+                trendDays={trendDays}
+              />
             ))}
           </div>
         </div>

@@ -31,7 +31,7 @@ export function AdminAnalyticsFilters({
             className="size-4 text-accent"
             strokeWidth={2.2}
           />
-          <span className="grid min-w-0 gap-0.5">
+          <span className="grid min-w-0 gap-1">
             <span className="text-sm font-extrabold uppercase text-accent-strong leading-none">
               Filters are collapsed
             </span>
