@@ -3,6 +3,7 @@ import Link from 'next/link';
 
 import { AdminAnalyticsEventsList } from '@/components/AdminAnalyticsEventsList';
 import { AdminAnalyticsFilters } from '@/components/AdminAnalyticsFilters';
+import { buildAnalyticsEventsQuery } from '@/lib/admin';
 import type { AdminAnalyticsResponse } from '@/lib/api';
 import { apiRequest } from '@/lib/api';
 import { routes } from '@/lib/routes';
@@ -11,42 +12,15 @@ type AdminEventsPageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
-function getParam(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] : value;
-}
-
-function buildQuery(
-  params: Record<string, string | string[] | undefined>,
-  includeCursor = true,
-) {
-  const query = new URLSearchParams({ take: '50' });
-  for (const key of [
-    'boardSize',
-    ...(includeCursor ? ['cursor'] : []),
-    'dateFrom',
-    'dateTo',
-    'eventName',
-    'level',
-    'sessionId',
-  ]) {
-    const value = getParam(params[key]);
-    if (value) {
-      query.set(key, value);
-    }
-  }
-
-  return query;
-}
-
 export default async function AdminEventsPage({
   searchParams,
 }: AdminEventsPageProps) {
   const params = (await searchParams) ?? {};
-  const query = buildQuery(params);
+  const query = buildAnalyticsEventsQuery(params, '50');
   const analytics = await apiRequest<AdminAnalyticsResponse>(
     `/admin/analytics?${query}`,
   );
-  const nextQuery = buildQuery(params, false);
+  const nextQuery = buildAnalyticsEventsQuery(params, '50', false);
   if (analytics.nextCursor) {
     nextQuery.set('cursor', analytics.nextCursor);
   }

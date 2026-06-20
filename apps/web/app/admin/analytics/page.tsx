@@ -3,6 +3,7 @@ import Link from 'next/link';
 
 import { AdminAnalyticsEventsList } from '@/components/AdminAnalyticsEventsList';
 import { AdminAnalyticsFilters } from '@/components/AdminAnalyticsFilters';
+import { buildAnalyticsEventsQuery } from '@/lib/admin';
 import type { AdminAnalyticsResponse } from '@/lib/api';
 import { apiRequest } from '@/lib/api';
 import { routes } from '@/lib/routes';
@@ -38,10 +39,6 @@ const metricLabels: Array<{
   { key: 'signupClicks', label: 'Signup clicks' },
 ];
 
-function getParam(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] : value;
-}
-
 function formatMetric(
   value: number | null,
   type: 'duration' | 'number' | 'percent' = 'number',
@@ -68,38 +65,15 @@ function humanizeEventName(eventName: string) {
   return eventName.replaceAll('_', ' ');
 }
 
-function buildQuery(
-  params: Record<string, string | string[] | undefined>,
-  take = '5',
-) {
-  const query = new URLSearchParams({ take });
-  for (const key of [
-    'boardSize',
-    'cursor',
-    'dateFrom',
-    'dateTo',
-    'eventName',
-    'level',
-    'sessionId',
-  ]) {
-    const value = getParam(params[key]);
-    if (value) {
-      query.set(key, value);
-    }
-  }
-
-  return query;
-}
-
 export default async function AdminAnalyticsPage({
   searchParams,
 }: AdminAnalyticsPageProps) {
   const params = (await searchParams) ?? {};
-  const query = buildQuery(params);
+  const query = buildAnalyticsEventsQuery(params);
   const analytics = await apiRequest<AdminAnalyticsResponse>(
     `/admin/analytics?${query}`,
   );
-  const eventQuery = buildQuery(params, '50');
+  const eventQuery = buildAnalyticsEventsQuery(params, '50');
 
   return (
     <div className="grid gap-5">
