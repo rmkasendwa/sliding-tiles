@@ -1,7 +1,5 @@
 import type { CSSProperties } from 'react';
 
-import { siteConfig } from '@/lib/site';
-
 export const ogImageSize = {
   height: 630,
   width: 1200,
@@ -204,8 +202,8 @@ const styles = {
 export function OpenGraphImage({
   description = 'A little pond, a scrambled picture, and one clean path hiding in plain sight.',
   eyebrow = 'Race the board',
-  tagline = siteConfig.tagline,
-  title = siteConfig.name,
+  tagline = 'Fast. Simple. Competitive.',
+  title = 'Sliding Tiles',
 }: OpenGraphImageProps) {
   return (
     <div style={styles.background}>

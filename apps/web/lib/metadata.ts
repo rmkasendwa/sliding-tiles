@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-import ogPages from '@/lib/og-pages.json';
+import { ogPages } from '@/lib/og-pages';
 import { routes, type AppRoute } from '@/lib/routes';
 import { siteConfig } from '@/lib/site';
 

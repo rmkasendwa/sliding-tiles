@@ -109,7 +109,7 @@ npm run docker:up    # build and run Postgres, migrations, API, and web
 ## Open Graph Images
 
 Static social preview images are generated at build time with `next/og`.
-The generator reads `apps/web/lib/og-pages.json`, renders 1200x630 PNG files,
+The generator reads `apps/web/lib/og-pages.ts`, renders 1200x630 PNG files,
 and writes them to `apps/web/public/og`.
 
 Run the generator manually when changing social copy or the OG design:
