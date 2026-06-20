@@ -6,7 +6,7 @@ import { anonymousAnalyticsBatchSchema } from '../dist/api/shared/zod.js';
 
 const validEvent = {
   anonymousPlayerId: '7242d01c-636b-42e9-84f1-ce1f75d5cf99',
-  eventName: 'move_made',
+  eventName: 'tile_dragged',
   level: 3,
   moveCount: 12,
   puzzleSize: '4x4',
@@ -15,7 +15,6 @@ const validEvent = {
   sessionId: 'e3c512bd-2330-4d20-9e9e-10e1be9eeed6',
   timerValueMs: 42000,
   timestamp: '2026-06-13T12:00:00.000Z',
-  userAgent: 'Test browser',
 };
 
 test('validates and stores anonymous gameplay event batches', async () => {
@@ -38,7 +37,7 @@ test('validates and stores anonymous gameplay event batches', async () => {
   assert.equal(createManyCalls.length, 1);
   assert.deepEqual(createManyCalls[0].data[0], {
     anonymousPlayerId: validEvent.anonymousPlayerId,
-    eventName: 'move_made',
+    eventName: 'tile_dragged',
     level: 3,
     moveCount: 12,
     occurredAt: new Date(validEvent.timestamp),
@@ -47,7 +46,6 @@ test('validates and stores anonymous gameplay event batches', async () => {
     screenWidth: 1440,
     sessionId: validEvent.sessionId,
     timerValueMs: 42000,
-    userAgent: 'Test browser',
   });
 });
 

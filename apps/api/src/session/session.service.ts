@@ -70,6 +70,7 @@ export class SessionService {
           emailVerifiedAt: true,
           id: true,
           name: true,
+          role: true,
           username: true,
         },
         where: { id: userId },
@@ -85,6 +86,7 @@ export class SessionService {
         emailVerified: Boolean(user.emailVerifiedAt),
         id: user.id,
         name: user.name,
+        role: user.role,
         username: user.username,
       };
     } catch {

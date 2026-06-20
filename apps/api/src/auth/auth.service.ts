@@ -39,6 +39,7 @@ export class AuthService {
     emailVerifiedAt: Date | null;
     id: string;
     name: string;
+    role: 'USER' | 'ADMIN';
     username: string;
   }): SessionUser {
     return {
@@ -47,6 +48,7 @@ export class AuthService {
       emailVerified: Boolean(user.emailVerifiedAt),
       id: user.id,
       name: user.name,
+      role: user.role,
       username: user.username,
     };
   }
@@ -233,6 +235,7 @@ export class AuthService {
           emailVerifiedAt: true,
           id: true,
           name: true,
+          role: true,
           username: true,
         },
         where: { id: userId },
@@ -398,6 +401,7 @@ export class AuthService {
         emailVerifiedAt: true,
         id: true,
         name: true,
+        role: true,
         username: true,
       },
       where: { id: userId },
@@ -428,6 +432,7 @@ export class AuthService {
         emailVerifiedAt: true,
         id: true,
         name: true,
+        role: true,
         username: true,
       },
       where: {
@@ -509,6 +514,7 @@ export class AuthService {
           emailVerifiedAt: true,
           id: true,
           name: true,
+          role: true,
           username: true,
         },
       });
@@ -581,6 +587,7 @@ export class AuthService {
         emailVerifiedAt: true,
         id: true,
         name: true,
+        role: true,
         passwordHash: true,
         username: true,
       },

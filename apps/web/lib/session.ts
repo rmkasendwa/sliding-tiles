@@ -11,6 +11,7 @@ export type SessionUser = {
   emailVerified: boolean;
   id: string;
   name: string;
+  role: 'USER' | 'ADMIN';
   username: string;
   email: string;
 };

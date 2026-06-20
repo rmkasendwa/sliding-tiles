@@ -25,7 +25,6 @@ export class AnonymousAnalyticsService {
         screenWidth: event.screenWidth,
         sessionId: event.sessionId,
         timerValueMs: event.timerValueMs,
-        userAgent: event.userAgent,
       })),
     });
 

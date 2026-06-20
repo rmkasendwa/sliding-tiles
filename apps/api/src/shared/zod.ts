@@ -13,6 +13,10 @@ export function parseBody<T>(schema: z.ZodType<T>, body: unknown): T {
   });
 }
 
+export function parseQuery<T>(schema: z.ZodType<T>, query: unknown): T {
+  return parseBody(schema, query);
+}
+
 export const boardStateSchema = z.object({
   dimensions: z.tuple([
     z.number().int().positive(),
@@ -145,6 +149,19 @@ export const completedLevelSchema = z.object({
 });
 
 export const anonymousAnalyticsEventNames = [
+  'game_started',
+  'game_completed',
+  'game_abandoned',
+  'level_unlocked',
+  'invalid_move',
+  'tile_dragged',
+  'reset_clicked',
+  'auto_play_started',
+  'auto_play_completed',
+  'peek_image_clicked',
+  'leaderboard_opened',
+  'signup_prompt_shown',
+  'signup_clicked',
   'game_opened',
   'level_started',
   'move_made',
@@ -154,11 +171,35 @@ export const anonymousAnalyticsEventNames = [
   'timer_resumed',
   'reset_level_clicked',
   'full_image_peeked',
-  'auto_play_started',
-  'auto_play_completed',
   'register_prompt_shown',
   'register_clicked',
 ] as const;
+
+export const adminUserSearchSchema = z
+  .object({
+    search: z.string().trim().max(160).optional(),
+    take: z.coerce.number().int().min(1).max(100).default(50),
+  })
+  .strict();
+
+export const adminUpdateUserRoleSchema = z
+  .object({
+    role: z.enum(['USER', 'ADMIN']),
+  })
+  .strict();
+
+export const adminAnalyticsQuerySchema = z
+  .object({
+    boardSize: z.string().regex(/^\d{1,3}x\d{1,3}$/).optional(),
+    cursor: z.string().trim().min(1).optional(),
+    dateFrom: z.string().trim().min(1).optional(),
+    dateTo: z.string().trim().min(1).optional(),
+    eventName: z.enum(anonymousAnalyticsEventNames).optional(),
+    level: z.coerce.number().int().positive().max(100_000).optional(),
+    sessionId: z.string().uuid().optional(),
+    take: z.coerce.number().int().min(1).max(100).default(25),
+  })
+  .strict();
 
 const anonymousAnalyticsEventSchema = z
   .object({
@@ -172,7 +213,6 @@ const anonymousAnalyticsEventSchema = z
     sessionId: z.string().uuid(),
     timerValueMs: z.number().int().nonnegative().max(604_800_000).optional(),
     timestamp: z.string().datetime(),
-    userAgent: z.string().trim().max(512).optional(),
   })
   .strict();
 

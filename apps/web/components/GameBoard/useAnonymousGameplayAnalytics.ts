@@ -15,15 +15,17 @@ const FLUSH_DELAY_MS = 2_000;
 export type AnonymousGameplayEventName =
   | 'auto_play_completed'
   | 'auto_play_started'
-  | 'full_image_peeked'
-  | 'game_opened'
-  | 'level_abandoned'
-  | 'level_completed'
-  | 'level_started'
-  | 'move_made'
-  | 'reset_level_clicked'
-  | 'register_clicked'
-  | 'register_prompt_shown'
+  | 'game_abandoned'
+  | 'game_completed'
+  | 'game_started'
+  | 'invalid_move'
+  | 'leaderboard_opened'
+  | 'level_unlocked'
+  | 'peek_image_clicked'
+  | 'reset_clicked'
+  | 'signup_clicked'
+  | 'signup_prompt_shown'
+  | 'tile_dragged'
   | 'timer_paused'
   | 'timer_resumed';
 
@@ -41,7 +43,6 @@ type QueuedAnalyticsEvent = AnonymousGameplayMetadata & {
   screenWidth?: number;
   sessionId: string;
   timestamp: string;
-  userAgent?: string;
 };
 
 function createId() {
@@ -130,7 +131,6 @@ export function useAnonymousGameplayAnalytics(isSignedIn: boolean) {
           screenWidth: window.screen.width,
           sessionId: sessionIdRef.current,
           timestamp: new Date().toISOString(),
-          userAgent: navigator.userAgent.slice(0, 512),
         };
 
         if (options?.immediate) {

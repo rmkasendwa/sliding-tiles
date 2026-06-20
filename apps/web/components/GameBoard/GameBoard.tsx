@@ -166,7 +166,7 @@ function GameBoardContent({
     analyticsMetadataRef.current = getAnalyticsMetadata();
   }, [getAnalyticsMetadata]);
   const trackFullImagePeek = useCallback(() => {
-    trackAnonymousEvent('full_image_peeked', getAnalyticsMetadata());
+    trackAnonymousEvent('peek_image_clicked', getAnalyticsMetadata());
   }, [getAnalyticsMetadata, trackAnonymousEvent]);
   const {
     clear: clearBoardHint,
@@ -259,15 +259,15 @@ function GameBoardContent({
   }, [startAmbience, stopAmbience]);
 
   useEffect(() => {
-    trackAnonymousEvent('game_opened', analyticsMetadataRef.current);
+    trackAnonymousEvent('game_started', analyticsMetadataRef.current);
     trackAnonymousEvent(
-      'register_prompt_shown',
+      'signup_prompt_shown',
       analyticsMetadataRef.current,
     );
   }, [trackAnonymousEvent]);
 
   useEffect(() => {
-    trackAnonymousEvent('level_started', analyticsMetadataRef.current);
+    trackAnonymousEvent('game_started', analyticsMetadataRef.current);
   }, [board.level, board.startedAt, trackAnonymousEvent]);
 
   useEffect(() => {
@@ -284,7 +284,7 @@ function GameBoardContent({
   useEffect(() => {
     const abandonOnPageExit = () => {
       if (board.moves > 0 && !isGameComplete) {
-        trackAnonymousEvent('level_abandoned', getAnalyticsMetadata(), {
+        trackAnonymousEvent('game_abandoned', getAnalyticsMetadata(), {
           immediate: true,
         });
       }
@@ -492,7 +492,7 @@ function GameBoardContent({
         return;
       }
 
-      trackAnonymousEvent('level_completed', analyticsMetadata);
+      trackAnonymousEvent('game_completed', analyticsMetadata);
 
       if (isSignedIn) {
         void recordLevelAttempt({
@@ -613,7 +613,7 @@ function GameBoardContent({
         );
         if (!isAutoPlayMove) {
           trackAnonymousEvent(
-            'move_made',
+            'tile_dragged',
             getAnalyticsMetadata(nextBoard, currentElapsedTimeMs),
           );
         } else {
@@ -867,7 +867,7 @@ function GameBoardContent({
       setAutoPlayElapsedMs(0);
       setAutoPlayMoveCount(0);
       if (board.moves > 0) {
-        trackAnonymousEvent('level_abandoned', getAnalyticsMetadata());
+        trackAnonymousEvent('game_abandoned', getAnalyticsMetadata());
       }
       shuffleInProgressRef.current = true;
       setHighestReachedLevel((highestLevel) =>
@@ -1006,7 +1006,7 @@ function GameBoardContent({
   );
 
   const resetLevel = useCallback(() => {
-    trackAnonymousEvent('reset_level_clicked', getAnalyticsMetadata());
+    trackAnonymousEvent('reset_clicked', getAnalyticsMetadata());
     cancelAutoPlay();
     cancelBoardSolve(true);
     setIsAutoPlayCompletion(false);
@@ -1017,7 +1017,7 @@ function GameBoardContent({
     setAutoPlayElapsedMs(0);
     setAutoPlayMoveCount(0);
     if (board.moves > 0) {
-      trackAnonymousEvent('level_abandoned', getAnalyticsMetadata());
+      trackAnonymousEvent('game_abandoned', getAnalyticsMetadata());
     }
     refreshBoard(() => resetBoardAttempt(attemptStartBoard), false);
   }, [
@@ -1041,7 +1041,7 @@ function GameBoardContent({
     setAutoPlayElapsedMs(0);
     setAutoPlayMoveCount(0);
     if (board.moves > 0) {
-      trackAnonymousEvent('level_abandoned', getAnalyticsMetadata());
+      trackAnonymousEvent('game_abandoned', getAnalyticsMetadata());
     }
     refreshBoard(() => createBoardState(board.level, board.dimensions), true);
   }, [
@@ -1114,7 +1114,7 @@ function GameBoardContent({
     showInfoModal();
   }, [exitBoardFullscreen, isBoardFullscreen, showInfoModal]);
   const trackRegisterClick = useCallback(() => {
-    trackAnonymousEvent('register_clicked', getAnalyticsMetadata(), {
+    trackAnonymousEvent('signup_clicked', getAnalyticsMetadata(), {
       immediate: true,
     });
   }, [getAnalyticsMetadata, trackAnonymousEvent]);

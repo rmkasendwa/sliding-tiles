@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
 import { AnonymousAnalyticsModule } from './anonymous-analytics/anonymous-analytics.module';
+import { AdminModule } from './admin/admin.module';
 import { AuthModule } from './auth/auth.module';
 import { GameStateModule } from './game-state/game-state.module';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
@@ -14,6 +15,7 @@ import { SessionModule } from './session/session.module';
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
     SessionModule,
+    AdminModule,
     AnonymousAnalyticsModule,
     AuthModule,
     GameStateModule,

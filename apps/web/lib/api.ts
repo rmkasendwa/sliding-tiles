@@ -31,6 +31,7 @@ export type ApiUser = {
   emailVerified: boolean;
   id: string;
   name: string;
+  role: 'USER' | 'ADMIN';
   username: string;
 };
 
@@ -78,6 +79,78 @@ export type ApiRunPage = {
   nextCursor: string | null;
   scores: ApiRun[];
   totalCount: number;
+};
+
+export type AdminUser = {
+  createdAt: string;
+  email: string;
+  id: string;
+  name: string;
+  promotedAt: string | null;
+  promotedBy: {
+    email: string;
+    id: string;
+    name: string;
+    username: string;
+  } | null;
+  role: 'USER' | 'ADMIN';
+  username: string;
+};
+
+export type AdminUsersResponse = {
+  totalCount: number;
+  users: AdminUser[];
+};
+
+export type AdminAnalyticsEventName =
+  | 'game_started'
+  | 'game_completed'
+  | 'game_abandoned'
+  | 'level_unlocked'
+  | 'invalid_move'
+  | 'tile_dragged'
+  | 'reset_clicked'
+  | 'auto_play_started'
+  | 'auto_play_completed'
+  | 'peek_image_clicked'
+  | 'leaderboard_opened'
+  | 'signup_prompt_shown'
+  | 'signup_clicked';
+
+export type AdminAnalyticsResponse = {
+  eventCounts: Array<{
+    count: number;
+    eventName: AdminAnalyticsEventName;
+    trend: number[];
+  }>;
+  eventNames: AdminAnalyticsEventName[];
+  metrics: {
+    averageActivePlayTimeMs: number | null;
+    averageMovesPerCompletedGame: number | null;
+    averageTotalPlayTimeMs: number | null;
+    autoPlayUsage: number;
+    completionRate: number;
+    gamesCompleted: number;
+    gamesStarted: number;
+    leaderboardViews: number;
+    peekImageUsage: number;
+    replayUsage: number;
+    signupClicks: number;
+    totalAnonymousSessions: number;
+  };
+  nextCursor: string | null;
+  recentEvents: Array<{
+    eventName: AdminAnalyticsEventName;
+    id: string;
+    level: number | null;
+    moveCount: number | null;
+    occurredAt: string;
+    puzzleSize: string | null;
+    screenHeight: number | null;
+    screenWidth: number | null;
+    sessionId: string;
+    timerValueMs: number | null;
+  }>;
 };
 
 function getApiBaseUrl() {

@@ -6,6 +6,11 @@ datasource db {
   provider = "postgresql"
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
 model User {
   id                              String        @id @default(cuid())
   name                            String
@@ -13,6 +18,9 @@ model User {
   /// Case-insensitive uniqueness is enforced by the users_email_lower_key expression index.
   email                           String
   passwordHash                    String        @map("password_hash")
+  role                            UserRole      @default(USER)
+  promotedById                    String?       @map("promoted_by_id")
+  promotedAt                      DateTime?     @map("promoted_at")
   emailVerifiedAt                 DateTime?     @map("email_verified_at")
   emailVerificationTokenHash      String?       @unique(map: "users_email_verification_token_hash_key") @map("email_verification_token_hash")
   emailVerificationTokenExpiresAt DateTime?     @map("email_verification_token_expires_at")
@@ -22,8 +30,12 @@ model User {
   createdAt                       DateTime      @default(now()) @map("created_at")
   updatedAt                       DateTime      @updatedAt @map("updated_at")
   gameState                       GameState?
+  promotedBy                      User?         @relation("UserPromotions", fields: [promotedById], references: [id], onDelete: SetNull, map: "users_promoted_by_id_fkey")
+  promotedUsers                   User[]        @relation("UserPromotions")
   scores                          Leaderboard[]
 
+  @@index([role], map: "users_role_idx")
+  @@index([promotedById], map: "users_promoted_by_id_idx")
   @@map("users")
 }
 
