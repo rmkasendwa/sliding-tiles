@@ -127,15 +127,15 @@ function AnalyticsFilters({
 
   return (
     <details className="overflow-hidden rounded-lg border border-line bg-surface shadow-panel">
-      <summary className="group flex min-h-13 cursor-pointer list-none items-center justify-between gap-3 px-4 marker:hidden">
-        <span className="flex min-w-0 items-center gap-2">
+      <summary className="group flex min-h-13 cursor-pointer list-none items-start justify-between gap-3 p-4 marker:hidden">
+        <span className="flex min-w-0 items-start gap-2">
           <Filter
             aria-hidden="true"
             className="size-4 text-accent"
             strokeWidth={2.2}
           />
           <span className="grid min-w-0 gap-0.5">
-            <span className="text-sm font-extrabold uppercase text-accent-strong">
+            <span className="text-sm font-extrabold uppercase text-accent-strong leading-none">
               Filters are collapsed
             </span>
             <span className="truncate text-xs font-bold text-muted">
@@ -156,7 +156,7 @@ function AnalyticsFilters({
       </summary>
       <form
         action={action}
-        className="grid gap-3 border-t border-line p-4 sm:grid-cols-2 min-[1180px]:grid-cols-6 min-[1180px]:items-end"
+        className="grid gap-3 border-t border-line p-4 sm:grid-cols-2 lg:grid-cols-3"
       >
         <label className="grid min-w-0 gap-2 text-sm font-bold">
           Event type
@@ -219,7 +219,7 @@ function AnalyticsFilters({
             placeholder="UUID"
           />
         </label>
-        <button className="inline-flex min-h-11 min-w-0 items-center justify-center rounded-[7px] border border-primary bg-primary px-5 text-sm font-bold text-primary-contrast shadow-button-primary transition hover:bg-primary-strong sm:col-span-2 min-[1180px]:col-span-6">
+        <button className="inline-flex min-h-11 min-w-0 items-center justify-center rounded-[7px] border border-primary bg-primary px-5 text-sm font-bold text-primary-contrast shadow-button-primary transition hover:bg-primary-strong sm:col-span-2 lg:col-span-3">
           Apply Filters
         </button>
       </form>
@@ -245,7 +245,7 @@ export default async function AdminAnalyticsPage({
         params={params}
       />
 
-      <section className="grid gap-3 sm:grid-cols-2 min-[1080px]:grid-cols-4">
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {metricLabels.map((metric) => (
           <article
             className="rounded-lg border border-line bg-surface p-4 shadow-panel"
@@ -267,7 +267,7 @@ export default async function AdminAnalyticsPage({
             <BarChart3 aria-hidden="true" className="size-5 text-accent" />
             <h2 className="text-xl">Event Counts</h2>
           </div>
-          <div className="grid gap-2 md:grid-cols-2 min-[1180px]:grid-cols-3">
+          <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
             {analytics.eventCounts.map((event) => (
               <div
                 className="grid gap-2 rounded-[7px] border border-line bg-panel px-3 py-2"
