@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 import { CurrentUserBadge } from '@/components/CurrentUserBadge';
 import { ProfileAvatar } from '@/components/ProfileAvatar';
-import { RelativeTimestap } from '@/components/RelativeTimestap';
+import { RelativeTimestamp } from '@/components/RelativeTimestap';
 import { ApiScore, apiRequest, getApiMessage } from '@/lib/api';
 import { pageMetadata } from '@/lib/metadata';
 import { routes } from '@/lib/routes';
@@ -205,7 +205,7 @@ export default async function LeaderboardPage() {
               </div>
               <p className="text-xs leading-snug text-muted">
                 Completed{' '}
-                <RelativeTimestap
+                <RelativeTimestamp
                   isoDate={scores[0].completedAt}
                   now={renderedAt}
                 />
@@ -248,7 +248,7 @@ export default async function LeaderboardPage() {
                     #{rank}
                   </span>
                   <span className="text-xs font-bold uppercase text-muted">
-                    <RelativeTimestap
+                    <RelativeTimestamp
                       isoDate={score.completedAt}
                       now={renderedAt}
                     />
@@ -394,7 +394,7 @@ export default async function LeaderboardPage() {
                     {score.user?.name ?? 'Player'} · Level {score.level}
                   </span>
                   <span className="text-xs text-muted">
-                    <RelativeTimestap
+                    <RelativeTimestamp
                       isoDate={score.completedAt}
                       now={renderedAt}
                     />
@@ -447,7 +447,7 @@ export default async function LeaderboardPage() {
                     #{rank}
                   </span>
                   <p className="text-sm text-muted">
-                    <RelativeTimestap
+                    <RelativeTimestamp
                       isoDate={score.completedAt}
                       now={renderedAt}
                     />
@@ -551,7 +551,7 @@ export default async function LeaderboardPage() {
                     {perLevel(score.moves, score.level)} moves/lvl
                   </td>
                   <td className="border-b border-line p-3.5 text-left text-sm text-muted">
-                    <RelativeTimestap
+                    <RelativeTimestamp
                       isoDate={score.completedAt}
                       now={renderedAt}
                     />

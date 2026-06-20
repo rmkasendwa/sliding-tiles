@@ -1,16 +1,7 @@
+import { humanizeAnalyticsEventName } from '@/lib/admin';
 import { AdminAnalyticsEvent } from '@/lib/api';
 import { AdminEventMetadata } from './AdminEventMetadata';
-import { humanizeAnalyticsEventName } from '@/lib/admin';
-
-function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat('en', {
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(value));
-}
+import { RelativeTimestamp } from './RelativeTimestap';
 
 export type AdminAnalyticsEventsTableProps = {
   events: AdminAnalyticsEvent[];
@@ -19,6 +10,8 @@ export type AdminAnalyticsEventsTableProps = {
 export function AdminAnalyticsEventsList({
   events,
 }: AdminAnalyticsEventsTableProps) {
+  const renderedAt = new Date().getTime();
+
   return (
     <table className="w-full min-w-245 border-collapse text-left text-sm">
       <thead className="bg-panel text-xs uppercase text-muted sticky top-18.25 z-10">
@@ -47,10 +40,8 @@ export function AdminAnalyticsEventsList({
             <td className="px-4 py-3">
               <AdminEventMetadata event={event} />
             </td>
-            <td className="px-4 py-3 text-muted">
-              <time dateTime={event.occurredAt}>
-                {formatDateTime(event.occurredAt)}
-              </time>
+            <td className="px-4 py-3 text-muted" suppressHydrationWarning>
+              <RelativeTimestamp isoDate={event.occurredAt} now={renderedAt} />
             </td>
           </tr>
         ))}

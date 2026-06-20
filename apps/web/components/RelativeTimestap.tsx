@@ -1,4 +1,4 @@
-function formatCompletedAt(isoDate: string, now: number) {
+function formatRelativeTimestamp(isoDate: string, now: number) {
   const completedAt = new Date(isoDate);
   const elapsedMs = Math.max(0, now - completedAt.getTime());
   const elapsedMinutes = Math.floor(elapsedMs / 60_000);
@@ -24,14 +24,14 @@ function formatCompletedAt(isoDate: string, now: number) {
   }).format(completedAt);
 }
 
-function formatFullCompletedAt(isoDate: string) {
+function formatFullRelativeTimestamp(isoDate: string) {
   return new Intl.DateTimeFormat('en', {
     dateStyle: 'full',
     timeStyle: 'long',
   }).format(new Date(isoDate));
 }
 
-export function RelativeTimestap({
+export function RelativeTimestamp({
   isoDate,
   now,
 }: {
@@ -39,8 +39,8 @@ export function RelativeTimestap({
   now: number;
 }) {
   return (
-    <time dateTime={isoDate} title={formatFullCompletedAt(isoDate)}>
-      {formatCompletedAt(isoDate, now)}
+    <time dateTime={isoDate} title={formatFullRelativeTimestamp(isoDate)}>
+      {formatRelativeTimestamp(isoDate, now)}
     </time>
   );
 }
