@@ -3,6 +3,7 @@ import Link from 'next/link';
 
 import { CurrentUserBadge } from '@/components/CurrentUserBadge';
 import { ProfileAvatar } from '@/components/ProfileAvatar';
+import { RelativeTimestap } from '@/components/RelativeTimestap';
 import { ApiScore, apiRequest, getApiMessage } from '@/lib/api';
 import { pageMetadata } from '@/lib/metadata';
 import { routes } from '@/lib/routes';
@@ -21,47 +22,6 @@ function formatDuration(totalSeconds: number) {
   }
 
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-}
-
-function formatCompletedAt(isoDate: string, now: number) {
-  const completedAt = new Date(isoDate);
-  const elapsedMs = Math.max(0, now - completedAt.getTime());
-  const elapsedMinutes = Math.floor(elapsedMs / 60_000);
-
-  if (elapsedMinutes < 1) {
-    return 'Just now';
-  }
-
-  if (elapsedMinutes < 60) {
-    return `${elapsedMinutes} ${elapsedMinutes === 1 ? 'minute' : 'minutes'} ago`;
-  }
-
-  const elapsedHours = Math.floor(elapsedMinutes / 60);
-  if (elapsedHours < 24) {
-    return `${elapsedHours} ${elapsedHours === 1 ? 'hour' : 'hours'} ago`;
-  }
-
-  return new Intl.DateTimeFormat('en', {
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    month: 'short',
-  }).format(completedAt);
-}
-
-function formatFullCompletedAt(isoDate: string) {
-  return new Intl.DateTimeFormat('en', {
-    dateStyle: 'full',
-    timeStyle: 'long',
-  }).format(new Date(isoDate));
-}
-
-function CompletedAt({ isoDate, now }: { isoDate: string; now: number }) {
-  return (
-    <time dateTime={isoDate} title={formatFullCompletedAt(isoDate)}>
-      {formatCompletedAt(isoDate, now)}
-    </time>
-  );
 }
 
 function perLevel(value: number, level: number, precision = 2) {
@@ -245,7 +205,10 @@ export default async function LeaderboardPage() {
               </div>
               <p className="text-xs leading-snug text-muted">
                 Completed{' '}
-                <CompletedAt isoDate={scores[0].completedAt} now={renderedAt} />
+                <RelativeTimestap
+                  isoDate={scores[0].completedAt}
+                  now={renderedAt}
+                />
               </p>
             </>
           ) : (
@@ -285,7 +248,10 @@ export default async function LeaderboardPage() {
                     #{rank}
                   </span>
                   <span className="text-xs font-bold uppercase text-muted">
-                    <CompletedAt isoDate={score.completedAt} now={renderedAt} />
+                    <RelativeTimestap
+                      isoDate={score.completedAt}
+                      now={renderedAt}
+                    />
                   </span>
                 </div>
                 <div className="mt-3 flex items-center gap-2.5">
@@ -428,7 +394,10 @@ export default async function LeaderboardPage() {
                     {score.user?.name ?? 'Player'} · Level {score.level}
                   </span>
                   <span className="text-xs text-muted">
-                    <CompletedAt isoDate={score.completedAt} now={renderedAt} />
+                    <RelativeTimestap
+                      isoDate={score.completedAt}
+                      now={renderedAt}
+                    />
                   </span>
                 </li>
               ))}
@@ -478,7 +447,10 @@ export default async function LeaderboardPage() {
                     #{rank}
                   </span>
                   <p className="text-sm text-muted">
-                    <CompletedAt isoDate={score.completedAt} now={renderedAt} />
+                    <RelativeTimestap
+                      isoDate={score.completedAt}
+                      now={renderedAt}
+                    />
                   </p>
                 </div>
                 <p className="mt-2 inline-flex min-w-0 items-center gap-1.5 text-lg font-bold">
@@ -579,7 +551,10 @@ export default async function LeaderboardPage() {
                     {perLevel(score.moves, score.level)} moves/lvl
                   </td>
                   <td className="border-b border-line p-3.5 text-left text-sm text-muted">
-                    <CompletedAt isoDate={score.completedAt} now={renderedAt} />
+                    <RelativeTimestap
+                      isoDate={score.completedAt}
+                      now={renderedAt}
+                    />
                   </td>
                 </tr>
               ))}
