@@ -199,11 +199,39 @@ processes and can migrate the database on startup:
 - `docker-compose.yml` is only a convenience for running the image with a local
   PostgreSQL container.
 
-Build the portable image:
+Build the portable image (BuildKit is required for the dependency cache mount):
 
 ```bash
 npm run docker:build
 ```
+
+The production build uses separate dependency, build, and runtime stages.
+Next.js runs from its standalone server bundle, while the API gets a locked,
+production-only dependency set from `docker/runtime`. The final Alpine-based
+image contains only the two compiled servers, static/public assets, Prisma
+Client and migrations, and their runtime dependencies. It runs as the
+unprivileged `node` user.
+
+Alpine is used intentionally. `node:22` and `node:22-slim` have broader glibc
+compatibility but larger base layers. A Distroless image is smaller and has a
+narrower attack surface, but it removes the npm/shell tooling expected by the
+current Prisma migration and multi-process startup workflow. Alpine is the
+smallest option that preserves the existing operational model.
+
+To compare image sizes after a Dockerfile change, preserve the old image and
+inspect both byte counts:
+
+```bash
+docker tag sliding-tiles:latest sliding-tiles:baseline
+npm run docker:build
+docker image inspect sliding-tiles:baseline sliding-tiles:latest \
+  --format '{{index .RepoTags 0}}: {{.Size}} bytes'
+```
+
+The baseline image measured on 2026-07-05 was `325,074,180` bytes (325.1 MB,
+Docker's decimal units). Record the optimized value from the command above in
+deployment notes because compressed transfer size can vary by target platform
+and registry.
 
 Run it against any PostgreSQL database, including a managed database:
 

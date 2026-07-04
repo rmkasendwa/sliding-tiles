@@ -56,8 +56,12 @@ process.env.API_BASE_URL ||= `http://localhost:${process.env.API_PORT}/api`;
 
 if (process.env.RUN_MIGRATIONS !== 'false') {
   console.log('[container] running database migrations');
-  await runOnce('database migrations', 'npx', ['prisma', 'migrate', 'deploy']);
+  await runOnce('database migrations', 'node', [
+    'node_modules/prisma/build/index.js',
+    'migrate',
+    'deploy',
+  ]);
 }
 
 run('api', 'node', ['dist/api/main.js']);
-run('web', 'npm', ['run', 'web:start']);
+run('web', 'node', ['apps/web/server.js']);

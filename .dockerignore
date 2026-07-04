@@ -1,13 +1,48 @@
+# Version control and local tooling
 .git
-.next
-apps/web/.next
-dist
+.github
+.agents
+.codex
+.vscode
+.idea
+*.swp
+*.swo
+.DS_Store
+
+# Dependencies and generated build/test output
 node_modules
-npm-debug.log
-Dockerfile*
-docker-compose*.yml
+**/node_modules
+.next
+**/.next
+dist
+coverage
+**/coverage
+test-results
+**/test-results
+playwright-report
+**/playwright-report
+*.tsbuildinfo
+
+# Local configuration, logs, and temporary files
 .env
 .env.*
 !.env.example
-coverage
-tsconfig*.tsbuildinfo
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.tmp
+*.temp
+tmp
+.cache
+
+# Files that are not application build inputs
+Dockerfile*
+docker-compose*.yml
+docs
+**/*.md
+screenshots
+**/screenshots
+*.png
+!apps/web/public/**/*.png

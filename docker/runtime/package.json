@@ -1,0 +1,22 @@
+{
+  "name": "sliding-tiles-runtime",
+  "private": true,
+  "dependencies": {
+    "@nestjs/common": "^11.1.24",
+    "@nestjs/config": "^4.0.4",
+    "@nestjs/core": "^11.1.24",
+    "@nestjs/platform-express": "^11.1.24",
+    "@prisma/adapter-pg": "^7.0.0",
+    "@prisma/client": "^7.0.0",
+    "bcryptjs": "^3.0.0",
+    "dotenv": "^16.4.7",
+    "express": "^5.0.0",
+    "jose": "^6.0.0",
+    "pg": "^8.13.0",
+    "prisma": "^7.0.0",
+    "reflect-metadata": "^0.2.2",
+    "resend": "^6.12.4",
+    "rxjs": "^7.8.2",
+    "zod": "^4.0.0"
+  }
+}
