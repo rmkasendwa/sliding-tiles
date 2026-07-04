@@ -2,6 +2,8 @@ import { SolutionImage } from './SolutionPreview';
 
 type GameHudProps = {
   columns: number;
+  imageAspectRatio: number;
+  imageUrl: string;
   onOpenDetails: () => void | Promise<void>;
   rows: number;
   variant: 'compact' | 'fullscreen';
@@ -9,6 +11,8 @@ type GameHudProps = {
 
 export function GameHud({
   columns,
+  imageAspectRatio,
+  imageUrl,
   onOpenDetails,
   rows,
   variant,
@@ -22,7 +26,7 @@ export function GameHud({
           onClick={onOpenDetails}
           type="button"
         >
-          <SolutionImage columns={columns} rows={rows} />
+          <SolutionImage columns={columns} imageAspectRatio={imageAspectRatio} imageUrl={imageUrl} rows={rows} />
         </button>
       </div>
     );
@@ -36,7 +40,7 @@ export function GameHud({
         onClick={onOpenDetails}
         type="button"
       >
-        <SolutionImage columns={columns} rows={rows} />
+        <SolutionImage columns={columns} imageAspectRatio={imageAspectRatio} imageUrl={imageUrl} rows={rows} />
       </button>
     </div>
   );

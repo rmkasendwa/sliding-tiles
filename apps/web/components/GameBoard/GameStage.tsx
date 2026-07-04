@@ -26,6 +26,8 @@ type GameStageProps = {
   continueLevel: number;
   elapsedTimeLabel: string;
   hintedSlot: string | null;
+  imageAspectRatio: number;
+  imageUrl: string;
   isBoardEntering: boolean;
   isBoardFullscreen: boolean;
   isCelebrating: boolean;
@@ -64,6 +66,7 @@ type GameStageProps = {
   onContinueReplay: () => void;
   onHint: (slot: string | null) => void;
   onInvalidMove: (slotKey: string) => void;
+  onOpenImagePicker: () => void;
   onMove: (slot: Slot) => void;
   onOpenDetails: () => void;
   onPeekCancel: PointerEventHandler<HTMLButtonElement>;
@@ -87,6 +90,7 @@ type BoardTilesLayerProps = Pick<
   | 'boardEntryAnimationKey'
   | 'columns'
   | 'hintedSlot'
+  | 'imageUrl'
   | 'invalidMoveTile'
   | 'isAutoPlayActive'
   | 'isBoardEntering'
@@ -110,6 +114,7 @@ const BoardTilesLayer = memo(function BoardTilesLayer({
   columns,
   emptySlotHintTile,
   hintedSlot,
+  imageUrl,
   invalidMoveTile,
   isAutoPlayActive,
   isBoardEntering,
@@ -140,6 +145,7 @@ const BoardTilesLayer = memo(function BoardTilesLayer({
         emptySlot={board.emptySlot}
         isEmptySlotHinted={emptySlotHintTile === slotKey(tile.homeSlot)}
         hintedSlot={hintedSlot}
+        imageUrl={imageUrl}
         isHintPlaceholderVisible={isShowingHintPlaceholder}
         isEntering={isBoardEntering}
         invalidMoveKey={
@@ -173,6 +179,8 @@ export function GameStage({
   continueLevel,
   elapsedTimeLabel,
   hintedSlot,
+  imageAspectRatio,
+  imageUrl,
   isBoardEntering,
   isBoardFullscreen,
   isCelebrating,
@@ -201,6 +209,7 @@ export function GameStage({
   onContinueReplay,
   onHint,
   onInvalidMove,
+  onOpenImagePicker,
   onMove,
   onOpenDetails,
   onPeekCancel,
@@ -276,13 +285,15 @@ export function GameStage({
     >
       <GameHud
         columns={columns}
+        imageAspectRatio={imageAspectRatio}
+        imageUrl={imageUrl}
         onOpenDetails={onOpenDetails}
         rows={rows}
         variant={isBoardFullscreen ? 'fullscreen' : 'compact'}
       />
       <div
         className={[
-          'relative aspect-square overflow-hidden rounded-lg',
+          'relative overflow-hidden rounded-lg',
           isBoardFullscreen
             ? 'fullscreen-board-shell'
             : 'w-[min(100%,calc(100svh-64px))]',
@@ -291,7 +302,9 @@ export function GameStage({
         onPointerLeave={isAutoPlayActive ? undefined : onBoardPointerLeave}
         onPointerUp={isAutoPlayActive ? undefined : onBoardPointerUp}
         style={{
+          aspectRatio: imageAspectRatio,
           background: BOARD_SURFACE_BACKGROUND,
+          width: `min(100%, calc((100svh - 64px) * ${imageAspectRatio}))`,
           touchAction: isAutoPlayActive ? 'auto' : 'none',
         }}
       >
@@ -301,6 +314,7 @@ export function GameStage({
           columns={columns}
           emptySlotHintTile={emptySlotHintTile}
           hintedSlot={hintedSlot}
+          imageUrl={imageUrl}
           invalidMoveTile={invalidMoveTile}
           isAutoPlayActive={isAutoPlayActive}
           isBoardEntering={isBoardEntering}
@@ -329,6 +343,7 @@ export function GameStage({
         />
         <CompletionEffects
           confettiBurstKey={confettiBurstKey}
+          imageUrl={imageUrl}
           isCelebrating={isCelebrating}
           isCompletionImageVisible={isCompletionImageVisible}
         />
@@ -352,6 +367,7 @@ export function GameStage({
         moves={board.moves}
         onAutoPlayToggle={onAutoPlayToggle}
         onAutoPlaySpeedChange={onAutoPlaySpeedChange}
+        onOpenImagePicker={onOpenImagePicker}
         onPeekCancel={onPeekCancel}
         onPeekDown={onPeekDown}
         onPeekLeave={onPeekLeave}

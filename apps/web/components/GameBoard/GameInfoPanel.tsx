@@ -45,6 +45,8 @@ export type GameInfoPanelProps = {
   columns: number;
   gameModeLabel: string;
   highestReachedLevel: number;
+  imageAspectRatio: number;
+  imageUrl: string;
   isModal?: boolean;
   isLevelSelectDisabled?: boolean;
   playerAvatarUrl?: string | null;
@@ -61,6 +63,8 @@ export function GameInfoPanel({
   columns,
   gameModeLabel,
   highestReachedLevel,
+  imageAspectRatio,
+  imageUrl,
   isModal = false,
   isLevelSelectDisabled = false,
   playerAvatarUrl,
@@ -163,7 +167,7 @@ export function GameInfoPanel({
         }
       >
         <div>
-          <SolutionPreview columns={columns} isCompact={isModal} rows={rows} />
+          <SolutionPreview columns={columns} imageAspectRatio={imageAspectRatio} imageUrl={imageUrl} isCompact={isModal} rows={rows} />
         </div>
 
         <div

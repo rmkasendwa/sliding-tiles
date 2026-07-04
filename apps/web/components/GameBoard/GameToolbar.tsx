@@ -3,6 +3,7 @@
 import {
   Gauge,
   LoaderCircle,
+  ImagePlus,
   Maximize2,
   Minimize2,
   Pause,
@@ -43,6 +44,7 @@ type GameToolbarProps = {
   moves: number;
   onAutoPlayToggle: () => void;
   onAutoPlaySpeedChange: (delayMs: number) => void;
+  onOpenImagePicker: () => void;
   onPeekCancel: PointerEventHandler<HTMLButtonElement>;
   onPeekDown: PointerEventHandler<HTMLButtonElement>;
   onPeekLeave: PointerEventHandler<HTMLButtonElement>;
@@ -73,6 +75,7 @@ export function GameToolbar({
   moves,
   onAutoPlayToggle,
   onAutoPlaySpeedChange,
+  onOpenImagePicker,
   onPeekCancel,
   onPeekDown,
   onPeekLeave,
@@ -164,6 +167,15 @@ export function GameToolbar({
         <div className="board-overlay flex max-w-full shrink-0 flex-wrap items-center justify-end gap-1 self-end rounded-[7px] border p-1 text-accent-strong max-[560px]:w-full max-[560px]:justify-center max-[560px]:self-center">
           {!shouldHidePlaybackBlockedTools ? (
             <>
+              <GameToolButton
+                aria-label="Choose a custom puzzle image"
+                description="Create this tile board from one of your own photos."
+                disabled={controlsLocked || isCelebrating}
+                icon={<ImagePlus aria-hidden="true" className="size-4" strokeWidth={2.2} />}
+                onClick={onOpenImagePicker}
+                tooltip="Choose puzzle image"
+                type="button"
+              />
               <GameToolButton
                 aria-label={
                   controlsLocked ? 'Puzzle is updating' : 'Reset current puzzle'

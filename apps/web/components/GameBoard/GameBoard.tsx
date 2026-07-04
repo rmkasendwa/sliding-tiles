@@ -32,6 +32,11 @@ import {
   TILE_ENTRY_LOCK_IN_DELAY_MS,
 } from './constants';
 import { GameStage } from './GameStage';
+import {
+  CustomImagePicker,
+  MAX_PUZZLE_ASPECT_RATIO,
+  type PuzzleImage,
+} from './CustomImagePicker';
 import type { ReplayPerformance, ReplayResult } from './ReplayResultPanel';
 import { ResponsiveGameInfoPanel } from './ResponsiveGameInfoPanel';
 import { useAnonymousGameplayAnalytics } from './useAnonymousGameplayAnalytics';
@@ -104,6 +109,13 @@ function GameBoardContent({
     toggle: toggleBoardFullscreen,
   } = useBoardFullscreen();
   const [board, setBoard] = useState<BoardState>(initialBoard);
+  const [puzzleImage, setPuzzleImage] = useState<PuzzleImage>({
+    height: 1000,
+    name: 'Pond frog',
+    url: '/frog.svg',
+    width: 1000,
+  });
+  const [isImagePickerOpen, setIsImagePickerOpen] = useState(false);
   const [confettiBurstKey, setConfettiBurstKey] = useState<number | null>(null);
   const [isCompletionImageVisible, setIsCompletionImageVisible] =
     useState(false);
@@ -810,6 +822,13 @@ function GameBoardContent({
   ]);
 
   const [columns, rows] = board.dimensions;
+  const imageAspectRatio = Math.min(
+    MAX_PUZZLE_ASPECT_RATIO,
+    Math.max(
+      1 / MAX_PUZZLE_ASPECT_RATIO,
+      puzzleImage.width / puzzleImage.height,
+    ),
+  );
 
   useEffect(() => {
     return () => {
@@ -1154,6 +1173,8 @@ function GameBoardContent({
         continueLevel={highestReachedLevel}
         elapsedTimeLabel={elapsedTimeLabel}
         hintedSlot={hintedSlot}
+        imageAspectRatio={imageAspectRatio}
+        imageUrl={puzzleImage.url}
         isBoardEntering={isBoardEntering}
         isBoardFullscreen={isBoardFullscreen}
         isCelebrating={isCelebrating}
@@ -1195,6 +1216,7 @@ function GameBoardContent({
         onContinueReplay={continueProgress}
         onHint={setHintedSlot}
         onInvalidMove={showInvalidMoveFeedback}
+        onOpenImagePicker={() => setIsImagePickerOpen(true)}
         onMove={moveTile}
         onOpenDetails={openInfoModal}
         onPeekCancel={stopPeekButtonPreview}
@@ -1216,6 +1238,8 @@ function GameBoardContent({
         columns={columns}
         gameModeLabel={gameModeLabel}
         highestReachedLevel={highestReachedLevel}
+        imageAspectRatio={imageAspectRatio}
+        imageUrl={puzzleImage.url}
         isLevelSelectDisabled={
           isShuffleAnimationRunning ||
           isCelebrating ||
@@ -1234,6 +1258,17 @@ function GameBoardContent({
         playerName={playerName}
         rows={rows}
       />
+      {isImagePickerOpen ? (
+        <CustomImagePicker
+          currentImage={puzzleImage}
+          onClose={() => setIsImagePickerOpen(false)}
+          onSelect={(image) => {
+            setPuzzleImage(image);
+            setIsImagePickerOpen(false);
+            refreshBoard(() => resetBoardAttempt(attemptStartBoard), false);
+          }}
+        />
+      ) : null}
     </div>
   );
 }

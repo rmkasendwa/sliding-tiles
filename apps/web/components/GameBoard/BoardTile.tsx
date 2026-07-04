@@ -12,7 +12,6 @@ import {
 import {
   BOARD_SIZE,
   HINT_PLACEHOLDER_TRANSITION,
-  TILE_BACKGROUND,
   TILE_ENTRY_ANIMATION_MS,
   TILE_INVALID_MOVE_FEEDBACK_MS,
   TILE_TRANSITION,
@@ -82,6 +81,7 @@ export type BoardTileProps = {
   tileHeight: number;
   tileRotationSeed: number;
   tileWidth: number;
+  imageUrl: string;
 };
 
 function BoardTileComponent({
@@ -105,6 +105,7 @@ function BoardTileComponent({
   tileHeight,
   tileRotationSeed,
   tileWidth,
+  imageUrl,
 }: BoardTileProps) {
   const tileRef = useRef<HTMLButtonElement | null>(null);
   const tileDragSessionRef = useRef<TileDragSession | null>(null);
@@ -426,11 +427,6 @@ function BoardTileComponent({
           height: `${(tileHeight / BOARD_SIZE) * 100}%`,
           top: 0,
           left: 0,
-          backgroundImage: TILE_BACKGROUND,
-          backgroundSize: `${columns * 100}% ${rows * 100}%`,
-          backgroundPosition: `${
-            columns > 1 ? (homeColumn / (columns - 1)) * 100 : 0
-          }% ${rows > 1 ? (homeRow / (rows - 1)) * 100 : 0}%`,
           opacity: isHintPlaceholder && !isHintPlaceholderVisible ? 0 : 1,
           WebkitTapHighlightColor: 'transparent',
           touchAction: isMovable ? 'none' : 'manipulation',
@@ -462,6 +458,17 @@ function BoardTileComponent({
       }
       type="button"
     >
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute bg-center bg-cover bg-no-repeat"
+        style={{
+          backgroundImage: `url(${JSON.stringify(imageUrl)})`,
+          height: `${rows * 100}%`,
+          left: `${-homeColumn * 100}%`,
+          top: `${-homeRow * 100}%`,
+          width: `${columns * 100}%`,
+        }}
+      />
       {invalidMoveKey > 0 &&
       invalidMoveKey !== dismissedInvalidMoveKey &&
       !isInteractionBlocked &&
@@ -505,6 +512,7 @@ export const BoardTile = memo(BoardTileComponent, (previous, next) => {
     previous.tileHeight === next.tileHeight &&
     previous.tileRotationSeed === next.tileRotationSeed &&
     previous.tileWidth === next.tileWidth &&
+    previous.imageUrl === next.imageUrl &&
     (!needsEmptySlot || areSlotsEqual(previous.emptySlot, next.emptySlot))
   );
 });

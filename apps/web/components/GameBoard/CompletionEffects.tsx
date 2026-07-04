@@ -6,20 +6,23 @@ type CompletionEffectsProps = {
   confettiBurstKey: number | null;
   isCelebrating: boolean;
   isCompletionImageVisible: boolean;
+  imageUrl: string;
 };
 
 export function CompletionEffects({
   confettiBurstKey,
   isCelebrating,
   isCompletionImageVisible,
+  imageUrl,
 }: CompletionEffectsProps) {
   return (
     <>
       {isCompletionImageVisible ? (
         <div
           aria-label="Completed puzzle image"
-          className="completion-image-reveal pointer-events-none absolute inset-0 z-20 bg-[url('/frog.svg')] bg-cover bg-center bg-no-repeat"
+          className="completion-image-reveal pointer-events-none absolute inset-0 z-20 bg-cover bg-center bg-no-repeat"
           role="img"
+          style={{ backgroundImage: `url(${JSON.stringify(imageUrl)})` }}
         />
       ) : null}
       {confettiBurstKey !== null ? (

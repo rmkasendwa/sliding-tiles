@@ -7,6 +7,8 @@ type ResponsiveGameInfoPanelProps = {
   columns: number;
   gameModeLabel: string;
   highestReachedLevel: number;
+  imageAspectRatio: number;
+  imageUrl: string;
   isLevelSelectDisabled: boolean;
   isModalOpen: boolean;
   isModalRendered: boolean;
@@ -24,6 +26,8 @@ export function ResponsiveGameInfoPanel({
   columns,
   gameModeLabel,
   highestReachedLevel,
+  imageAspectRatio,
+  imageUrl,
   isLevelSelectDisabled,
   isModalOpen,
   isModalRendered,
@@ -40,6 +44,8 @@ export function ResponsiveGameInfoPanel({
     columns,
     gameModeLabel,
     highestReachedLevel,
+    imageAspectRatio,
+    imageUrl,
     isLevelSelectDisabled,
     isSignedIn,
     level,
