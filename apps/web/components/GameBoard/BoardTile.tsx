@@ -75,6 +75,8 @@ export type BoardTileProps = {
   onHint: (slot: string | null) => void;
   onInvalidMove: (slotKey: string) => void;
   onMove: (slot: Slot) => void;
+  onSlotHintEnd: () => void;
+  onSlotHintStart: (slot: Slot) => void;
   rows: number;
   suppressNextClickRef: MutableRefObject<boolean>;
   tile: Tile;
@@ -99,6 +101,8 @@ function BoardTileComponent({
   onHint,
   onInvalidMove,
   onMove,
+  onSlotHintEnd,
+  onSlotHintStart,
   rows,
   suppressNextClickRef,
   tile,
@@ -406,11 +410,20 @@ function BoardTileComponent({
       onBlur={() => onHint(null)}
       onClick={activateTile}
       onMouseEnter={() => {
-        if (!isMovable && !isHintPlaceholder) {
+        const isTileMisplaced =
+          tile.slot[0] !== tile.homeSlot[0] ||
+          tile.slot[1] !== tile.homeSlot[1];
+
+        if (!isHintPlaceholder && isTileMisplaced) {
+          onSlotHintStart(tile.slot);
+        } else if (!isMovable && !isHintPlaceholder) {
           onHint(slotKey(tile.homeSlot));
         }
       }}
-      onMouseLeave={() => onHint(null)}
+      onMouseLeave={() => {
+        onSlotHintEnd();
+        onHint(null);
+      }}
       onLostPointerCapture={cancelTileDrag}
       onPointerCancel={cancelTileDrag}
       onPointerDown={(event) => {
@@ -506,6 +519,8 @@ export const BoardTile = memo(BoardTileComponent, (previous, next) => {
     previous.onHint === next.onHint &&
     previous.onInvalidMove === next.onInvalidMove &&
     previous.onMove === next.onMove &&
+    previous.onSlotHintEnd === next.onSlotHintEnd &&
+    previous.onSlotHintStart === next.onSlotHintStart &&
     previous.rows === next.rows &&
     previous.suppressNextClickRef === next.suppressNextClickRef &&
     previous.tile === next.tile &&

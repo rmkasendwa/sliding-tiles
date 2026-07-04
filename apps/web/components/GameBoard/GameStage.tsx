@@ -106,6 +106,8 @@ type BoardTilesLayerProps = Pick<
   | 'tileRotationSeed'
 > & {
   emptySlotHintTile: string | null;
+  onSlotHintEnd: () => void;
+  onSlotHintStart: (slot: Slot) => void;
 };
 
 const BoardTilesLayer = memo(function BoardTilesLayer({
@@ -125,6 +127,8 @@ const BoardTilesLayer = memo(function BoardTilesLayer({
   onHint,
   onInvalidMove,
   onMove,
+  onSlotHintEnd,
+  onSlotHintStart,
   rows,
   suppressNextClickRef,
   tileRotationSeed,
@@ -159,6 +163,8 @@ const BoardTilesLayer = memo(function BoardTilesLayer({
         onHint={onHint}
         onInvalidMove={onInvalidMove}
         onMove={onMove}
+        onSlotHintEnd={onSlotHintEnd}
+        onSlotHintStart={onSlotHintStart}
         rows={rows}
         suppressNextClickRef={suppressNextClickRef}
         tile={tile}
@@ -237,18 +243,19 @@ export function GameStage({
     }
     setEmptySlotHintTile(null);
   }, []);
-  const startEmptySlotHint = useCallback(() => {
+  const startSlotHint = useCallback((slot: Slot) => {
     if (isShuffleAnimationRunning || isAutoPlayActive) {
       return;
     }
 
     clearEmptySlotHint();
+    const hoveredSlotKey = slotKey(slot);
     const targetTile = board.tileGrid
       .flat()
       .find(
         (tile) =>
           tile.type !== 'PLACEHOLDER' &&
-          slotKey(tile.homeSlot) === slotKey(board.emptySlot),
+          slotKey(tile.homeSlot) === hoveredSlotKey,
       );
 
     if (!targetTile) {
@@ -260,7 +267,6 @@ export function GameStage({
       setEmptySlotHintTile(slotKey(targetTile.homeSlot));
     }, EMPTY_SLOT_HINT_DELAY_MS);
   }, [
-    board.emptySlot,
     board.tileGrid,
     clearEmptySlotHint,
     isAutoPlayActive,
@@ -325,14 +331,16 @@ export function GameStage({
           onHint={onHint}
           onInvalidMove={onInvalidMove}
           onMove={onMove}
+          onSlotHintEnd={clearEmptySlotHint}
+          onSlotHintStart={startSlotHint}
           rows={rows}
           suppressNextClickRef={suppressNextClickRef}
           tileRotationSeed={tileRotationSeed}
         />
         <div
           aria-hidden="true"
-          className="absolute z-[6]"
-          onMouseEnter={startEmptySlotHint}
+          className="absolute z-6"
+          onMouseEnter={() => startSlotHint(board.emptySlot)}
           onMouseLeave={clearEmptySlotHint}
           style={{
             height: `${100 / rows}%`,
