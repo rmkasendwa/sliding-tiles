@@ -66,6 +66,7 @@ export type BoardTileProps = {
   emptySlot: Slot;
   hintedSlot: string | null;
   isHintPlaceholderVisible: boolean;
+  isEmptySlotHinted: boolean;
   isEntering: boolean;
   isInteractionBlocked: boolean;
   invalidMoveKey: number;
@@ -88,6 +89,7 @@ function BoardTileComponent({
   emptySlot,
   hintedSlot,
   isHintPlaceholderVisible,
+  isEmptySlotHinted,
   isEntering,
   isInteractionBlocked,
   invalidMoveKey,
@@ -385,8 +387,9 @@ function BoardTileComponent({
       ? 'z-[2] cursor-default brightness-[1.04] saturate-[1.08]'
       : '',
     isHintPlaceholder ? 'pointer-events-none' : '',
+    isEmptySlotHinted ? 'board-tile-empty-slot-hint z-[7]' : '',
     isDraggingTile ? 'z-[12]' : '',
-      hintedSlot === slotKey(tile.homeSlot)
+    hintedSlot === slotKey(tile.homeSlot)
       ? 'z-[9] shadow-tile-active'
       : '',
   ]
@@ -486,6 +489,7 @@ export const BoardTile = memo(BoardTileComponent, (previous, next) => {
     previous.columns === next.columns &&
     previous.hintedSlot === next.hintedSlot &&
     previous.isHintPlaceholderVisible === next.isHintPlaceholderVisible &&
+    previous.isEmptySlotHinted === next.isEmptySlotHinted &&
     previous.isEntering === next.isEntering &&
     previous.isInteractionBlocked === next.isInteractionBlocked &&
     previous.invalidMoveKey === next.invalidMoveKey &&

@@ -1,13 +1,17 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import type { MutableRefObject, PointerEventHandler, RefObject } from 'react';
 
 import { BoardState, Slot, slotKey } from '@/lib/board';
 
 import { BoardTile } from './BoardTile';
 import { AutoPlayResultPanel } from './AutoPlayResultPanel';
-import { BOARD_SIZE, BOARD_SURFACE_BACKGROUND } from './constants';
+import {
+  BOARD_SIZE,
+  BOARD_SURFACE_BACKGROUND,
+  EMPTY_SLOT_HINT_DELAY_MS,
+} from './constants';
 import { CompletionEffects } from './CompletionEffects';
 import { GameHud } from './GameHud';
 import { GameToolbar } from './GameToolbar';
@@ -96,12 +100,15 @@ type BoardTilesLayerProps = Pick<
   | 'rows'
   | 'suppressNextClickRef'
   | 'tileRotationSeed'
->;
+> & {
+  emptySlotHintTile: string | null;
+};
 
 const BoardTilesLayer = memo(function BoardTilesLayer({
   board,
   boardEntryAnimationKey,
   columns,
+  emptySlotHintTile,
   hintedSlot,
   invalidMoveTile,
   isAutoPlayActive,
@@ -131,6 +138,7 @@ const BoardTilesLayer = memo(function BoardTilesLayer({
       <BoardTile
         columns={columns}
         emptySlot={board.emptySlot}
+        isEmptySlotHinted={emptySlotHintTile === slotKey(tile.homeSlot)}
         hintedSlot={hintedSlot}
         isHintPlaceholderVisible={isShowingHintPlaceholder}
         isEntering={isBoardEntering}
@@ -209,6 +217,52 @@ export function GameStage({
   suppressNextClickRef,
   tileRotationSeed,
 }: GameStageProps) {
+  const emptySlotHintTimeoutRef = useRef<number | null>(null);
+  const [emptySlotHintTile, setEmptySlotHintTile] = useState<string | null>(
+    null,
+  );
+  const clearEmptySlotHint = useCallback(() => {
+    if (emptySlotHintTimeoutRef.current !== null) {
+      window.clearTimeout(emptySlotHintTimeoutRef.current);
+      emptySlotHintTimeoutRef.current = null;
+    }
+    setEmptySlotHintTile(null);
+  }, []);
+  const startEmptySlotHint = useCallback(() => {
+    if (isShuffleAnimationRunning || isAutoPlayActive) {
+      return;
+    }
+
+    clearEmptySlotHint();
+    const targetTile = board.tileGrid
+      .flat()
+      .find(
+        (tile) =>
+          tile.type !== 'PLACEHOLDER' &&
+          slotKey(tile.homeSlot) === slotKey(board.emptySlot),
+      );
+
+    if (!targetTile) {
+      return;
+    }
+
+    emptySlotHintTimeoutRef.current = window.setTimeout(() => {
+      emptySlotHintTimeoutRef.current = null;
+      setEmptySlotHintTile(slotKey(targetTile.homeSlot));
+    }, EMPTY_SLOT_HINT_DELAY_MS);
+  }, [
+    board.emptySlot,
+    board.tileGrid,
+    clearEmptySlotHint,
+    isAutoPlayActive,
+    isShuffleAnimationRunning,
+  ]);
+
+  useEffect(
+    () => clearEmptySlotHint,
+    [board, clearEmptySlotHint, isShuffleAnimationRunning],
+  );
+
   return (
     <section
       aria-label="Sliding tile board"
@@ -245,6 +299,7 @@ export function GameStage({
           board={board}
           boardEntryAnimationKey={boardEntryAnimationKey}
           columns={columns}
+          emptySlotHintTile={emptySlotHintTile}
           hintedSlot={hintedSlot}
           invalidMoveTile={invalidMoveTile}
           isAutoPlayActive={isAutoPlayActive}
@@ -259,6 +314,18 @@ export function GameStage({
           rows={rows}
           suppressNextClickRef={suppressNextClickRef}
           tileRotationSeed={tileRotationSeed}
+        />
+        <div
+          aria-hidden="true"
+          className="absolute z-[6]"
+          onMouseEnter={startEmptySlotHint}
+          onMouseLeave={clearEmptySlotHint}
+          style={{
+            height: `${100 / rows}%`,
+            left: `${(board.emptySlot[1] * 100) / columns}%`,
+            top: `${(board.emptySlot[0] * 100) / rows}%`,
+            width: `${100 / columns}%`,
+          }}
         />
         <CompletionEffects
           confettiBurstKey={confettiBurstKey}
