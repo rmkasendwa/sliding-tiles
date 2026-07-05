@@ -206,17 +206,17 @@ npm run docker:build
 ```
 
 The production build uses separate dependency, build, and runtime stages.
-Next.js runs from its standalone server bundle, while the API gets a locked,
-production-only dependency set from `docker/runtime`. The final Alpine-based
-image contains only the two compiled servers, static/public assets, Prisma
-Client and migrations, and their runtime dependencies. It runs as the
-unprivileged `node` user.
+Next.js runs from its standalone server bundle. The NestJS API and Prisma
+migration CLI are file-traced during the build, so the final image receives
+only modules they actually load instead of a full `node_modules` installation.
+The final `node:22-bookworm-slim` image contains the two compiled servers,
+static/public assets, Prisma Client and migrations, and traced runtime files.
+It runs as the unprivileged `node` user.
 
-Alpine is used intentionally. `node:22` and `node:22-slim` have broader glibc
-compatibility but larger base layers. A Distroless image is smaller and has a
-narrower attack surface, but it removes the npm/shell tooling expected by the
-current Prisma migration and multi-process startup workflow. Alpine is the
-smallest option that preserves the existing operational model.
+Bookworm slim provides glibc compatibility for Node and Prisma without the
+large build toolchain from the full `node:22` image. Distroless has a narrower
+attack surface, but would complicate diagnostics and the current migration and
+multi-process startup workflow.
 
 To compare image sizes after a Dockerfile change, preserve the old image and
 inspect both byte counts:
@@ -228,10 +228,10 @@ docker image inspect sliding-tiles:baseline sliding-tiles:latest \
   --format '{{index .RepoTags 0}}: {{.Size}} bytes'
 ```
 
-The baseline image measured on 2026-07-05 was `325,074,180` bytes (325.1 MB,
-Docker's decimal units). Record the optimized value from the command above in
-deployment notes because compressed transfer size can vary by target platform
-and registry.
+On 2026-07-05, the original image measured `325,074,180` bytes (325.1 MB) and
+the optimized `linux/arm64` image measured `136,776,428` bytes (136.8 MB): a
+57.9% reduction. Registry transfer size may differ because layers are
+compressed and target platforms can produce different native Prisma binaries.
 
 Run it against any PostgreSQL database, including a managed database:
 
