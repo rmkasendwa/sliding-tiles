@@ -4,7 +4,7 @@ ARG NODE_IMAGE=node:22-bookworm-slim
 
 FROM ${NODE_IMAGE} AS base
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends openssl && \
+    apt-get install -y --no-install-recommends openssl curl && \
     rm -rf /var/lib/apt/lists/*
 
 FROM base AS deps
