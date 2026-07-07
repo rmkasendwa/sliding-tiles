@@ -157,10 +157,13 @@ export function GameToolbar({
           >
             Level {level} · {columns}x{rows}
           </div>
-          <span aria-hidden="true" className="hidden h-5 w-px shrink-0 bg-line max-[520px]:block" />
+          <span
+            aria-hidden="true"
+            className="hidden h-5 w-px shrink-0 bg-line max-[520px]:block"
+          />
           <div
             aria-label={`${moves} ${moves === 1 ? 'move' : 'moves'}, elapsed time ${elapsedTimeLabel}`}
-            className="game-toolbar-dock__stats play-overlay-float board-overlay whitespace-nowrap rounded-[7px] border px-3 py-2 text-sm font-bold text-accent-strong max-[480px]:text-xs"
+            className="game-toolbar-dock__stats play-overlay-float board-overlay whitespace-nowrap rounded-[7px] border px-1.5 py-2 text-sm font-bold text-accent-strong max-[480px]:text-xs"
           >
             {moves} {moves === 1 ? 'move' : 'moves'} · {elapsedTimeLabel}
           </div>
@@ -172,7 +175,13 @@ export function GameToolbar({
                 aria-label="Choose a custom puzzle image"
                 description="Create this tile board from one of your own photos."
                 disabled={controlsLocked || isCelebrating}
-                icon={<ImagePlus aria-hidden="true" className="size-4" strokeWidth={2.2} />}
+                icon={
+                  <ImagePlus
+                    aria-hidden="true"
+                    className="size-4"
+                    strokeWidth={2.2}
+                  />
+                }
                 onClick={onOpenImagePicker}
                 tooltip="Choose puzzle image"
                 type="button"
@@ -257,9 +266,9 @@ export function GameToolbar({
                 ? 'Pause Auto Play'
                 : isAutoPlaySolving
                   ? 'Auto Play is planning'
-                : isAutoPlayAssisted
-                  ? 'Resume Auto Play'
-                  : 'Start Auto Play'
+                  : isAutoPlayAssisted
+                    ? 'Resume Auto Play'
+                    : 'Start Auto Play'
             }
             aria-pressed={isAutoPlayActive}
             className={
@@ -270,9 +279,9 @@ export function GameToolbar({
                 ? 'Pause the AI demonstration.'
                 : isAutoPlaySolving
                   ? 'Wait for the AI to finish planning this route.'
-                : isAutoPlayAssisted
-                  ? 'Continue the AI demonstration from the current board.'
-                  : 'Let the built-in AI solve the current puzzle.'
+                  : isAutoPlayAssisted
+                    ? 'Continue the AI demonstration from the current board.'
+                    : 'Let the built-in AI solve the current puzzle.'
             }
             disabled={
               isAutoPlaySolving || (!isAutoPlayActive && isAutoPlayBlocked)
@@ -297,9 +306,9 @@ export function GameToolbar({
                 ? 'Pause Auto Play'
                 : isAutoPlaySolving
                   ? 'Planning Auto Play'
-                : isAutoPlayAssisted
-                  ? 'Resume Auto Play'
-                  : 'Auto Play'
+                  : isAutoPlayAssisted
+                    ? 'Resume Auto Play'
+                    : 'Auto Play'
             }
             type="button"
           />
