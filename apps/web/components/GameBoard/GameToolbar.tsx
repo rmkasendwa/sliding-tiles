@@ -114,7 +114,7 @@ export function GameToolbar({
     <>
       <div
         aria-label={`Level ${level}, ${columns} by ${rows} grid`}
-        className="play-overlay-float board-overlay absolute left-4 top-4 z-40 rounded-[7px] border px-3 py-2 text-sm font-bold text-accent-strong max-[480px]:hidden"
+        className="play-overlay-float board-overlay absolute left-4 top-4 z-40 rounded-[7px] border px-3 py-2 text-sm font-bold text-accent-strong max-[520px]:hidden"
       >
         Level {level} · {columns}x{rows}
       </div>
@@ -149,22 +149,23 @@ export function GameToolbar({
           {autoPlayStatusMessage}
         </div>
       ) : null}
-      <div className="absolute inset-x-4 bottom-4 z-40 flex items-end justify-between gap-2 max-[560px]:flex-col max-[560px]:items-stretch">
-        <div className="max-[480px]:flex max-[480px]:items-center max-[480px]:justify-center max-[480px]:gap-2">
+      <div className="game-toolbar-dock absolute inset-x-4 bottom-4 z-40 flex items-end justify-between gap-2 max-[520px]:grid max-[520px]:grid-cols-1 max-[520px]:gap-1.5 max-[520px]:rounded-[7px] max-[520px]:border max-[520px]:p-1.5">
+        <div className="game-toolbar-dock__status flex min-w-0 items-center gap-2 max-[520px]:justify-center max-[520px]:px-1">
           <div
             aria-label={`Level ${level}, ${columns} by ${rows} grid`}
-            className="board-overlay hidden whitespace-nowrap rounded-[7px] border px-2.5 py-2 text-xs font-bold text-accent-strong max-[480px]:block"
+            className="game-toolbar-dock__level hidden whitespace-nowrap px-1.5 py-1 text-sm font-bold text-accent-strong max-[520px]:block max-[480px]:text-xs"
           >
             Level {level} · {columns}x{rows}
           </div>
+          <span aria-hidden="true" className="hidden h-5 w-px shrink-0 bg-line max-[520px]:block" />
           <div
             aria-label={`${moves} ${moves === 1 ? 'move' : 'moves'}, elapsed time ${elapsedTimeLabel}`}
-            className="play-overlay-float board-overlay self-start whitespace-nowrap rounded-[7px] border px-3 py-2 text-sm font-bold text-accent-strong max-[480px]:self-auto max-[480px]:px-2.5 max-[480px]:text-xs"
+            className="game-toolbar-dock__stats play-overlay-float board-overlay whitespace-nowrap rounded-[7px] border px-3 py-2 text-sm font-bold text-accent-strong max-[480px]:text-xs"
           >
             {moves} {moves === 1 ? 'move' : 'moves'} · {elapsedTimeLabel}
           </div>
         </div>
-        <div className="board-overlay flex max-w-full shrink-0 flex-wrap items-center justify-end gap-1 self-end rounded-[7px] border p-1 text-accent-strong max-[560px]:w-full max-[560px]:justify-center max-[560px]:self-center">
+        <div className="game-toolbar-dock__tools board-overlay flex max-w-full shrink-0 flex-wrap items-center justify-end gap-1 rounded-[7px] border p-1 text-accent-strong max-[520px]:w-full max-[520px]:justify-center max-[520px]:border-t max-[520px]:border-line max-[520px]:pt-1.5">
           {!shouldHidePlaybackBlockedTools ? (
             <>
               <GameToolButton
@@ -349,7 +350,7 @@ export function GameToolbar({
             type="button"
           />
           {isAutoPlayAssisted ? (
-            <label className="flex h-8 min-w-0 flex-[1_1_9.5rem] items-center gap-2 rounded-md border border-line px-2 text-accent-strong max-[560px]:order-last max-[560px]:h-11 max-[560px]:basis-full">
+            <label className="flex h-8 min-w-0 flex-[1_1_9.5rem] items-center gap-2 rounded-md border border-line px-2 text-accent-strong max-[520px]:order-last max-[480px]:h-11 max-[520px]:basis-full">
               <Gauge
                 aria-hidden="true"
                 className="size-4 shrink-0"
@@ -387,7 +388,7 @@ export function GameToolbar({
           {isAutoPlayAssisted ? (
             <div
               aria-label={`Auto Play assisted moves ${autoPlayStats.moves}, assisted time ${autoPlayTimeLabel}`}
-              className="flex h-8 shrink-0 items-center rounded-md border border-line px-2 text-[0.68rem] font-extrabold tabular-nums text-accent-strong max-[560px]:order-last max-[560px]:h-11"
+              className="flex h-8 shrink-0 items-center rounded-md border border-line px-2 text-[0.68rem] font-extrabold tabular-nums text-accent-strong max-[520px]:order-last max-[480px]:h-11"
             >
               AI {autoPlayStats.moves} · {autoPlayTimeLabel}
             </div>
