@@ -240,6 +240,17 @@
     backdrop-filter: blur(8px);
   }
 
+  @media (min-width: 521px) {
+    .game-toolbar-dock__tools {
+      border: 1px solid var(--color-line-inverse);
+      border-radius: 7px;
+      padding: 0.25rem;
+      background: color-mix(in srgb, var(--color-panel) 74%, transparent);
+      box-shadow: var(--shadow-board-overlay);
+      backdrop-filter: blur(8px);
+    }
+  }
+
   @media (max-width: 520px) {
     .game-toolbar-dock {
       border-color: var(--color-line-inverse);
@@ -261,15 +272,6 @@
       animation: none;
     }
 
-    .game-toolbar-dock__tools {
-      border-right-color: transparent;
-      border-bottom-color: transparent;
-      border-left-color: transparent;
-      border-radius: 0;
-      padding-right: 0;
-      padding-bottom: 0;
-      padding-left: 0;
-    }
   }
 
   .fullscreen-game-hud {

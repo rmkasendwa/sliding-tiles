@@ -168,7 +168,7 @@ export function GameToolbar({
             {moves} {moves === 1 ? 'move' : 'moves'} · {elapsedTimeLabel}
           </div>
         </div>
-        <div className="game-toolbar-dock__tools board-overlay flex max-w-full shrink-0 flex-wrap items-center justify-end gap-1 rounded-[7px] border p-1 text-accent-strong max-[520px]:w-full max-[520px]:justify-center max-[520px]:border-t max-[520px]:border-line max-[520px]:pt-1.5">
+        <div className="game-toolbar-dock__tools flex max-w-full shrink-0 flex-wrap items-center justify-end gap-1 text-accent-strong max-[520px]:w-full max-[520px]:justify-center max-[520px]:border-t max-[520px]:border-line max-[520px]:pt-1.5">
           {!shouldHidePlaybackBlockedTools ? (
             <>
               <GameToolButton
