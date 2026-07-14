@@ -15,6 +15,10 @@ import { routes } from '@/lib/routes';
 import { AuthFormState } from '@/lib/validation';
 import Link from 'next/link';
 
+import {
+  getCurrentAnalyticsIdentity,
+  trackAnalyticsEvent,
+} from './GameBoard/useAnonymousGameplayAnalytics';
 import { PasswordStrengthMeter } from './PasswordStrengthMeter';
 
 type AuthFormProps = {
@@ -58,6 +62,7 @@ export function AuthForm({ mode, returnTo }: AuthFormProps) {
     confirmPassword: false,
     password: false,
   });
+  const analyticsAnonymousIdRef = useRef<HTMLInputElement>(null);
   const usernameRequestIdRef = useRef(0);
   const [formValues, setFormValues] = useState<FormValues>({
     confirmPassword: '',
@@ -302,6 +307,20 @@ export function AuthForm({ mode, returnTo }: AuthFormProps) {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     setEditedFields({});
     setDismissServerMessage(false);
+    const analyticsIdentity = getCurrentAnalyticsIdentity({
+      allowEphemeral: true,
+    });
+    if (analyticsAnonymousIdRef.current && analyticsIdentity) {
+      analyticsAnonymousIdRef.current.value = analyticsIdentity.anonymousId;
+    }
+
+    if (isRegister) {
+      trackAnalyticsEvent(
+        'signup_started',
+        { metadata: { mode } },
+        { allowEphemeral: true, immediate: true },
+      );
+    }
 
     const formData = new FormData(event.currentTarget);
     const submitValues: FormValues = {
@@ -472,6 +491,11 @@ export function AuthForm({ mode, returnTo }: AuthFormProps) {
       {returnTo ? (
         <input name="returnTo" type="hidden" value={returnTo} />
       ) : null}
+      <input
+        name="analyticsAnonymousId"
+        ref={analyticsAnonymousIdRef}
+        type="hidden"
+      />
       <div className="grid gap-1.5">
         <p className="text-[0.62rem] font-bold uppercase tracking-widest text-accent-strong/90">
           {isRegister ? 'Registration' : 'Welcome back'}

@@ -1,4 +1,5 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, Req } from '@nestjs/common';
+import type { Request } from 'express';
 
 import {
   anonymousAnalyticsBatchSchema,
@@ -13,9 +14,10 @@ export class AnonymousAnalyticsController {
   ) {}
 
   @Post('events')
-  recordEvents(@Body() body: unknown) {
+  recordEvents(@Body() body: unknown, @Req() request: Request) {
     return this.anonymousAnalyticsService.recordBatch(
       parseBody(anonymousAnalyticsBatchSchema, body),
+      request,
     );
   }
 }

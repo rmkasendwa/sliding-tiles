@@ -149,6 +149,10 @@ export const completedLevelSchema = z.object({
 });
 
 export const anonymousAnalyticsEventNames = [
+  'landing_page_view',
+  'signup_started',
+  'signup_completed',
+  'login_completed',
   'game_started',
   'game_completed',
   'game_abandoned',
@@ -156,10 +160,23 @@ export const anonymousAnalyticsEventNames = [
   'invalid_move',
   'tile_dragged',
   'reset_clicked',
+  'shuffle_clicked',
+  'peek_image_used',
   'auto_play_started',
   'auto_play_completed',
+  'autoplay_started',
+  'autoplay_completed',
+  'solver_requested',
+  'solver_cache_hit',
+  'solver_cache_miss',
   'peek_image_clicked',
+  'leaderboard_viewed',
   'leaderboard_opened',
+  'profile_viewed',
+  'runs_history_viewed',
+  'share_clicked',
+  'session_started',
+  'session_ended',
   'signup_prompt_shown',
   'signup_clicked',
   'game_opened',
@@ -203,11 +220,15 @@ export const adminAnalyticsQuerySchema = z
 
 const anonymousAnalyticsEventSchema = z
   .object({
-    anonymousPlayerId: z.string().uuid(),
+    anonymousId: z.string().uuid().optional(),
+    anonymousPlayerId: z.string().uuid().optional(),
     eventName: z.enum(anonymousAnalyticsEventNames),
     level: z.number().int().positive().max(100_000).optional(),
+    metadata: z.record(z.string(), z.unknown()).optional(),
     moveCount: z.number().int().nonnegative().max(10_000_000).optional(),
+    pathname: z.string().trim().max(2048).optional(),
     puzzleSize: z.string().regex(/^\d{1,3}x\d{1,3}$/).optional(),
+    referrer: z.string().trim().max(2048).optional(),
     screenHeight: z.number().int().positive().max(100_000).optional(),
     screenWidth: z.number().int().positive().max(100_000).optional(),
     sessionId: z.string().uuid(),
@@ -215,7 +236,15 @@ const anonymousAnalyticsEventSchema = z
     timestamp: z.string().datetime(),
     userAgent: z.string().trim().max(512).optional(),
   })
-  .strict();
+  .strict()
+  .refine((event) => event.anonymousId ?? event.anonymousPlayerId, {
+    message: 'anonymousId is required.',
+    path: ['anonymousId'],
+  })
+  .transform(({ anonymousPlayerId, ...event }) => ({
+    ...event,
+    anonymousId: event.anonymousId ?? anonymousPlayerId,
+  }));
 
 export const anonymousAnalyticsBatchSchema = z
   .object({

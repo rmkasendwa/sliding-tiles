@@ -33,6 +33,7 @@ model User {
   promotedBy                      User?         @relation("UserPromotions", fields: [promotedById], references: [id], onDelete: SetNull, map: "users_promoted_by_id_fkey")
   promotedUsers                   User[]        @relation("UserPromotions")
   scores                          Leaderboard[]
+  analyticsEvents                 AnonymousAnalyticsEvent[]
 
   @@index([role], map: "users_role_idx")
   @@index([promotedById], map: "users_promoted_by_id_idx")
@@ -72,21 +73,34 @@ model Leaderboard {
 
 model AnonymousAnalyticsEvent {
   id                String   @id @default(cuid())
-  anonymousPlayerId String   @map("anonymous_player_id")
+  anonymousId       String   @map("anonymous_player_id")
+  userId            String?  @map("user_id")
   sessionId         String   @map("session_id")
   eventName         String   @map("event_name")
+  signedIn          Boolean  @default(false) @map("signed_in")
   level             Int?
   puzzleSize        String?  @map("puzzle_size")
   moveCount         Int?     @map("move_count")
   timerValueMs      Int?     @map("timer_value_ms")
   occurredAt        DateTime @map("occurred_at")
+  pathname          String?
+  referrer          String?
   screenWidth       Int?     @map("screen_width")
   screenHeight      Int?     @map("screen_height")
   userAgent         String?  @map("user_agent")
+  deviceType        String?  @map("device_type")
+  browser           String?
+  operatingSystem   String?  @map("operating_system")
+  ipAddress         String?  @map("ip_address")
+  country           String?
+  city              String?
+  metadata          Json?
   createdAt         DateTime @default(now()) @map("created_at")
+  user              User?    @relation(fields: [userId], references: [id], onDelete: SetNull, map: "anonymous_analytics_events_user_id_fkey")
 
-  @@index([anonymousPlayerId, occurredAt], map: "anonymous_analytics_events_player_occurred_at_idx")
+  @@index([anonymousId, occurredAt], map: "anonymous_analytics_events_player_occurred_at_idx")
   @@index([eventName, occurredAt], map: "anonymous_analytics_events_name_occurred_at_idx")
   @@index([sessionId], map: "anonymous_analytics_events_session_id_idx")
+  @@index([userId, occurredAt], map: "anonymous_analytics_events_user_id_occurred_at_idx")
   @@map("anonymous_analytics_events")
 }

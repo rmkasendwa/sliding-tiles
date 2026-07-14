@@ -23,6 +23,35 @@ import {
   updateProfileSchema,
 } from '@/lib/validation';
 
+async function recordAuthAnalytics(
+  eventName: 'login_completed' | 'signup_completed',
+  formData: FormData,
+  accessToken: string,
+) {
+  const anonymousId =
+    formData.get('analyticsAnonymousId')?.toString() || crypto.randomUUID();
+
+  try {
+    await apiRequest<{ accepted: number }>('/anonymous-analytics/events', {
+      body: {
+        events: [
+          {
+            anonymousId,
+            eventName,
+            metadata: { source: 'auth_form' },
+            sessionId: crypto.randomUUID(),
+            timestamp: new Date().toISOString(),
+          },
+        ],
+      },
+      method: 'POST',
+      token: accessToken,
+    });
+  } catch {
+    // Analytics must never prevent authentication from completing.
+  }
+}
+
 export async function register(
   _state: AuthFormState,
   formData: FormData,
@@ -50,6 +79,7 @@ export async function register(
       token: null,
     });
 
+    await recordAuthAnalytics('signup_completed', formData, response.accessToken);
     await setSessionToken(response.accessToken);
   } catch (error) {
     if (error instanceof ApiRequestError && error.status === 409) {
@@ -99,6 +129,7 @@ export async function login(
       token: null,
     });
 
+    await recordAuthAnalytics('login_completed', formData, response.accessToken);
     await setSessionToken(response.accessToken);
   } catch (error) {
     return {

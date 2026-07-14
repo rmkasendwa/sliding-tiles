@@ -103,6 +103,10 @@ export type AdminUsersResponse = {
 };
 
 export type AdminAnalyticsEventName =
+  | 'landing_page_view'
+  | 'signup_started'
+  | 'signup_completed'
+  | 'login_completed'
   | 'game_started'
   | 'game_completed'
   | 'game_abandoned'
@@ -110,8 +114,19 @@ export type AdminAnalyticsEventName =
   | 'invalid_move'
   | 'tile_dragged'
   | 'reset_clicked'
+  | 'shuffle_clicked'
+  | 'peek_image_used'
   | 'auto_play_started'
   | 'auto_play_completed'
+  | 'solver_requested'
+  | 'solver_cache_hit'
+  | 'solver_cache_miss'
+  | 'leaderboard_viewed'
+  | 'profile_viewed'
+  | 'runs_history_viewed'
+  | 'share_clicked'
+  | 'session_started'
+  | 'session_ended'
   | 'peek_image_clicked'
   | 'leaderboard_opened'
   | 'signup_prompt_shown'
@@ -127,7 +142,9 @@ export type AdminAnalyticsEvent = {
   screenHeight: number | null;
   screenWidth: number | null;
   sessionId: string;
+  signedIn: boolean;
   timerValueMs: number | null;
+  userId: string | null;
   userAgent: string | null;
 };
 

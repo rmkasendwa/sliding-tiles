@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 
+import { AnalyticsTracker } from '@/components/AnalyticsTracker';
 import { CookieConsentBanner } from '@/components/CookieConsentBanner';
 import { EmailVerificationBanner } from '@/components/EmailVerificationBanner';
 import { MainFooter } from '@/components/MainFooter';
@@ -36,6 +37,7 @@ export default async function RootLayout({
       </head>
       <body className="min-h-screen">
         <ThemeProvider>
+          <AnalyticsTracker userId={session?.id} />
           <RouteProgressBar />
           <div className="flex min-h-screen flex-col">
             <MainHeader session={session} />
