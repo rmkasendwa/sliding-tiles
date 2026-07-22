@@ -8,6 +8,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { ApiExcludeController } from '@nestjs/swagger';
 
 import { AdminGuard } from '../session/admin.guard';
 import { AuthGuard } from '../session/auth.guard';
@@ -24,6 +25,7 @@ import { AdminService } from './admin.service';
 
 @Controller('admin')
 @UseGuards(AuthGuard, AdminGuard)
+@ApiExcludeController()
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 

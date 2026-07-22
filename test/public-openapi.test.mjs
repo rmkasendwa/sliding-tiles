@@ -1,10 +1,21 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { buildPublicOpenApiSpec } from '../dist/api/openapi/public-openapi.js';
+import { NestFactory } from '@nestjs/core';
 
-test('documents only the public Sliding Tiles API surface', () => {
-  const spec = buildPublicOpenApiSpec();
+import { AppModule } from '../dist/api/app.module.js';
+import { createPublicOpenApiDocument } from '../dist/api/openapi/public-openapi.js';
+
+async function createSpec() {
+  const app = await NestFactory.create(AppModule, { logger: false });
+  app.setGlobalPrefix('api');
+  const spec = createPublicOpenApiDocument(app);
+  await app.close();
+  return spec;
+}
+
+test('documents only the public Sliding Tiles API surface', async () => {
+  const spec = await createSpec();
   const paths = Object.keys(spec.paths);
 
   assert.equal(spec.openapi, '3.1.0');
@@ -15,8 +26,8 @@ test('documents only the public Sliding Tiles API surface', () => {
   assert.equal(paths.some((path) => path.startsWith('/api/admin')), false);
 });
 
-test('marks authenticated public endpoints and keeps schemas close to validators', () => {
-  const spec = buildPublicOpenApiSpec();
+test('marks authenticated public endpoints and keeps schemas close to validators', async () => {
+  const spec = await createSpec();
 
   assert.deepEqual(spec.paths['/api/game-state'].get.security, [
     { bearerAuth: [] },
