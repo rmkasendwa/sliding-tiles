@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import 'reflect-metadata';
 
 import { AppModule } from './app.module';
+import { registerOpenApiDocs } from './openapi/public-openapi';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -15,6 +16,7 @@ async function bootstrap() {
     origin: allowedOrigins,
   });
   app.setGlobalPrefix('api');
+  registerOpenApiDocs(app);
 
   const port = Number(process.env.API_PORT ?? 4001);
   await app.listen(port);

@@ -218,7 +218,7 @@ export const adminAnalyticsQuerySchema = z
   })
   .strict();
 
-const anonymousAnalyticsEventSchema = z
+export const anonymousAnalyticsEventInputSchema = z
   .object({
     anonymousId: z.string().uuid().optional(),
     anonymousPlayerId: z.string().uuid().optional(),
@@ -240,7 +240,9 @@ const anonymousAnalyticsEventSchema = z
   .refine((event) => event.anonymousId ?? event.anonymousPlayerId, {
     message: 'anonymousId is required.',
     path: ['anonymousId'],
-  })
+  });
+
+const anonymousAnalyticsEventSchema = anonymousAnalyticsEventInputSchema
   .transform(({ anonymousPlayerId, ...event }) => ({
     ...event,
     anonymousId: event.anonymousId ?? anonymousPlayerId,
