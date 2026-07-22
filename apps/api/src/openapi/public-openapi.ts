@@ -19,7 +19,22 @@ import { publicApiSchemas } from './public-openapi.metadata';
 const specPath = '/openapi.json';
 const apiSpecPath = '/api/openapi.json';
 const docsPaths = ['/', '/docs', '/api-docs'];
-const faviconPath = join(process.cwd(), 'apps/web/public/favicon.ico');
+const faviconPaths = [
+  join(process.cwd(), 'apps/web/public/favicon.ico'),
+  join(process.cwd(), 'public/favicon.ico'),
+];
+
+function getDocsFaviconHref() {
+  const webBaseUrl = (
+    process.env.WEB_BASE_URL ??
+    process.env.NEXT_PUBLIC_WEB_BASE_URL ??
+    ''
+  )
+    .trim()
+    .replace(/\/$/, '');
+
+  return webBaseUrl ? `${webBaseUrl}/favicon.ico` : '/favicon.ico';
+}
 
 export function createPublicOpenApiDocument(
   app: INestApplication,
@@ -91,7 +106,9 @@ export function registerOpenApiDocs(app: INestApplication) {
   server.get(specPath, sendSpec);
   server.get(apiSpecPath, sendSpec);
   server.get('/favicon.ico', (_request: Request, response: Response) => {
-    if (!existsSync(faviconPath)) {
+    const faviconPath = faviconPaths.find((path) => existsSync(path));
+
+    if (!faviconPath) {
       response.sendStatus(404);
       return;
     }
@@ -113,7 +130,7 @@ function renderDocsHtml() {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Sliding Tiles API Docs</title>
-    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" href="${getDocsFaviconHref()}" sizes="any" />
     <style>
       :root {
         color-scheme: light;
