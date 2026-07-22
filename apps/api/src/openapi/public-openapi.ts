@@ -5,6 +5,8 @@ import {
   type OpenAPIObject,
 } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 
 import { AnonymousAnalyticsModule } from '../anonymous-analytics/anonymous-analytics.module';
 import { AuthModule } from '../auth/auth.module';
@@ -17,6 +19,7 @@ import { publicApiSchemas } from './public-openapi.metadata';
 const specPath = '/openapi.json';
 const apiSpecPath = '/api/openapi.json';
 const docsPaths = ['/', '/docs', '/api-docs'];
+const faviconPath = join(process.cwd(), 'apps/web/public/favicon.ico');
 
 export function createPublicOpenApiDocument(
   app: INestApplication,
@@ -87,6 +90,14 @@ export function registerOpenApiDocs(app: INestApplication) {
   };
   server.get(specPath, sendSpec);
   server.get(apiSpecPath, sendSpec);
+  server.get('/favicon.ico', (_request: Request, response: Response) => {
+    if (!existsSync(faviconPath)) {
+      response.sendStatus(404);
+      return;
+    }
+
+    response.type('image/x-icon').sendFile(faviconPath);
+  });
 
   docsPaths.forEach((path) => {
     server.get(path, (_request: Request, response: Response) => {
@@ -102,6 +113,7 @@ function renderDocsHtml() {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Sliding Tiles API Docs</title>
+    <link rel="icon" href="/favicon.ico" sizes="any" />
     <style>
       :root {
         color-scheme: light;
