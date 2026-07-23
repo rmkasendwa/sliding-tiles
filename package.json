@@ -13,6 +13,7 @@
     "preweb:build": "npm run web:og",
     "web:dev": "next dev apps/web",
     "web:build": "next build apps/web",
+    "web:build:ci": "next build apps/web",
     "web:start": "next start apps/web",
     "web:typecheck": "tsc --noEmit -p apps/web/tsconfig.json",
     "api:build": "nest build api",

@@ -19,7 +19,7 @@ WORKDIR /app
 COPY . .
 RUN npm run db:generate && \
     npm run api:build && \
-    npm run web:build && \
+    npm run web:build:ci && \
     node scripts/trace-runtime.mjs
 RUN mkdir -p runtime/apps/web/.next && \
     cp -a apps/web/.next/standalone/node_modules/. runtime/node_modules/ && \
