@@ -13,6 +13,26 @@ export const siteConfig = {
   tagline: 'Fast. Simple. Competitive.',
 } as const;
 
+export function getApiDocsUrl() {
+  const explicitDocsUrl = process.env.API_DOCS_URL?.trim();
+
+  if (explicitDocsUrl) {
+    return explicitDocsUrl;
+  }
+
+  const apiBaseUrl = (
+    process.env.PUBLIC_API_BASE_URL ??
+    process.env.NEXT_PUBLIC_API_BASE_URL ??
+    process.env.API_BASE_URL ??
+    'http://localhost:4001'
+  )
+    .trim()
+    .replace(/\/api\/?$/, '')
+    .replace(/\/$/, '');
+
+  return `${apiBaseUrl}/docs`;
+}
+
 export function formatCopyright({
   currentYear = new Date().getFullYear(),
   foundedYear = siteConfig.foundedYear,

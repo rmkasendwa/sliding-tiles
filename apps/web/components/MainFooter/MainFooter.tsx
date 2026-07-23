@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { ApiScore, apiRequest } from '@/lib/api';
 import { routes } from '@/lib/routes';
 import { getSession } from '@/lib/session';
-import { formatCopyright, siteConfig } from '@/lib/site';
+import { formatCopyright, getApiDocsUrl, siteConfig } from '@/lib/site';
 
 import { FooterLeaderboardCta } from './FooterLeaderboardCta';
 import { FrogLogo } from '../FrogLogo';
@@ -44,6 +44,7 @@ async function getChampion() {
 
 export async function MainFooter() {
   const [session, champion] = await Promise.all([getSession(), getChampion()]);
+  const apiDocsUrl = getApiDocsUrl();
   const visibleFooterLinks = session
     ? footerLinks.filter(
         (link) => link.href !== routes.login && link.href !== routes.register,
@@ -166,6 +167,18 @@ export async function MainFooter() {
                 </Link>
               </li>
             ))}
+            <li>
+              <a
+                aria-label="Open Sliding Tiles API documentation in a new tab"
+                className="inline-flex items-center gap-1 transition-colors hover:text-accent-strong"
+                href={apiDocsUrl}
+                rel="noreferrer"
+                target="_blank"
+              >
+                API Docs
+                <ExternalLink aria-hidden="true" className="size-3" />
+              </a>
+            </li>
           </ul>
         </nav>
       </div>
