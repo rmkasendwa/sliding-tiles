@@ -153,12 +153,47 @@ function renderDocsHtml() {
 
       .docs-brand {
         background:
+          radial-gradient(circle at 82% 22%, rgba(242, 201, 76, 0.22), transparent 26%),
+          radial-gradient(circle at 18% 88%, rgba(52, 211, 153, 0.16), transparent 30%),
           linear-gradient(135deg, rgba(19, 65, 53, 0.98), rgba(14, 29, 27, 0.98)),
           repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 68px),
           repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 68px);
         border-bottom: 1px solid rgba(242, 201, 76, 0.75);
         box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.08);
         color: #fbfcf8;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .docs-brand::before,
+      .docs-brand::after {
+        content: "";
+        pointer-events: none;
+        position: absolute;
+      }
+
+      .docs-brand::before {
+        background:
+          linear-gradient(90deg, transparent, rgba(242, 201, 76, 0.75), transparent),
+          linear-gradient(90deg, transparent, rgba(52, 211, 153, 0.45), transparent);
+        height: 1px;
+        left: 46%;
+        opacity: 0.85;
+        top: 56%;
+        transform: rotate(-14deg);
+        width: 360px;
+      }
+
+      .docs-brand::after {
+        background:
+          linear-gradient(135deg, rgba(251, 252, 248, 0.14) 25%, transparent 25%) 0 0 / 44px 44px,
+          linear-gradient(135deg, transparent 74%, rgba(251, 252, 248, 0.08) 74%) 0 0 / 44px 44px;
+        height: 180px;
+        opacity: 0.45;
+        right: -44px;
+        top: -30px;
+        transform: rotate(-8deg);
+        width: 360px;
       }
 
       .docs-brand-inner {
@@ -168,8 +203,10 @@ function renderDocsHtml() {
         justify-content: space-between;
         margin: 0 auto;
         max-width: 1280px;
-        min-height: 118px;
+        min-height: 142px;
         padding: 18px clamp(16px, 4vw, 44px);
+        position: relative;
+        z-index: 1;
       }
 
       .docs-brand-main {
@@ -180,16 +217,19 @@ function renderDocsHtml() {
       }
 
       .docs-logo {
-        background: #f7f0d5;
+        background: rgba(247, 240, 213, 0.96);
         border: 1px solid rgba(255, 255, 255, 0.35);
-        border-radius: 10px;
-        box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
+        border-radius: 12px;
+        box-shadow:
+          0 20px 44px rgba(0, 0, 0, 0.32),
+          inset 0 1px 0 rgba(255, 255, 255, 0.72);
         display: grid;
         flex: 0 0 auto;
         gap: 4px;
-        grid-template-columns: repeat(2, 18px);
-        grid-template-rows: repeat(2, 18px);
-        padding: 8px;
+        grid-template-columns: repeat(3, 17px);
+        grid-template-rows: repeat(3, 17px);
+        padding: 7px;
+        transform: rotate(-3deg);
       }
 
       .docs-logo span {
@@ -202,6 +242,21 @@ function renderDocsHtml() {
         font-weight: 850;
         justify-content: center;
         line-height: 1;
+      }
+
+      .docs-logo span:nth-child(2),
+      .docs-logo span:nth-child(5) {
+        background: #16825d;
+      }
+
+      .docs-logo span:nth-child(3) {
+        background: #f2c94c;
+        color: #12352c;
+      }
+
+      .docs-logo span:nth-child(9) {
+        background: transparent;
+        border: 1px dashed rgba(19, 65, 53, 0.45);
       }
 
       .docs-brand h1 {
@@ -232,9 +287,9 @@ function renderDocsHtml() {
       .docs-meta {
         align-items: center;
         align-self: center;
-        display: flex;
-        flex: 0 0 auto;
-        gap: 10px;
+        display: grid;
+        flex: 0 0 min(36vw, 420px);
+        gap: 12px;
       }
 
       .docs-chip {
@@ -266,6 +321,62 @@ function renderDocsHtml() {
         box-shadow: 0 0 0 4px rgba(242, 201, 76, 0.14);
       }
 
+      .docs-route-card {
+        background: rgba(13, 15, 15, 0.42);
+        border: 1px solid rgba(251, 252, 248, 0.14);
+        border-radius: 12px;
+        box-shadow:
+          0 18px 44px rgba(0, 0, 0, 0.24),
+          inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        display: grid;
+        gap: 8px;
+        padding: 12px;
+      }
+
+      .docs-route {
+        align-items: center;
+        color: #dcebe5;
+        display: grid;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        font-size: 0.76rem;
+        gap: 8px;
+        grid-template-columns: auto 1fr;
+        min-width: 0;
+      }
+
+      .docs-method {
+        border-radius: 6px;
+        color: #12352c;
+        font-family: var(--scalar-font);
+        font-size: 0.64rem;
+        font-weight: 850;
+        padding: 4px 7px;
+      }
+
+      .docs-method.get {
+        background: #67e8f9;
+      }
+
+      .docs-method.post {
+        background: #34d399;
+      }
+
+      .docs-method.patch {
+        background: #f2c94c;
+      }
+
+      .docs-route-path {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .docs-chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
       @media (max-width: 760px) {
         .docs-brand-inner {
           align-items: flex-start;
@@ -279,9 +390,9 @@ function renderDocsHtml() {
         }
 
         .docs-logo {
-          grid-template-columns: repeat(2, 15px);
-          grid-template-rows: repeat(2, 15px);
-          padding: 7px;
+          grid-template-columns: repeat(3, 14px);
+          grid-template-rows: repeat(3, 14px);
+          transform: none;
         }
 
         .docs-logo span {
@@ -290,7 +401,13 @@ function renderDocsHtml() {
 
         .docs-meta {
           align-self: stretch;
-          flex-wrap: wrap;
+          flex: 1 1 auto;
+          width: 100%;
+        }
+
+        .docs-brand::before,
+        .docs-brand::after {
+          display: none;
         }
       }
     </style>
@@ -304,6 +421,11 @@ function renderDocsHtml() {
             <span>5</span>
             <span>2</span>
             <span>3</span>
+            <span>8</span>
+            <span>4</span>
+            <span>7</span>
+            <span>6</span>
+            <span></span>
           </span>
           <div>
             <p class="docs-kicker">Public Developer Reference</p>
@@ -312,8 +434,24 @@ function renderDocsHtml() {
           </div>
         </div>
         <div class="docs-meta" aria-label="API metadata">
-          <span class="docs-chip">v1.0.0</span>
-          <span class="docs-chip secondary">OpenAPI 3.1</span>
+          <div class="docs-route-card" aria-hidden="true">
+            <div class="docs-route">
+              <span class="docs-method get">GET</span>
+              <span class="docs-route-path">/api/leaderboard/public</span>
+            </div>
+            <div class="docs-route">
+              <span class="docs-method post">POST</span>
+              <span class="docs-route-path">/api/game-state</span>
+            </div>
+            <div class="docs-route">
+              <span class="docs-method patch">POST</span>
+              <span class="docs-route-path">/api/anonymous-analytics/events</span>
+            </div>
+          </div>
+          <div class="docs-chip-row">
+            <span class="docs-chip">v1.0.0</span>
+            <span class="docs-chip secondary">OpenAPI 3.1</span>
+          </div>
         </div>
       </div>
     </header>
