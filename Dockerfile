@@ -21,7 +21,7 @@ RUN npm run db:generate && \
     npm run api:build && \
     npm run web:build && \
     node scripts/trace-runtime.mjs
-RUN mkdir -p runtime/apps && \
+RUN mkdir -p runtime/apps/web/.next && \
     cp -a apps/web/.next/standalone/node_modules/. runtime/node_modules/ && \
     cp -a apps/web/.next/standalone/apps/web runtime/apps/web && \
     cp -a apps/web/.next/static runtime/apps/web/.next/static && \
