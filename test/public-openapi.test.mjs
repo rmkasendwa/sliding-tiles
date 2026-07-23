@@ -15,10 +15,15 @@ async function createSpec() {
 }
 
 test('documents only the public Sliding Tiles API surface', async () => {
+  process.env.API_BASE_URL = 'https://api.example.test/api';
   const spec = await createSpec();
   const paths = Object.keys(spec.paths);
 
   assert.equal(spec.openapi, '3.1.0');
+  assert.deepEqual(
+    spec.servers.map((server) => server.url),
+    ['https://api.example.test'],
+  );
   assert.ok(paths.includes('/api/auth/login'));
   assert.ok(paths.includes('/api/game-state'));
   assert.ok(paths.includes('/api/leaderboard/completions'));

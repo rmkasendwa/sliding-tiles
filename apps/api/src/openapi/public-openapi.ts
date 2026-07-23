@@ -36,6 +36,13 @@ function getDocsFaviconHref() {
   return webBaseUrl ? `${webBaseUrl}/favicon.ico` : '/favicon.ico';
 }
 
+function getApiServerUrl() {
+  return (process.env.API_BASE_URL ?? 'http://localhost:4001')
+    .trim()
+    .replace(/\/api\/?$/, '')
+    .replace(/\/$/, '');
+}
+
 export function createPublicOpenApiDocument(
   app: INestApplication,
 ): OpenAPIObject {
@@ -45,8 +52,7 @@ export function createPublicOpenApiDocument(
       'Public API for Sliding Tiles accounts, saved game state, leaderboard completions, profile data, and privacy-conscious anonymous gameplay analytics. Admin and internal routes are intentionally omitted.',
     )
     .setVersion('1.0.0')
-    .addServer('https://api.slidingtiles', 'Production API subdomain')
-    .addServer('http://localhost:4001', 'Local development API')
+    .addServer(getApiServerUrl(), 'Configured API server')
     .addBearerAuth(
       {
         bearerFormat: 'JWT',
