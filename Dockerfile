@@ -25,11 +25,17 @@ RUN mkdir -p runtime/apps/web/.next && \
     cp -a apps/web/.next/standalone/node_modules/. runtime/node_modules/ && \
     cp -a apps/web/.next/standalone/apps/web/. runtime/apps/web/ && \
     cp -a apps/web/.next/static runtime/apps/web/.next/static && \
-    cp -a apps/web/public runtime/apps/web/public && \
+    mkdir -p runtime/apps/web/public && \
+    cp -a apps/web/public/. runtime/apps/web/public/ && \
     cp -a prisma runtime/prisma && \
     cp prisma.config.ts runtime/prisma.config.ts && \
     mkdir -p runtime/scripts && \
-    cp scripts/start-container.mjs runtime/scripts/start-container.mjs
+    cp scripts/start-container.mjs runtime/scripts/start-container.mjs && \
+    test -f runtime/apps/web/public/frog.svg && \
+    test -f runtime/apps/web/public/manifest.webmanifest && \
+    test -f runtime/apps/web/public/icons/icon-192.png && \
+    test -f runtime/apps/web/.next/BUILD_ID && \
+    test -d runtime/apps/web/.next/static/chunks
 
 FROM base AS runner
 WORKDIR /app
