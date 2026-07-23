@@ -241,6 +241,7 @@ docker run --rm \
   -e DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DB?schema=public" \
   -e SESSION_SECRET="a-real-random-secret-with-at-least-32-characters" \
   -e WEB_BASE_URL="https://your-web-domain.example" \
+  -e PUBLIC_API_BASE_URL="https://your-api-domain.example" \
   -e API_CORS_ORIGINS="https://your-web-domain.example" \
   -e RESEND_API_KEY="re_your_api_key" \
   -e RESEND_FROM_EMAIL="Sliding Tiles <accounts@your-domain.example>" \
@@ -265,11 +266,14 @@ The `app` compose profile starts:
 
 Use Docker-specific connection variables inside compose because the app
 container talks to Postgres by service name, while the web process talks to the
-API process through localhost inside the same container:
+API process through localhost inside the same container. Keep the public API
+URL separate so generated OpenAPI docs and client-facing metadata do not point
+at container-local localhost in production:
 
 ```bash
 DOCKER_DATABASE_URL="postgresql://sliding_tiles:sliding_tiles@postgres:5432/sliding_tiles?schema=public"
 DOCKER_API_BASE_URL="http://localhost:4001/api"
+PUBLIC_API_BASE_URL="https://your-api-domain.example"
 ```
 
 For a real deployment, set at least:
@@ -278,6 +282,7 @@ For a real deployment, set at least:
 SESSION_SECRET="a-real-random-secret-with-at-least-32-characters"
 WEB_PORT=3000
 API_CORS_ORIGINS="https://your-web-domain.example"
+PUBLIC_API_BASE_URL="https://your-api-domain.example"
 WEB_BASE_URL="https://your-web-domain.example"
 RUN_MIGRATIONS=true
 ```

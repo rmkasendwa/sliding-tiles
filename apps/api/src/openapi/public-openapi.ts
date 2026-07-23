@@ -37,7 +37,12 @@ function getDocsFaviconHref() {
 }
 
 function getApiServerUrl() {
-  return (process.env.API_BASE_URL ?? 'http://localhost:4001')
+  return (
+    process.env.PUBLIC_API_BASE_URL ??
+    process.env.NEXT_PUBLIC_API_BASE_URL ??
+    process.env.API_BASE_URL ??
+    'http://localhost:4001'
+  )
     .trim()
     .replace(/\/api\/?$/, '')
     .replace(/\/$/, '');
