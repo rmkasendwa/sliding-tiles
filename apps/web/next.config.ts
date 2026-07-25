@@ -10,6 +10,15 @@ const nextConfig: NextConfig = {
   ...(allowedDevOrigins?.length ? { allowedDevOrigins } : {}),
   output: 'standalone',
   reactStrictMode: true,
+  async redirects() {
+    return [
+      {
+        destination: '/admin/analytics',
+        permanent: false,
+        source: '/admin',
+      },
+    ];
+  },
 };
 
 export default nextConfig;
