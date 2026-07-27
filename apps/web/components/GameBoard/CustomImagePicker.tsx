@@ -10,6 +10,7 @@ import {
   X,
 } from 'lucide-react';
 import { ChangeEvent, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   loadStoredPuzzleImages,
   StoredPuzzleImage,
@@ -197,16 +198,16 @@ export function CustomImagePicker({
     Math.max(1 / MAX_PUZZLE_ASPECT_RATIO, rawRatio),
   );
 
-  return (
+  return createPortal(
     <div
       aria-labelledby="image-picker-title"
       aria-modal="true"
       className="fixed inset-0 z-100 grid place-items-center overflow-y-auto bg-night/80 p-3 backdrop-blur-sm"
       role="dialog"
     >
-      <div className="my-auto grid w-full max-w-3xl gap-5 rounded-xl border border-line bg-panel p-4 shadow-game-shell sm:p-6">
-        <header className="flex items-start justify-between gap-4">
-          <div>
+      <div className="my-auto grid min-w-0 w-full max-w-3xl gap-5 overflow-hidden rounded-xl border border-line bg-panel p-4 shadow-game-shell sm:p-6">
+        <header className="flex min-w-0 items-start justify-between gap-4">
+          <div className="min-w-0">
             <p className="text-xs font-extrabold uppercase text-accent-strong">
               Create your board
             </p>
@@ -228,8 +229,8 @@ export function CustomImagePicker({
           </button>
         </header>
 
-        <div className="grid gap-4 md:grid-cols-[0.9fr_1.1fr]">
-          <div className="grid content-start gap-3">
+        <div className="grid min-w-0 gap-4 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+          <div className="grid min-w-0 content-start gap-3">
             <label className="flex min-h-20 cursor-pointer items-center gap-3 rounded-lg border border-primary bg-primary-soft/50 p-4 font-bold text-accent-strong transition-colors hover:bg-primary-soft">
               <HardDrive className="size-5" />
               <span>
@@ -368,7 +369,7 @@ export function CustomImagePicker({
             ) : null}
           </div>
 
-          <figure className="m-0 grid content-start gap-2">
+          <figure className="m-0 grid min-w-0 content-start gap-2">
             <div className="grid min-h-64 place-items-center overflow-hidden rounded-lg bg-night/95 p-3">
               <div
                 className="max-h-[50svh] max-w-full overflow-hidden rounded-md shadow-panel"
@@ -387,8 +388,8 @@ export function CustomImagePicker({
                 />
               </div>
             </div>
-            <figcaption className="text-sm text-muted">
-              <span className="font-bold text-foreground">
+            <figcaption className="min-w-0 text-sm text-muted">
+              <span className="wrap-break-word font-bold text-foreground">
                 {candidate.name}
               </span>{' '}
               · {candidate.width}×{candidate.height}
@@ -430,6 +431,7 @@ export function CustomImagePicker({
           </button>
         </footer>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
