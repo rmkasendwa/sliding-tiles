@@ -33,6 +33,12 @@ type CustomImagePickerProps = {
 
 const MAX_FILE_BYTES = 20 * 1024 * 1024;
 export const MAX_PUZZLE_ASPECT_RATIO = 2.4;
+const DEFAULT_PUZZLE_IMAGE: PuzzleImage = {
+  height: 1000,
+  name: 'Pond frog',
+  url: '/frog.svg',
+  width: 1000,
+};
 
 function normalizeSharedUrl(value: string) {
   const url = new URL(value);
@@ -246,6 +252,40 @@ export function CustomImagePicker({
                 type="file"
               />
             </label>
+
+            <section
+              aria-labelledby="included-images-title"
+              className="rounded-lg border border-line p-3"
+            >
+              <h3
+                className="flex items-center gap-2 text-sm font-bold"
+                id="included-images-title"
+              >
+                <ImageIcon className="size-4" /> Included image
+              </h3>
+              <button
+                aria-label="Preview included Pond frog image"
+                className="group mt-3 grid w-full grid-cols-[4rem_minmax(0,1fr)] items-center gap-3 overflow-hidden rounded-md border border-line bg-surface text-left transition-colors hover:border-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                onClick={() => setCandidate(DEFAULT_PUZZLE_IMAGE)}
+                type="button"
+              >
+                {/* The bundled SVG is also supported by a regular image element. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  alt=""
+                  className="aspect-square w-16 bg-night/95 object-cover transition-transform group-hover:scale-105"
+                  src={DEFAULT_PUZZLE_IMAGE.url}
+                />
+                <span className="min-w-0 pr-3">
+                  <span className="block truncate text-sm font-bold">
+                    {DEFAULT_PUZZLE_IMAGE.name}
+                  </span>
+                  <span className="mt-0.5 block text-xs text-muted">
+                    Default puzzle image
+                  </span>
+                </span>
+              </button>
+            </section>
 
             <section
               aria-busy={isSavedImagesLoading}
