@@ -18,6 +18,10 @@ import {
 } from '@/lib/board';
 import { createBoardSolverPayload } from '@/lib/boardSolver';
 import { BoardSolverWorkerClient } from '@/lib/board-solver/worker-client';
+import {
+  loadStoredPuzzleImage,
+  storePuzzleImage,
+} from '@/lib/puzzleImageStorage';
 
 import { SoundProvider, useSound } from '../SoundProvider';
 import {
@@ -115,7 +119,46 @@ function GameBoardContent({
     url: '/frog.svg',
     width: 1000,
   });
+  const [imageStorageError, setImageStorageError] = useState<string | null>(
+    null,
+  );
+  const puzzleImageObjectUrlRef = useRef<string | null>(null);
+  const hasSelectedPuzzleImageRef = useRef(false);
   const [isImagePickerOpen, setIsImagePickerOpen] = useState(false);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    void loadStoredPuzzleImage()
+      .then((stored) => {
+        if (!stored || isCancelled || hasSelectedPuzzleImageRef.current) return;
+
+        const objectUrl = URL.createObjectURL(stored.blob);
+        puzzleImageObjectUrlRef.current = objectUrl;
+        setPuzzleImage({
+          height: stored.height,
+          name: stored.name,
+          url: objectUrl,
+          width: stored.width,
+        });
+      })
+      .catch((error) => {
+        console.warn('Could not restore the uploaded puzzle image.', error);
+        if (!isCancelled) {
+          setImageStorageError(
+            'Your saved photo could not be restored. You can still choose an image for this session.',
+          );
+        }
+      });
+
+    return () => {
+      isCancelled = true;
+      if (puzzleImageObjectUrlRef.current) {
+        URL.revokeObjectURL(puzzleImageObjectUrlRef.current);
+        puzzleImageObjectUrlRef.current = null;
+      }
+    };
+  }, []);
   const [confettiBurstKey, setConfettiBurstKey] = useState<number | null>(null);
   const [isCompletionImageVisible, setIsCompletionImageVisible] =
     useState(false);
@@ -1164,6 +1207,14 @@ function GameBoardContent({
 
   return (
     <div className="play-shell-reveal grid min-h-full w-full grid-cols-[minmax(0,1fr)_320px] items-start gap-5 max-[900px]:grid-cols-1">
+      {imageStorageError ? (
+        <p
+          className="col-span-full rounded-lg border border-warning/30 bg-warning/10 p-3 text-sm font-bold text-warning-strong"
+          role="status"
+        >
+          {imageStorageError}
+        </p>
+      ) : null}
       <GameStage
         board={board}
         boardEntryAnimationKey={boardEntryAnimationKey}
@@ -1263,8 +1314,28 @@ function GameBoardContent({
           currentImage={puzzleImage}
           onClose={() => setIsImagePickerOpen(false)}
           onSelect={(image) => {
+            hasSelectedPuzzleImageRef.current = true;
+            if (
+              puzzleImageObjectUrlRef.current &&
+              puzzleImageObjectUrlRef.current !== image.url
+            ) {
+              URL.revokeObjectURL(puzzleImageObjectUrlRef.current);
+              puzzleImageObjectUrlRef.current = null;
+            }
+            if (image.blob && !puzzleImageObjectUrlRef.current) {
+              puzzleImageObjectUrlRef.current = image.url;
+            }
             setPuzzleImage(image);
+            setImageStorageError(null);
             setIsImagePickerOpen(false);
+            if (image.blob) {
+              void storePuzzleImage(image.blob, image).catch((error) => {
+                console.warn('Could not save the uploaded puzzle image.', error);
+                setImageStorageError(
+                  'This photo works for now, but the browser could not save it for your next visit.',
+                );
+              });
+            }
             refreshBoard(() => resetBoardAttempt(attemptStartBoard), false);
           }}
         />
