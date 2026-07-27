@@ -216,11 +216,11 @@ export function CustomImagePicker({
     <div
       aria-labelledby="image-picker-title"
       aria-modal="true"
-      className="fixed inset-0 z-100 grid place-items-center overflow-y-auto bg-night/80 p-3 backdrop-blur-sm"
+      className="fixed inset-0 z-100 grid place-items-center overflow-hidden bg-night/80 p-3 backdrop-blur-sm sm:p-8"
       role="dialog"
     >
-      <div className="my-auto grid min-w-0 w-full max-w-3xl gap-5 overflow-hidden rounded-xl border border-line bg-panel p-4 shadow-game-shell sm:p-6">
-        <header className="flex min-w-0 items-start justify-between gap-4">
+      <div className="grid max-h-[calc(100dvh-1.5rem)] min-w-0 w-full max-w-3xl grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden rounded-xl border border-line bg-panel shadow-game-shell sm:max-h-[calc(100dvh-4rem)]">
+        <header className="flex min-w-0 items-start justify-between gap-4 px-4 pt-4 pb-3 sm:px-6 sm:pt-6 sm:pb-4">
           <div className="min-w-0">
             <p className="text-xs font-extrabold uppercase text-accent-strong">
               Create your board
@@ -243,7 +243,7 @@ export function CustomImagePicker({
           </button>
         </header>
 
-        <div className="grid min-w-0 gap-4 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+        <div className="grid min-h-0 min-w-0 gap-4 overflow-y-auto overscroll-contain px-4 py-1 sm:px-6 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
           <div className="grid min-w-0 content-start gap-3">
             <label className="flex min-h-20 cursor-pointer items-center gap-3 rounded-lg border border-primary bg-primary-soft/50 p-4 font-bold text-accent-strong transition-colors hover:bg-primary-soft">
               <HardDrive className="size-5" />
@@ -457,7 +457,7 @@ export function CustomImagePicker({
           </figure>
         </div>
 
-        <footer className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+        <footer className="flex flex-col-reverse gap-2 border-t border-line bg-panel px-4 pt-3 pb-4 sm:flex-row sm:justify-end sm:px-6 sm:pt-4 sm:pb-6">
           <button
             className="rounded-lg border border-line px-4 py-2.5 text-sm font-bold"
             onClick={onClose}
