@@ -29,6 +29,7 @@ type CustomImagePickerProps = {
   currentImage: PuzzleImage;
   onClose: () => void;
   onSelect: (image: PuzzleImage) => void;
+  portalContainer?: HTMLElement | null;
 };
 
 const MAX_FILE_BYTES = 20 * 1024 * 1024;
@@ -95,6 +96,7 @@ export function CustomImagePicker({
   currentImage,
   onClose,
   onSelect,
+  portalContainer,
 }: CustomImagePickerProps) {
   const [candidate, setCandidate] = useState<PuzzleImage>(currentImage);
   const [error, setError] = useState<string | null>(null);
@@ -106,21 +108,67 @@ export function CustomImagePicker({
   const [url, setUrl] = useState('');
   const objectUrlRef = useRef<string | null>(null);
   const savedImageUrlsRef = useRef<string[]>([]);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    const closeOnEscape = (event: KeyboardEvent) =>
-      event.key === 'Escape' && onClose();
+    const previouslyFocusedElement =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        onClose();
+        return;
+      }
+
+      if (event.key !== 'Tab' || !dialogRef.current) return;
+
+      const focusableElements = Array.from(
+        dialogRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), input:not([disabled]), [href], select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter(
+        (element) =>
+          !element.hidden &&
+          element.getAttribute('aria-hidden') !== 'true' &&
+          element.getClientRects().length > 0,
+      );
+      const firstFocusableElement = focusableElements[0];
+      const lastFocusableElement = focusableElements.at(-1);
+
+      if (!firstFocusableElement || !lastFocusableElement) {
+        event.preventDefault();
+        dialogRef.current.focus();
+      } else if (
+        event.shiftKey &&
+        document.activeElement === firstFocusableElement
+      ) {
+        event.preventDefault();
+        lastFocusableElement.focus();
+      } else if (
+        !event.shiftKey &&
+        document.activeElement === lastFocusableElement
+      ) {
+        event.preventDefault();
+        firstFocusableElement.focus();
+      }
+    };
     const previousBodyOverflow = document.body.style.overflow;
     const previousRootOverflow = document.documentElement.style.overflow;
 
     document.body.style.overflow = 'hidden';
     document.documentElement.style.overflow = 'hidden';
-    window.addEventListener('keydown', closeOnEscape);
+    window.addEventListener('keydown', handleKeyDown, true);
+    closeButtonRef.current?.focus();
 
     return () => {
       document.body.style.overflow = previousBodyOverflow;
       document.documentElement.style.overflow = previousRootOverflow;
-      window.removeEventListener('keydown', closeOnEscape);
+      window.removeEventListener('keydown', handleKeyDown, true);
+      previouslyFocusedElement?.focus();
     };
   }, [onClose]);
 
@@ -217,7 +265,12 @@ export function CustomImagePicker({
       aria-labelledby="image-picker-title"
       aria-modal="true"
       className="fixed inset-0 z-100 grid place-items-center overflow-hidden bg-night/80 p-3 backdrop-blur-sm sm:p-8"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
       role="dialog"
+      ref={dialogRef}
+      tabIndex={-1}
     >
       <div className="grid max-h-[calc(100dvh-1.5rem)] min-w-0 w-full max-w-3xl grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden rounded-xl border border-line bg-panel shadow-game-shell sm:max-h-[calc(100dvh-4rem)]">
         <header className="flex min-w-0 items-start justify-between gap-4 px-4 pt-4 pb-3 sm:px-6 sm:pt-6 sm:pb-4">
@@ -237,6 +290,7 @@ export function CustomImagePicker({
             aria-label="Close image picker"
             className="grid size-10 shrink-0 place-items-center rounded-lg border border-line text-muted"
             onClick={onClose}
+            ref={closeButtonRef}
             type="button"
           >
             <X className="size-5" />
@@ -480,6 +534,6 @@ export function CustomImagePicker({
         </footer>
       </div>
     </div>,
-    document.body,
+    portalContainer ?? document.body,
   );
 }

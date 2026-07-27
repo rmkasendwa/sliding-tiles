@@ -126,6 +126,8 @@ function GameBoardContent({
   const puzzleImageObjectUrlRef = useRef<string | null>(null);
   const hasSelectedPuzzleImageRef = useRef(false);
   const [isImagePickerOpen, setIsImagePickerOpen] = useState(false);
+  const [imagePickerPortalContainer, setImagePickerPortalContainer] =
+    useState<HTMLElement | null>(null);
 
   useEffect(() => {
     let isCancelled = false;
@@ -1287,7 +1289,12 @@ function GameBoardContent({
         onContinueReplay={continueProgress}
         onHint={setHintedSlot}
         onInvalidMove={showInvalidMoveFeedback}
-        onOpenImagePicker={() => setIsImagePickerOpen(true)}
+        onOpenImagePicker={() => {
+          setImagePickerPortalContainer(
+            isBoardFullscreen ? boardFrameRef.current : null,
+          );
+          setIsImagePickerOpen(true);
+        }}
         onMove={moveTile}
         onOpenDetails={openInfoModal}
         onPeekCancel={stopPeekButtonPreview}
@@ -1358,6 +1365,7 @@ function GameBoardContent({
             }
             refreshBoard(() => resetBoardAttempt(attemptStartBoard), false);
           }}
+          portalContainer={imagePickerPortalContainer}
         />
       ) : null}
     </div>
