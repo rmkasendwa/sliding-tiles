@@ -1,11 +1,24 @@
 'use client';
 
-import { Cloud, HardDrive, ImagePlus, Link2, X } from 'lucide-react';
+import {
+  Cloud,
+  HardDrive,
+  ImageIcon,
+  ImagePlus,
+  Images,
+  Link2,
+  X,
+} from 'lucide-react';
 import { ChangeEvent, useEffect, useRef, useState } from 'react';
+import {
+  loadStoredPuzzleImages,
+  StoredPuzzleImage,
+} from '@/lib/puzzleImageStorage';
 
 export type PuzzleImage = {
   blob?: Blob;
   height: number;
+  storedId?: string;
   name: string;
   url: string;
   width: number;
@@ -79,8 +92,13 @@ export function CustomImagePicker({
   const [candidate, setCandidate] = useState<PuzzleImage>(currentImage);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSavedImagesLoading, setIsSavedImagesLoading] = useState(true);
+  const [savedImages, setSavedImages] = useState<
+    Array<StoredPuzzleImage & { url: string }>
+  >([]);
   const [url, setUrl] = useState('');
   const objectUrlRef = useRef<string | null>(null);
+  const savedImageUrlsRef = useRef<string[]>([]);
 
   useEffect(() => {
     const closeOnEscape = (event: KeyboardEvent) =>
@@ -90,6 +108,40 @@ export function CustomImagePicker({
       window.removeEventListener('keydown', closeOnEscape);
     };
   }, [onClose]);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    void loadStoredPuzzleImages()
+      .then((images) => {
+        if (isCancelled) return;
+        const imagesWithUrls = images.map((image) => {
+          const imageUrl = URL.createObjectURL(image.blob);
+          savedImageUrlsRef.current.push(imageUrl);
+          return { ...image, url: imageUrl };
+        });
+        setSavedImages(imagesWithUrls);
+      })
+      .catch(() => {
+        if (!isCancelled) {
+          setError(
+            'Your saved images could not be loaded. You can still upload a new one.',
+          );
+        }
+      })
+      .finally(() => {
+        if (!isCancelled) setIsSavedImagesLoading(false);
+      });
+
+    return () => {
+      isCancelled = true;
+      savedImageUrlsRef.current.forEach((imageUrl) =>
+        URL.revokeObjectURL(imageUrl),
+      );
+      savedImageUrlsRef.current = [];
+      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+    };
+  }, []);
 
   const validateUrl = async (sourceUrl: string, name: string) => {
     setError(null);
@@ -193,6 +245,65 @@ export function CustomImagePicker({
                 type="file"
               />
             </label>
+
+            <section
+              aria-busy={isSavedImagesLoading}
+              aria-labelledby="saved-images-title"
+              className="rounded-lg border border-line p-3"
+            >
+              <h3
+                className="flex items-center gap-2 text-sm font-bold"
+                id="saved-images-title"
+              >
+                <Images className="size-4" /> Saved images
+              </h3>
+              {isSavedImagesLoading ? (
+                <p className="mt-3 text-sm text-muted" role="status">
+                  Loading saved images…
+                </p>
+              ) : savedImages.length ? (
+                <div className="mt-3 grid max-h-48 grid-cols-3 gap-2 overflow-y-auto pr-1 sm:grid-cols-4 md:grid-cols-3">
+                  {savedImages.map((image) => (
+                    <button
+                      aria-label={`Preview saved image ${image.name}`}
+                      className="group overflow-hidden rounded-md border border-line bg-surface text-left transition-colors hover:border-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                      key={image.id}
+                      onClick={() =>
+                        setCandidate({
+                          blob: image.blob,
+                          height: image.height,
+                          name: image.name,
+                          storedId: image.id,
+                          url: image.url,
+                          width: image.width,
+                        })
+                      }
+                      title={image.name}
+                      type="button"
+                    >
+                      {/* IndexedDB blobs need regular img elements and object URLs. */}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        alt=""
+                        className="aspect-square w-full object-cover transition-transform group-hover:scale-105"
+                        src={image.url}
+                      />
+                      <span className="block truncate px-2 py-1.5 text-xs font-bold">
+                        {image.name}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-3 grid justify-items-center rounded-md bg-surface-sunken px-3 py-5 text-center">
+                  <ImageIcon className="size-6 text-muted" />
+                  <p className="mt-2 text-sm font-bold">No saved images yet</p>
+                  <p className="mt-1 text-xs text-muted">
+                    Images you upload will appear here.
+                  </p>
+                </div>
+              )}
+            </section>
 
             <div className="rounded-lg border border-line p-3">
               <label
@@ -307,7 +418,12 @@ export function CustomImagePicker({
           </button>
           <button
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-primary-contrast"
-            onClick={() => onSelect(candidate)}
+            onClick={() => {
+              const selectedUrl = candidate.blob
+                ? URL.createObjectURL(candidate.blob)
+                : candidate.url;
+              onSelect({ ...candidate, url: selectedUrl });
+            }}
             type="button"
           >
             <ImagePlus className="size-4" /> Use this image

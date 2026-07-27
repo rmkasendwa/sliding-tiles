@@ -137,8 +137,10 @@ function GameBoardContent({
         const objectUrl = URL.createObjectURL(stored.blob);
         puzzleImageObjectUrlRef.current = objectUrl;
         setPuzzleImage({
+          blob: stored.blob,
           height: stored.height,
           name: stored.name,
+          storedId: stored.id,
           url: objectUrl,
           width: stored.width,
         });
@@ -1346,7 +1348,7 @@ function GameBoardContent({
             setPuzzleImage(image);
             setImageStorageError(null);
             setIsImagePickerOpen(false);
-            if (image.blob) {
+            if (image.blob && !image.storedId) {
               void storePuzzleImage(image.blob, image).catch((error) => {
                 console.warn('Could not save the uploaded puzzle image.', error);
                 setImageStorageError(

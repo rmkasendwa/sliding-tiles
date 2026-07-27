@@ -1,6 +1,7 @@
 export type StoredPuzzleImage = {
   blob: Blob;
   height: number;
+  id: string;
   name: string;
   size: number;
   type: string;
@@ -12,6 +13,18 @@ const DATABASE_NAME = 'sliding-tiles';
 const DATABASE_VERSION = 1;
 const IMAGE_KEY = 'current';
 const STORE_NAME = 'puzzle-images';
+
+function isStoredPuzzleImage(
+  stored: Partial<StoredPuzzleImage> | undefined,
+): stored is StoredPuzzleImage {
+  return Boolean(
+    stored &&
+      stored.blob instanceof Blob &&
+      stored.name &&
+      stored.width &&
+      stored.height,
+  );
+}
 
 function openDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -65,31 +78,37 @@ function runTransaction<T>(
 }
 
 export async function loadStoredPuzzleImage() {
-  const stored = await runTransaction<StoredPuzzleImage | undefined>(
-    'readonly',
-    (store) => store.get(IMAGE_KEY),
-  );
+  const images = await loadStoredPuzzleImages();
+  return images[0] ?? null;
+}
 
-  if (
-    !stored ||
-    !(stored.blob instanceof Blob) ||
-    !stored.name ||
-    !stored.width ||
-    !stored.height
-  ) {
-    return null;
-  }
+export async function loadStoredPuzzleImages() {
+  const storedImages = await runTransaction<
+    Array<Partial<StoredPuzzleImage>>
+  >('readonly', (store) => store.getAll());
 
-  return stored;
+  return storedImages
+    .filter(isStoredPuzzleImage)
+    .map((stored) => ({
+      ...stored,
+      // Images saved before the gallery used the fixed `current` key.
+      id: stored.id || IMAGE_KEY,
+    }))
+    .sort((first, second) => second.updatedAt - first.updatedAt);
 }
 
 export function storePuzzleImage(
   blob: Blob,
   metadata: Pick<StoredPuzzleImage, 'height' | 'name' | 'width'>,
 ) {
+  const id =
+    typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const stored: StoredPuzzleImage = {
     blob,
     height: metadata.height,
+    id,
     name: metadata.name,
     size: blob.size,
     type: blob.type,
@@ -98,6 +117,6 @@ export function storePuzzleImage(
   };
 
   return runTransaction<IDBValidKey>('readwrite', (store) =>
-    store.put(stored, IMAGE_KEY),
-  ).then(() => undefined);
+    store.put(stored, id),
+  ).then(() => id);
 }
