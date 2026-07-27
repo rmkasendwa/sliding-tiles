@@ -11,6 +11,8 @@ import {
 
 import {
   BOARD_SIZE,
+  getSolutionReturnTransition,
+  getSolutionPreviewTransition,
   HINT_PLACEHOLDER_TRANSITION,
   TILE_ENTRY_ANIMATION_MS,
   TILE_INVALID_MOVE_FEEDBACK_MS,
@@ -71,6 +73,7 @@ export type BoardTileProps = {
   invalidMoveKey: number;
   isMovable: boolean;
   isResetting: boolean;
+  isReturningFromSolvedHint: boolean;
   isShowingSolvedHint: boolean;
   onHint: (slot: string | null) => void;
   onInvalidMove: (slotKey: string) => void;
@@ -97,6 +100,7 @@ function BoardTileComponent({
   invalidMoveKey,
   isMovable,
   isResetting,
+  isReturningFromSolvedHint,
   isShowingSolvedHint,
   onHint,
   onInvalidMove,
@@ -122,6 +126,8 @@ function BoardTileComponent({
   const [dismissedInvalidMoveKey, setDismissedInvalidMoveKey] = useState(0);
   const [homeRow, homeColumn] = tile.homeSlot;
   const [row, column] = isShowingSolvedHint ? tile.homeSlot : tile.slot;
+  const solutionPreviewSlotDistance =
+    Math.abs(tile.slot[0] - homeRow) + Math.abs(tile.slot[1] - homeColumn);
   const currentSlotKey = slotKey(tile.slot);
   const isHintPlaceholder = tile.type === 'PLACEHOLDER';
   const tileCenterX = column * tileWidth + tileWidth / 2;
@@ -464,6 +470,10 @@ function BoardTileComponent({
                 : undefined,
           transition: isDraggingTile || isCommittingAtDestination
             ? 'none'
+            : isShowingSolvedHint && !isHintPlaceholder
+              ? getSolutionPreviewTransition(solutionPreviewSlotDistance)
+              : isReturningFromSolvedHint && !isHintPlaceholder
+                ? getSolutionReturnTransition(solutionPreviewSlotDistance)
             : isHintPlaceholder
               ? HINT_PLACEHOLDER_TRANSITION
               : TILE_TRANSITION,
@@ -515,6 +525,7 @@ export const BoardTile = memo(BoardTileComponent, (previous, next) => {
     previous.invalidMoveKey === next.invalidMoveKey &&
     previous.isMovable === next.isMovable &&
     previous.isResetting === next.isResetting &&
+    previous.isReturningFromSolvedHint === next.isReturningFromSolvedHint &&
     previous.isShowingSolvedHint === next.isShowingSolvedHint &&
     previous.onHint === next.onHint &&
     previous.onInvalidMove === next.onInvalidMove &&

@@ -28,10 +28,14 @@ export function useBoardPreview({
 }: BoardPreviewOptions) {
   const [hintedSlot, setHintedSlot] = useState<string | null>(null);
   const [isShowingSolvedHint, setIsShowingSolvedHint] = useState(false);
+  const [isReturningFromSolvedHint, setIsReturningFromSolvedHint] =
+    useState(false);
   const [isShowingHintPlaceholder, setIsShowingHintPlaceholder] =
     useState(false);
   const previewButtonPointerIdRef = useRef<number | null>(null);
   const previewButtonTimeoutRef = useRef<number | null>(null);
+  const solutionReturnTimeoutRef = useRef<number | null>(null);
+  const isShowingSolvedHintRef = useRef(false);
   const boardHintTimeoutRef = useRef<number | null>(null);
   const placeholderRevealTimeoutRef = useRef<number | null>(null);
   const boardHintMouseUpRef = useRef<(() => void) | null>(null);
@@ -52,6 +56,17 @@ export function useBoardPreview({
     }
 
     previewButtonPointerIdRef.current = null;
+    if (isShowingSolvedHintRef.current) {
+      setIsReturningFromSolvedHint(true);
+      if (solutionReturnTimeoutRef.current !== null) {
+        window.clearTimeout(solutionReturnTimeoutRef.current);
+      }
+      solutionReturnTimeoutRef.current = window.setTimeout(() => {
+        solutionReturnTimeoutRef.current = null;
+        setIsReturningFromSolvedHint(false);
+      }, 700);
+    }
+    isShowingSolvedHintRef.current = false;
     setIsShowingSolvedHint(false);
     setIsShowingHintPlaceholder(false);
 
@@ -76,15 +91,23 @@ export function useBoardPreview({
     }
 
     suppressNextClickRef.current = true;
+    isShowingSolvedHintRef.current = true;
+    setIsReturningFromSolvedHint(false);
     setIsShowingSolvedHint(true);
-    setIsShowingHintPlaceholder(true);
+    setIsShowingHintPlaceholder(false);
     playHintSound();
     onFullImagePeeked?.();
+    placeholderRevealTimeoutRef.current = window.setTimeout(() => {
+      setIsShowingHintPlaceholder(true);
+      placeholderRevealTimeoutRef.current = null;
+    }, BOARD_HINT_TILE_REVEAL_DELAY_MS);
   }, [isInteractionBlocked, onFullImagePeeked, playHintSound]);
 
   const showSolvedBoard = useCallback(() => {
     clear();
     setHintedSlot(null);
+    isShowingSolvedHintRef.current = true;
+    setIsReturningFromSolvedHint(false);
     setIsShowingSolvedHint(true);
     setIsShowingHintPlaceholder(true);
   }, [clear]);
@@ -105,6 +128,8 @@ export function useBoardPreview({
 
       boardHintTimeoutRef.current = window.setTimeout(() => {
         suppressNextClickRef.current = true;
+        isShowingSolvedHintRef.current = true;
+        setIsReturningFromSolvedHint(false);
         setIsShowingSolvedHint(true);
         playHintSound();
         onFullImagePeeked?.();
@@ -141,6 +166,9 @@ export function useBoardPreview({
       event.currentTarget.setPointerCapture(event.pointerId);
       if (previewButtonTimeoutRef.current !== null) {
         window.clearTimeout(previewButtonTimeoutRef.current);
+      }
+      if (solutionReturnTimeoutRef.current !== null) {
+        window.clearTimeout(solutionReturnTimeoutRef.current);
       }
 
       previewButtonTimeoutRef.current = window.setTimeout(() => {
@@ -194,6 +222,7 @@ export function useBoardPreview({
     clear,
     clearFromPointer,
     hintedSlot,
+    isReturningFromSolvedHint,
     isShowingHintPlaceholder,
     isShowingSolvedHint,
     setHintedSlot,

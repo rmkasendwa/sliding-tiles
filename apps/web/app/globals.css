@@ -589,6 +589,7 @@
 
   .board-tile {
     animation: none !important;
+    transition-duration: 0ms !important;
   }
 
   .board-tile-invalid-move-indicator {

@@ -239,6 +239,7 @@ function GameBoardContent({
     clear: clearBoardHint,
     clearFromPointer: clearBoardHintFromPointer,
     hintedSlot,
+    isReturningFromSolvedHint,
     isShowingHintPlaceholder,
     isShowingSolvedHint,
     setHintedSlot,
@@ -1288,6 +1289,7 @@ function GameBoardContent({
         autoPlayStatusMessage={autoPlayStatusMessage}
         invalidMoveTile={invalidMoveTile}
         isResetting={isResetting}
+        isReturningFromSolvedHint={isReturningFromSolvedHint}
         isShowingHintPlaceholder={isShowingHintPlaceholder}
         isShowingSolvedHint={isShowingSolvedHint}
         isShuffleAnimationRunning={isShuffleAnimationRunning}

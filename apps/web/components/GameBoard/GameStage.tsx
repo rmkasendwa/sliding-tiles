@@ -54,6 +54,7 @@ type GameStageProps = {
     slotKey: string | null;
   };
   isResetting: boolean;
+  isReturningFromSolvedHint: boolean;
   isShowingHintPlaceholder: boolean;
   isShowingSolvedHint: boolean;
   isShuffleAnimationRunning: boolean;
@@ -96,6 +97,7 @@ type BoardTilesLayerProps = Pick<
   | 'isAutoPlayActive'
   | 'isBoardEntering'
   | 'isResetting'
+  | 'isReturningFromSolvedHint'
   | 'isShowingHintPlaceholder'
   | 'isShowingSolvedHint'
   | 'movableSlotKeys'
@@ -122,6 +124,7 @@ const BoardTilesLayer = memo(function BoardTilesLayer({
   isAutoPlayActive,
   isBoardEntering,
   isResetting,
+  isReturningFromSolvedHint,
   isShowingHintPlaceholder,
   isShowingSolvedHint,
   movableSlotKeys,
@@ -159,6 +162,7 @@ const BoardTilesLayer = memo(function BoardTilesLayer({
         isMovable={movableSlotKeys.has(currentSlotKey)}
         isInteractionBlocked={isAutoPlayActive}
         isResetting={isResetting}
+        isReturningFromSolvedHint={isReturningFromSolvedHint}
         isShowingSolvedHint={isShowingSolvedHint}
         key={`${boardEntryAnimationKey}:${tile.position}`}
         onHint={onHint}
@@ -204,6 +208,7 @@ export function GameStage({
   autoPlayStatusMessage,
   invalidMoveTile,
   isResetting,
+  isReturningFromSolvedHint,
   isShowingHintPlaceholder,
   isShowingSolvedHint,
   isShuffleAnimationRunning,
@@ -327,6 +332,7 @@ export function GameStage({
           isAutoPlayActive={isAutoPlayActive}
           isBoardEntering={isBoardEntering}
           isResetting={isResetting}
+          isReturningFromSolvedHint={isReturningFromSolvedHint}
           isShowingHintPlaceholder={isShowingHintPlaceholder}
           isShowingSolvedHint={isShowingSolvedHint}
           movableSlotKeys={movableSlotKeys}

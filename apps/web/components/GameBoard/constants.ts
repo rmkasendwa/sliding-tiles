@@ -1,6 +1,6 @@
 export const BOARD_SIZE = 999;
 export const BOARD_HINT_DELAY_MS = 500;
-export const BOARD_HINT_TILE_REVEAL_DELAY_MS = 220;
+export const BOARD_HINT_TILE_REVEAL_DELAY_MS = 1050;
 export const EMPTY_SLOT_HINT_DELAY_MS = 3000;
 export const LEVEL_COMPLETE_CELEBRATION_DELAY_MS = 500;
 export const LEVEL_COMPLETE_ADVANCE_DELAY_MS = 10000;
@@ -15,6 +15,16 @@ export const TILE_TRANSITION =
   'transform 145ms cubic-bezier(0.2, 0.78, 0.2, 1), box-shadow 145ms ease';
 export const HINT_PLACEHOLDER_TRANSITION =
   'transform 145ms cubic-bezier(0.2, 0.78, 0.2, 1), opacity 240ms ease, box-shadow 145ms ease';
+export const getSolutionPreviewTransition = (slotDistance: number) => {
+  const durationMs = Math.min(1100, 560 + slotDistance * 130);
+
+  return `transform ${durationMs}ms cubic-bezier(0.22, 0.68, 0.18, 1), box-shadow 300ms ease`;
+};
+export const getSolutionReturnTransition = (slotDistance: number) => {
+  const durationMs = Math.min(700, 360 + slotDistance * 85);
+
+  return `transform ${durationMs}ms cubic-bezier(0.3, 0.66, 0.24, 1), box-shadow 220ms ease`;
+};
 export const AUTO_PLAY_DEFAULT_STEP_DELAY_MS = 280;
 export const AUTO_PLAY_FASTEST_STEP_DELAY_MS = 120;
 export const AUTO_PLAY_SLOWEST_STEP_DELAY_MS = 720;

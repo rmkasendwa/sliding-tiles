@@ -316,7 +316,7 @@ export function GameToolbar({
             <GameToolButton
               aria-label="Peek full image"
               className="active:bg-accent/15"
-              description="Temporarily reveal the complete puzzle image while pressed."
+              description="Hold to watch each tile travel to its correct place. Release to return to your puzzle."
               disabled={isCelebrating || controlsLocked}
               icon={
                 <Search
@@ -330,7 +330,7 @@ export function GameToolbar({
               onPointerDown={onPeekDown}
               onPointerLeave={onPeekLeave}
               onPointerUp={onPeekUp}
-              tooltip="Hold to preview the full image"
+              tooltip="Hold to see where every tile belongs"
               type="button"
             />
           ) : null}
