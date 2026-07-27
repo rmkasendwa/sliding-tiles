@@ -307,7 +307,7 @@ export function CustomImagePicker({
           </button>
         </header>
 
-        <div className="grid min-h-0 min-w-0 gap-4 overflow-y-auto overscroll-contain px-4 py-1 sm:px-6 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+        <div className="grid min-h-0 min-w-0 gap-4 overflow-y-auto overscroll-contain px-4 pt-1 pb-4 sm:px-6 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
           <div className="grid min-w-0 content-start gap-3">
             <label className="flex min-h-20 cursor-pointer items-center gap-3 rounded-lg border border-primary bg-primary-soft/50 p-4 font-bold text-accent-strong transition-colors hover:bg-primary-soft">
               <HardDrive className="size-5" />
@@ -421,15 +421,17 @@ export function CustomImagePicker({
                           index < savedImagePlaceholderCounts.medium
                             ? 'md:block'
                             : 'md:hidden',
-                          'overflow-hidden rounded-md border border-dashed border-line/70 bg-surface/35',
+                          'overflow-hidden rounded-md border border-dashed border-line/30 bg-surface/10',
                         ].join(' ')}
                         key={`saved-image-placeholder-${index}`}
                       >
-                        <div className="grid aspect-square place-items-center bg-line/12">
-                          <ImageIcon className="size-5 text-muted/30" />
+                        <div className="grid aspect-square place-items-center bg-line/5">
+                          <ImageIcon className="size-5 text-muted/15" />
                         </div>
-                        <div className="px-2 py-2">
-                          <span className="block h-1.5 w-2/3 rounded-full bg-line/35" />
+                        <div className="flex items-center gap-1 px-2 py-2.5">
+                          <span className="block h-1.5 w-1/2 rounded-full bg-line/20" />
+                          <span className="block size-1.5 rounded-full bg-line/15" />
+                          <span className="block h-1.5 w-1/6 rounded-full bg-line/15" />
                         </div>
                       </div>
                     ),
