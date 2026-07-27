@@ -259,6 +259,16 @@ export function CustomImagePicker({
     MAX_PUZZLE_ASPECT_RATIO,
     Math.max(1 / MAX_PUZZLE_ASPECT_RATIO, rawRatio),
   );
+  const savedImagePlaceholderCounts = {
+    base: (3 - (savedImages.length % 3)) % 3,
+    medium: (3 - (savedImages.length % 3)) % 3,
+    small: (4 - (savedImages.length % 4)) % 4,
+  };
+  const savedImagePlaceholderCount = Math.max(
+    savedImagePlaceholderCounts.base,
+    savedImagePlaceholderCounts.small,
+    savedImagePlaceholderCounts.medium,
+  );
 
   return createPortal(
     <div
@@ -396,6 +406,34 @@ export function CustomImagePicker({
                       </span>
                     </button>
                   ))}
+                  {Array.from(
+                    { length: savedImagePlaceholderCount },
+                    (_, index) => (
+                      <div
+                        aria-hidden="true"
+                        className={[
+                          index < savedImagePlaceholderCounts.base
+                            ? 'block'
+                            : 'hidden',
+                          index < savedImagePlaceholderCounts.small
+                            ? 'sm:block'
+                            : 'sm:hidden',
+                          index < savedImagePlaceholderCounts.medium
+                            ? 'md:block'
+                            : 'md:hidden',
+                          'overflow-hidden rounded-md border border-dashed border-line/70 bg-surface/35',
+                        ].join(' ')}
+                        key={`saved-image-placeholder-${index}`}
+                      >
+                        <div className="grid aspect-square place-items-center bg-line/12">
+                          <ImageIcon className="size-5 text-muted/30" />
+                        </div>
+                        <div className="px-2 py-2">
+                          <span className="block h-1.5 w-2/3 rounded-full bg-line/35" />
+                        </div>
+                      </div>
+                    ),
+                  )}
                 </div>
               ) : (
                 <div className="mt-3 grid justify-items-center rounded-md bg-surface-sunken px-3 py-5 text-center">
