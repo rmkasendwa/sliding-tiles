@@ -122,6 +122,7 @@ function GameBoardContent({
   const [imageStorageError, setImageStorageError] = useState<string | null>(
     null,
   );
+  const [isPuzzleImageReady, setIsPuzzleImageReady] = useState(false);
   const puzzleImageObjectUrlRef = useRef<string | null>(null);
   const hasSelectedPuzzleImageRef = useRef(false);
   const [isImagePickerOpen, setIsImagePickerOpen] = useState(false);
@@ -148,6 +149,11 @@ function GameBoardContent({
           setImageStorageError(
             'Your saved photo could not be restored. You can still choose an image for this session.',
           );
+        }
+      })
+      .finally(() => {
+        if (!isCancelled) {
+          setIsPuzzleImageReady(true);
         }
       });
 
@@ -1204,6 +1210,18 @@ function GameBoardContent({
     onShuffle: shuffleLevel,
     onToggleFullscreen: toggleBoardFullscreen,
   });
+
+  if (!isPuzzleImageReady) {
+    return (
+      <div
+        aria-label="Loading saved puzzle image"
+        className="grid min-h-[calc(100svh-32px)] w-full place-items-center rounded-lg bg-night text-sm font-bold text-surface"
+        role="status"
+      >
+        Loading puzzle...
+      </div>
+    );
+  }
 
   return (
     <div className="play-shell-reveal grid min-h-full w-full grid-cols-[minmax(0,1fr)_320px] items-start gap-5 max-[900px]:grid-cols-1">
