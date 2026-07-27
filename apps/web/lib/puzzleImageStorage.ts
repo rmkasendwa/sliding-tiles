@@ -12,7 +12,12 @@ export type StoredPuzzleImage = {
 const DATABASE_NAME = 'sliding-tiles';
 const DATABASE_VERSION = 1;
 const IMAGE_KEY = 'current';
+const SELECTED_IMAGE_KEY = 'selected-image';
 const STORE_NAME = 'puzzle-images';
+
+type StoredPuzzleImageSelection = {
+  selectedId: string;
+};
 
 function isStoredPuzzleImage(
   stored: Partial<StoredPuzzleImage> | undefined,
@@ -78,8 +83,19 @@ function runTransaction<T>(
 }
 
 export async function loadStoredPuzzleImage() {
-  const images = await loadStoredPuzzleImages();
-  return images[0] ?? null;
+  const [images, selection] = await Promise.all([
+    loadStoredPuzzleImages(),
+    runTransaction<StoredPuzzleImageSelection | undefined>(
+      'readonly',
+      (store) => store.get(SELECTED_IMAGE_KEY),
+    ),
+  ]);
+
+  return (
+    images.find((image) => image.id === selection?.selectedId) ??
+    images[0] ??
+    null
+  );
 }
 
 export async function loadStoredPuzzleImages() {
@@ -118,5 +134,15 @@ export function storePuzzleImage(
 
   return runTransaction<IDBValidKey>('readwrite', (store) =>
     store.put(stored, id),
-  ).then(() => id);
+  )
+    .then(() => selectStoredPuzzleImage(id))
+    .then(() => id);
+}
+
+export function selectStoredPuzzleImage(id: string) {
+  const selection: StoredPuzzleImageSelection = { selectedId: id };
+
+  return runTransaction<IDBValidKey>('readwrite', (store) =>
+    store.put(selection, SELECTED_IMAGE_KEY),
+  ).then(() => undefined);
 }

@@ -20,6 +20,7 @@ import { createBoardSolverPayload } from '@/lib/boardSolver';
 import { BoardSolverWorkerClient } from '@/lib/board-solver/worker-client';
 import {
   loadStoredPuzzleImage,
+  selectStoredPuzzleImage,
   storePuzzleImage,
 } from '@/lib/puzzleImageStorage';
 
@@ -1366,7 +1367,14 @@ function GameBoardContent({
             setPuzzleImage(image);
             setImageStorageError(null);
             setIsImagePickerOpen(false);
-            if (image.blob && !image.storedId) {
+            if (image.storedId) {
+              void selectStoredPuzzleImage(image.storedId).catch((error) => {
+                console.warn('Could not remember the selected puzzle image.', error);
+                setImageStorageError(
+                  'This photo works for now, but the browser could not remember your selection.',
+                );
+              });
+            } else if (image.blob) {
               void storePuzzleImage(image.blob, image).catch((error) => {
                 console.warn('Could not save the uploaded puzzle image.', error);
                 setImageStorageError(
