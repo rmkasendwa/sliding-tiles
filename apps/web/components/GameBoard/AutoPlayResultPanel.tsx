@@ -14,12 +14,12 @@ export function AutoPlayResultPanel({
   onShuffle,
 }: AutoPlayResultPanelProps) {
   return (
-    <div className="absolute inset-0 z-50 grid place-items-center bg-black/70 p-4 backdrop-blur-sm">
+    <div className="auto-play-result-backdrop absolute inset-0 z-50 grid place-items-center bg-black/70 p-4 backdrop-blur-sm">
       <div
         aria-describedby="auto-play-result-summary"
         aria-labelledby="auto-play-result-title"
         aria-modal="true"
-        className="w-full max-w-md rounded-lg border border-line bg-panel p-5 text-foreground shadow-panel"
+        className="auto-play-result-dialog w-full max-w-md rounded-lg border border-line bg-panel p-5 text-foreground shadow-panel"
         role="dialog"
       >
         <p className="text-xs font-extrabold uppercase text-accent-strong">

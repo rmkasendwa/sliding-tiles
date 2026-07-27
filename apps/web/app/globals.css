@@ -480,6 +480,43 @@
   }
 }
 
+@keyframes auto-play-result-backdrop-in {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes auto-play-result-dialog-in {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0) scale(0.975);
+  }
+
+  55% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.auto-play-result-backdrop {
+  animation: auto-play-result-backdrop-in 700ms ease-out both;
+}
+
+.auto-play-result-dialog {
+  animation: auto-play-result-dialog-in 850ms
+    cubic-bezier(0.16, 1, 0.3, 1) 90ms both;
+  backface-visibility: hidden;
+  will-change: opacity, transform;
+}
+
 @keyframes tile-enter {
   0%,
   18% {
@@ -544,6 +581,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .auto-play-result-backdrop,
+  .auto-play-result-dialog {
+    animation-duration: 160ms !important;
+    animation-delay: 0ms !important;
+  }
+
   .board-tile {
     animation: none !important;
   }
