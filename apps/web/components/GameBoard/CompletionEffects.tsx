@@ -4,6 +4,7 @@ import { CELEBRATION_PARTICLES, CONFETTI_PARTICLES } from './constants';
 
 type CompletionEffectsProps = {
   confettiBurstKey: number | null;
+  isAutoPlayCompletion: boolean;
   isCelebrating: boolean;
   isCompletionImageVisible: boolean;
   imageUrl: string;
@@ -11,6 +12,7 @@ type CompletionEffectsProps = {
 
 export function CompletionEffects({
   confettiBurstKey,
+  isAutoPlayCompletion,
   isCelebrating,
   isCompletionImageVisible,
   imageUrl,
@@ -73,7 +75,9 @@ export function CompletionEffects({
               Level complete
             </p>
             <p className="mt-1 text-sm text-muted">
-              Enjoy the solved image. Next level is loading.
+              {isAutoPlayCompletion
+                ? 'Enjoy the solved image. Your assisted result is coming up.'
+                : 'Enjoy the solved image. Next level is loading.'}
             </p>
           </div>
         </div>

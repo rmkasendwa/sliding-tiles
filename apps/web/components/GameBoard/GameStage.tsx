@@ -36,6 +36,7 @@ type GameStageProps = {
   isMuted: boolean;
   isAutoPlayActive: boolean;
   isAutoPlayBlocked: boolean;
+  isAutoPlayCompletion: boolean;
   isAutoPlaySolving: boolean;
   isAutoPlaySolvedNoticeVisible: boolean;
   autoPlaySpeed: {
@@ -195,6 +196,7 @@ export function GameStage({
   isMuted,
   isAutoPlayActive,
   isAutoPlayBlocked,
+  isAutoPlayCompletion,
   isAutoPlaySolving,
   isAutoPlaySolvedNoticeVisible,
   autoPlaySpeed,
@@ -352,6 +354,7 @@ export function GameStage({
         <CompletionEffects
           confettiBurstKey={confettiBurstKey}
           imageUrl={imageUrl}
+          isAutoPlayCompletion={isAutoPlayCompletion}
           isCelebrating={isCelebrating}
           isCompletionImageVisible={isCompletionImageVisible}
         />

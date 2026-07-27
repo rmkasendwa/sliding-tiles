@@ -25,6 +25,7 @@ import {
 
 import { SoundProvider, useSound } from '../SoundProvider';
 import {
+  AUTO_PLAY_COMPLETION_CELEBRATION_MS,
   AUTO_PLAY_DEFAULT_STEP_DELAY_MS,
   AUTO_PLAY_FASTEST_STEP_DELAY_MS,
   AUTO_PLAY_SLOWEST_STEP_DELAY_MS,
@@ -550,7 +551,16 @@ function GameBoardContent({
       if (source === 'auto-play' || isAutoPlayCompletion) {
         cancelAutoPlay();
         setIsAutoPlayCompletion(true);
-        setIsAutoPlaySolvedNoticeVisible(true);
+        setIsCelebrating(true);
+        setIsAutoPlaySolvedNoticeVisible(false);
+        if (levelAdvanceTimeoutRef.current !== null) {
+          window.clearTimeout(levelAdvanceTimeoutRef.current);
+        }
+        levelAdvanceTimeoutRef.current = window.setTimeout(() => {
+          setIsCelebrating(false);
+          setIsAutoPlaySolvedNoticeVisible(true);
+          levelAdvanceTimeoutRef.current = null;
+        }, AUTO_PLAY_COMPLETION_CELEBRATION_MS);
         if (source === 'auto-play') {
           trackAnonymousEvent('auto_play_completed', analyticsMetadata);
         }
@@ -1262,6 +1272,7 @@ function GameBoardContent({
           isShuffleAnimationRunning ||
           Boolean(replayResult)
         }
+        isAutoPlayCompletion={isAutoPlayCompletion}
         isAutoPlaySolving={isAutoPlaySolving}
         isAutoPlaySolvedNoticeVisible={isAutoPlaySolvedNoticeVisible}
         autoPlaySpeed={{

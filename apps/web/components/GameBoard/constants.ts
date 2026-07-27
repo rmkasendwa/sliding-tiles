@@ -18,6 +18,7 @@ export const HINT_PLACEHOLDER_TRANSITION =
 export const AUTO_PLAY_DEFAULT_STEP_DELAY_MS = 280;
 export const AUTO_PLAY_FASTEST_STEP_DELAY_MS = 120;
 export const AUTO_PLAY_SLOWEST_STEP_DELAY_MS = 720;
+export const AUTO_PLAY_COMPLETION_CELEBRATION_MS = 5000;
 
 export const BOARD_SURFACE_BACKGROUND =
   'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--color-foreground) 12%, transparent) 0 10px, color-mix(in srgb, var(--color-foreground) 12%, transparent) 10px 18px, color-mix(in srgb, var(--color-surface) 22%, transparent) 18px 28px, color-mix(in srgb, var(--color-surface) 22%, transparent) 28px 36px), var(--color-surface-sunken)';
