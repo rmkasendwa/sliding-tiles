@@ -110,8 +110,16 @@ export function CustomImagePicker({
   useEffect(() => {
     const closeOnEscape = (event: KeyboardEvent) =>
       event.key === 'Escape' && onClose();
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousRootOverflow = document.documentElement.style.overflow;
+
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
     window.addEventListener('keydown', closeOnEscape);
+
     return () => {
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousRootOverflow;
       window.removeEventListener('keydown', closeOnEscape);
     };
   }, [onClose]);
@@ -303,7 +311,7 @@ export function CustomImagePicker({
                   Loading saved images…
                 </p>
               ) : savedImages.length ? (
-                <div className="mt-3 grid max-h-48 grid-cols-3 gap-2 overflow-y-auto pr-1 sm:grid-cols-4 md:grid-cols-3">
+                <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-3">
                   {savedImages.map((image) => (
                     <button
                       aria-label={`Preview saved image ${image.name}`}
