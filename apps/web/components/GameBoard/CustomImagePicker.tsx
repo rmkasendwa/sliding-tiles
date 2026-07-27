@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  Check,
   Cloud,
   HardDrive,
   ImageIcon,
@@ -337,7 +338,13 @@ export function CustomImagePicker({
               </h3>
               <button
                 aria-label="Preview included Pond frog image"
-                className="group mt-3 grid w-full grid-cols-[4rem_minmax(0,1fr)] items-center gap-3 overflow-hidden rounded-md border border-line bg-surface text-left transition-colors hover:border-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                aria-pressed={candidate.url === DEFAULT_PUZZLE_IMAGE.url}
+                className={[
+                  'group relative mt-3 grid w-full grid-cols-[4rem_minmax(0,1fr)] items-center gap-3 overflow-hidden rounded-md border bg-surface text-left transition-colors hover:border-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
+                  candidate.url === DEFAULT_PUZZLE_IMAGE.url
+                    ? 'border-accent ring-2 ring-accent/30'
+                    : 'border-line',
+                ].join(' ')}
                 onClick={() => setCandidate(DEFAULT_PUZZLE_IMAGE)}
                 type="button"
               >
@@ -356,6 +363,11 @@ export function CustomImagePicker({
                     Default puzzle image
                   </span>
                 </span>
+                {candidate.url === DEFAULT_PUZZLE_IMAGE.url ? (
+                  <span className="absolute top-1.5 right-1.5 grid size-5 place-items-center rounded-full bg-primary text-primary-contrast">
+                    <Check aria-hidden="true" className="size-3.5" />
+                  </span>
+                ) : null}
               </button>
             </section>
 
@@ -379,7 +391,13 @@ export function CustomImagePicker({
                   {savedImages.map((image) => (
                     <button
                       aria-label={`Preview saved image ${image.name}`}
-                      className="group overflow-hidden rounded-md border border-line bg-surface text-left transition-colors hover:border-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                      aria-pressed={candidate.storedId === image.id}
+                      className={[
+                        'group relative overflow-hidden rounded-md border bg-surface text-left transition-colors hover:border-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
+                        candidate.storedId === image.id
+                          ? 'border-accent ring-2 ring-accent/30'
+                          : 'border-line',
+                      ].join(' ')}
                       key={image.id}
                       onClick={() =>
                         setCandidate({
@@ -404,6 +422,11 @@ export function CustomImagePicker({
                       <span className="block truncate px-2 py-1.5 text-xs font-bold">
                         {image.name}
                       </span>
+                      {candidate.storedId === image.id ? (
+                        <span className="absolute top-1.5 right-1.5 grid size-5 place-items-center rounded-full bg-primary text-primary-contrast shadow-panel">
+                          <Check aria-hidden="true" className="size-3.5" />
+                        </span>
+                      ) : null}
                     </button>
                   ))}
                   {Array.from(
