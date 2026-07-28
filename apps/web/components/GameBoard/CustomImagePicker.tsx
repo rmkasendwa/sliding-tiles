@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  AlertTriangle,
   Check,
   Cloud,
   HardDrive,
@@ -105,6 +106,9 @@ export function CustomImagePicker({
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [deletingImageId, setDeletingImageId] = useState<string | null>(null);
+  const [imagePendingDeletion, setImagePendingDeletion] = useState<
+    (StoredPuzzleImage & { url: string }) | null
+  >(null);
   const [isSavedImagesLoading, setIsSavedImagesLoading] = useState(true);
   const [savedImages, setSavedImages] = useState<
     Array<StoredPuzzleImage & { url: string }>
@@ -113,7 +117,14 @@ export function CustomImagePicker({
   const objectUrlRef = useRef<string | null>(null);
   const savedImageUrlsRef = useRef<string[]>([]);
   const dialogRef = useRef<HTMLDivElement>(null);
+  const deleteDialogRef = useRef<HTMLDivElement>(null);
+  const deleteCancelButtonRef = useRef<HTMLButtonElement>(null);
+  const imagePendingDeletionRef = useRef(imagePendingDeletion);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    imagePendingDeletionRef.current = imagePendingDeletion;
+  }, [imagePendingDeletion]);
 
   useEffect(() => {
     const previouslyFocusedElement =
@@ -124,14 +135,21 @@ export function CustomImagePicker({
       if (event.key === 'Escape') {
         event.preventDefault();
         event.stopPropagation();
+        if (imagePendingDeletionRef.current) {
+          setImagePendingDeletion(null);
+          return;
+        }
         onClose();
         return;
       }
 
-      if (event.key !== 'Tab' || !dialogRef.current) return;
+      const activeDialog = imagePendingDeletionRef.current
+        ? deleteDialogRef.current
+        : dialogRef.current;
+      if (event.key !== 'Tab' || !activeDialog) return;
 
       const focusableElements = Array.from(
-        dialogRef.current.querySelectorAll<HTMLElement>(
+        activeDialog.querySelectorAll<HTMLElement>(
           'button:not([disabled]), input:not([disabled]), [href], select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
         ),
       ).filter(
@@ -145,7 +163,7 @@ export function CustomImagePicker({
 
       if (!firstFocusableElement || !lastFocusableElement) {
         event.preventDefault();
-        dialogRef.current.focus();
+        activeDialog.focus();
       } else if (
         event.shiftKey &&
         document.activeElement === firstFocusableElement
@@ -175,6 +193,12 @@ export function CustomImagePicker({
       previouslyFocusedElement?.focus();
     };
   }, [onClose]);
+
+  useEffect(() => {
+    if (imagePendingDeletion) {
+      deleteCancelButtonRef.current?.focus();
+    }
+  }, [imagePendingDeletion]);
 
   useEffect(() => {
     let isCancelled = false;
@@ -258,14 +282,6 @@ export function CustomImagePicker({
   const deleteSavedImage = async (
     image: StoredPuzzleImage & { url: string },
   ) => {
-    if (
-      !window.confirm(
-        `Delete “${image.name}”? This removes it permanently from this browser.`,
-      )
-    ) {
-      return;
-    }
-
     setError(null);
     setDeletingImageId(image.id);
     try {
@@ -280,8 +296,10 @@ export function CustomImagePicker({
       if (candidate.storedId === image.id) {
         setCandidate(DEFAULT_PUZZLE_IMAGE);
       }
+      setImagePendingDeletion(null);
     } catch {
       setError('That saved image could not be deleted. Please try again.');
+      setImagePendingDeletion(null);
     } finally {
       setDeletingImageId(null);
     }
@@ -318,7 +336,7 @@ export function CustomImagePicker({
       ref={dialogRef}
       tabIndex={-1}
     >
-      <div className="grid max-h-[calc(100dvh-1.5rem)] min-w-0 w-full max-w-3xl grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden rounded-xl border border-line bg-panel shadow-game-shell sm:max-h-[calc(100dvh-4rem)]">
+      <div className="relative grid max-h-[calc(100dvh-1.5rem)] min-w-0 w-full max-w-3xl grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden rounded-xl border border-line bg-panel shadow-game-shell sm:max-h-[calc(100dvh-4rem)]">
         <header className="flex min-w-0 items-start justify-between gap-4 px-4 pt-4 pb-3 sm:px-6 sm:pt-6 sm:pb-4">
           <div className="min-w-0">
             <p className="text-xs font-extrabold uppercase text-accent-strong">
@@ -465,7 +483,7 @@ export function CustomImagePicker({
                         aria-label={`Delete saved image ${image.name}`}
                         className="absolute right-1 bottom-1 grid size-7 place-items-center rounded-md bg-surface/95 text-muted shadow-panel transition-colors hover:bg-warning/15 hover:text-warning-strong focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-50"
                         disabled={deletingImageId === image.id}
-                        onClick={() => void deleteSavedImage(image)}
+                        onClick={() => setImagePendingDeletion(image)}
                         title={`Delete ${image.name}`}
                         type="button"
                       >
@@ -644,6 +662,80 @@ export function CustomImagePicker({
             <ImagePlus className="size-4" /> Use this image
           </button>
         </footer>
+
+        {imagePendingDeletion ? (
+          <div className="absolute inset-0 z-20 grid place-items-center bg-night/70 p-4 backdrop-blur-[2px] sm:p-6">
+            <div
+              aria-describedby="delete-image-description"
+              aria-labelledby="delete-image-title"
+              aria-modal="true"
+              className="w-full max-w-md overflow-hidden rounded-xl border border-line bg-panel shadow-game-shell"
+              ref={deleteDialogRef}
+              role="alertdialog"
+              tabIndex={-1}
+            >
+              <div className="flex items-start gap-4 p-5 sm:p-6">
+                <span className="grid size-11 shrink-0 place-items-center rounded-full border border-danger/25 bg-danger-soft text-danger">
+                  <AlertTriangle aria-hidden="true" className="size-5" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-xs font-extrabold uppercase tracking-wide text-danger">
+                    Permanent action
+                  </p>
+                  <h3 className="mt-1 text-xl" id="delete-image-title">
+                    Delete this image?
+                  </h3>
+                  <p
+                    className="mt-2 text-sm leading-relaxed text-muted"
+                    id="delete-image-description"
+                  >
+                    It will be removed from your saved images on this browser.
+                    This can’t be undone.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mx-5 flex items-center gap-3 rounded-lg border border-line bg-surface-sunken p-2.5 sm:mx-6">
+                {/* IndexedDB blobs need regular img elements and object URLs. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  alt=""
+                  className="size-12 shrink-0 rounded-md object-cover"
+                  src={imagePendingDeletion.url}
+                />
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-bold">
+                    {imagePendingDeletion.name}
+                  </span>
+                  <span className="mt-0.5 block text-xs text-muted">
+                    Saved puzzle image
+                  </span>
+                </span>
+              </div>
+
+              <div className="mt-5 flex flex-col-reverse gap-2 border-t border-line bg-surface/40 p-4 sm:flex-row sm:justify-end sm:px-6">
+                <button
+                  className="rounded-lg border border-line px-4 py-2.5 text-sm font-bold transition-colors hover:bg-surface-sunken"
+                  disabled={deletingImageId !== null}
+                  onClick={() => setImagePendingDeletion(null)}
+                  ref={deleteCancelButtonRef}
+                  type="button"
+                >
+                  Keep image
+                </button>
+                <button
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-danger px-4 py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                  disabled={deletingImageId !== null}
+                  onClick={() => void deleteSavedImage(imagePendingDeletion)}
+                  type="button"
+                >
+                  <Trash2 aria-hidden="true" className="size-4" />
+                  {deletingImageId ? 'Deleting…' : 'Delete image'}
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>,
     portalContainer ?? document.body,
