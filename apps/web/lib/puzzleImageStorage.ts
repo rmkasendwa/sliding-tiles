@@ -16,7 +16,10 @@ const SELECTED_IMAGE_KEY = 'selected-image';
 const STORE_NAME = 'puzzle-images';
 
 type StoredPuzzleImageSelection = {
-  selectedId: string;
+  image?: Pick<StoredPuzzleImage, 'height' | 'name' | 'width'> & {
+    url: string;
+  };
+  selectedId?: string;
 };
 
 function isStoredPuzzleImage(
@@ -91,11 +94,10 @@ export async function loadStoredPuzzleImage() {
     ),
   ]);
 
-  return (
+  return selection?.image ??
     images.find((image) => image.id === selection?.selectedId) ??
     images[0] ??
-    null
-  );
+    null;
 }
 
 export async function loadStoredPuzzleImages() {
@@ -141,6 +143,18 @@ export function storePuzzleImage(
 
 export function selectStoredPuzzleImage(id: string) {
   const selection: StoredPuzzleImageSelection = { selectedId: id };
+
+  return runTransaction<IDBValidKey>('readwrite', (store) =>
+    store.put(selection, SELECTED_IMAGE_KEY),
+  ).then(() => undefined);
+}
+
+export function selectExternalPuzzleImage(
+  image: Pick<StoredPuzzleImage, 'height' | 'name' | 'width'> & {
+    url: string;
+  },
+) {
+  const selection: StoredPuzzleImageSelection = { image };
 
   return runTransaction<IDBValidKey>('readwrite', (store) =>
     store.put(selection, SELECTED_IMAGE_KEY),

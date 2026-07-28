@@ -20,6 +20,7 @@ import { createBoardSolverPayload } from '@/lib/boardSolver';
 import { BoardSolverWorkerClient } from '@/lib/board-solver/worker-client';
 import {
   loadStoredPuzzleImage,
+  selectExternalPuzzleImage,
   selectStoredPuzzleImage,
   storePuzzleImage,
 } from '@/lib/puzzleImageStorage';
@@ -138,13 +139,16 @@ function GameBoardContent({
       .then((stored) => {
         if (!stored || isCancelled || hasSelectedPuzzleImageRef.current) return;
 
-        const objectUrl = URL.createObjectURL(stored.blob);
-        puzzleImageObjectUrlRef.current = objectUrl;
+        const objectUrl =
+          'blob' in stored ? URL.createObjectURL(stored.blob) : stored.url;
+        if ('blob' in stored) {
+          puzzleImageObjectUrlRef.current = objectUrl;
+        }
         setPuzzleImage({
-          blob: stored.blob,
+          ...('blob' in stored ? { blob: stored.blob } : {}),
           height: stored.height,
           name: stored.name,
-          storedId: stored.id,
+          ...('id' in stored ? { storedId: stored.id } : {}),
           url: objectUrl,
           width: stored.width,
         });
@@ -1383,8 +1387,14 @@ function GameBoardContent({
                   'This photo works for now, but the browser could not save it for your next visit.',
                 );
               });
+            } else {
+              void selectExternalPuzzleImage(image).catch((error) => {
+                console.warn('Could not remember the selected puzzle image.', error);
+                setImageStorageError(
+                  'This image works for now, but the browser could not remember your selection.',
+                );
+              });
             }
-            refreshBoard(() => resetBoardAttempt(attemptStartBoard), false);
           }}
           portalContainer={imagePickerPortalContainer}
         />
