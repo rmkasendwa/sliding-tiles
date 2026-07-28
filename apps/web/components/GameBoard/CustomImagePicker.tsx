@@ -8,11 +8,13 @@ import {
   ImagePlus,
   Images,
   Link2,
+  Trash2,
   X,
 } from 'lucide-react';
 import { ChangeEvent, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
+  deleteStoredPuzzleImage,
   loadStoredPuzzleImages,
   StoredPuzzleImage,
 } from '@/lib/puzzleImageStorage';
@@ -102,6 +104,7 @@ export function CustomImagePicker({
   const [candidate, setCandidate] = useState<PuzzleImage>(currentImage);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [deletingImageId, setDeletingImageId] = useState<string | null>(null);
   const [isSavedImagesLoading, setIsSavedImagesLoading] = useState(true);
   const [savedImages, setSavedImages] = useState<
     Array<StoredPuzzleImage & { url: string }>
@@ -252,6 +255,38 @@ export function CustomImagePicker({
       .finally(() => setIsLoading(false));
   };
 
+  const deleteSavedImage = async (
+    image: StoredPuzzleImage & { url: string },
+  ) => {
+    if (
+      !window.confirm(
+        `Delete “${image.name}”? This removes it permanently from this browser.`,
+      )
+    ) {
+      return;
+    }
+
+    setError(null);
+    setDeletingImageId(image.id);
+    try {
+      await deleteStoredPuzzleImage(image.id);
+      setSavedImages((images) =>
+        images.filter((savedImage) => savedImage.id !== image.id),
+      );
+      savedImageUrlsRef.current = savedImageUrlsRef.current.filter(
+        (imageUrl) => imageUrl !== image.url,
+      );
+      URL.revokeObjectURL(image.url);
+      if (candidate.storedId === image.id) {
+        setCandidate(DEFAULT_PUZZLE_IMAGE);
+      }
+    } catch {
+      setError('That saved image could not be deleted. Please try again.');
+    } finally {
+      setDeletingImageId(null);
+    }
+  };
+
   const rawRatio = candidate.width / candidate.height;
   const willCrop =
     rawRatio > MAX_PUZZLE_ASPECT_RATIO ||
@@ -389,45 +424,59 @@ export function CustomImagePicker({
               ) : savedImages.length ? (
                 <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-3">
                   {savedImages.map((image) => (
-                    <button
-                      aria-label={`Preview saved image ${image.name}`}
-                      aria-pressed={candidate.storedId === image.id}
+                    <div
                       className={[
-                        'group relative overflow-hidden rounded-md border bg-surface text-left transition-colors hover:border-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
+                        'group relative overflow-hidden rounded-md border bg-surface transition-colors hover:border-accent',
                         candidate.storedId === image.id
                           ? 'border-accent ring-2 ring-accent/30'
                           : 'border-line',
                       ].join(' ')}
                       key={image.id}
-                      onClick={() =>
-                        setCandidate({
-                          blob: image.blob,
-                          height: image.height,
-                          name: image.name,
-                          storedId: image.id,
-                          url: image.url,
-                          width: image.width,
-                        })
-                      }
-                      title={image.name}
-                      type="button"
                     >
-                      {/* IndexedDB blobs need regular img elements and object URLs. */}
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        alt=""
-                        className="aspect-square w-full object-cover transition-transform group-hover:scale-105"
-                        src={image.url}
-                      />
-                      <span className="block truncate px-2 py-1.5 text-xs font-bold">
-                        {image.name}
-                      </span>
+                      <button
+                        aria-label={`Preview saved image ${image.name}`}
+                        aria-pressed={candidate.storedId === image.id}
+                        className="block w-full text-left focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent"
+                        onClick={() =>
+                          setCandidate({
+                            blob: image.blob,
+                            height: image.height,
+                            name: image.name,
+                            storedId: image.id,
+                            url: image.url,
+                            width: image.width,
+                          })
+                        }
+                        title={image.name}
+                        type="button"
+                      >
+                        {/* IndexedDB blobs need regular img elements and object URLs. */}
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          alt=""
+                          className="aspect-square w-full object-cover transition-transform group-hover:scale-105"
+                          src={image.url}
+                        />
+                        <span className="block truncate px-2 py-1.5 pr-9 text-xs font-bold">
+                          {image.name}
+                        </span>
+                      </button>
+                      <button
+                        aria-label={`Delete saved image ${image.name}`}
+                        className="absolute right-1 bottom-1 grid size-7 place-items-center rounded-md bg-surface/95 text-muted shadow-panel transition-colors hover:bg-warning/15 hover:text-warning-strong focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-50"
+                        disabled={deletingImageId === image.id}
+                        onClick={() => void deleteSavedImage(image)}
+                        title={`Delete ${image.name}`}
+                        type="button"
+                      >
+                        <Trash2 aria-hidden="true" className="size-3.5" />
+                      </button>
                       {candidate.storedId === image.id ? (
                         <span className="absolute top-1.5 right-1.5 grid size-5 place-items-center rounded-full bg-primary text-primary-contrast shadow-panel">
                           <Check aria-hidden="true" className="size-3.5" />
                         </span>
                       ) : null}
-                    </button>
+                    </div>
                   ))}
                   {Array.from(
                     { length: savedImagePlaceholderCount },

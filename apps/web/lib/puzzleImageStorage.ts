@@ -160,3 +160,36 @@ export function selectExternalPuzzleImage(
     store.put(selection, SELECTED_IMAGE_KEY),
   ).then(() => undefined);
 }
+
+export function deleteStoredPuzzleImage(id: string) {
+  return openDatabase().then(
+    (database) =>
+      new Promise<void>((resolve, reject) => {
+        const transaction = database.transaction(STORE_NAME, 'readwrite');
+        const store = transaction.objectStore(STORE_NAME);
+        const selectionRequest =
+          store.get(SELECTED_IMAGE_KEY) as IDBRequest<
+            StoredPuzzleImageSelection | undefined
+          >;
+
+        store.delete(id);
+        selectionRequest.onsuccess = () => {
+          if (selectionRequest.result?.selectedId === id) {
+            store.delete(SELECTED_IMAGE_KEY);
+          }
+        };
+        transaction.onabort = () =>
+          reject(
+            transaction.error ?? new Error('Browser storage transaction failed.'),
+          );
+        transaction.onerror = () =>
+          reject(
+            transaction.error ?? new Error('Browser storage transaction failed.'),
+          );
+        transaction.oncomplete = () => {
+          database.close();
+          resolve();
+        };
+      }),
+  );
+}
