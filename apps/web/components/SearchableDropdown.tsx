@@ -320,11 +320,11 @@ export function SearchableDropdown<T extends string | number>({
       {isOpen ? (
         <FloatingPortal>
           <div
-            className="z-[100] min-w-[12rem] overflow-y-auto overscroll-contain rounded-lg border border-line bg-panel p-1 shadow-panel"
+            className="z-[100] grid min-w-[12rem] grid-rows-[auto_minmax(0,1fr)] overflow-hidden rounded-lg border border-line bg-panel p-1 shadow-panel"
             ref={setFloating}
             style={floatingStyles}
           >
-            <div className="sticky top-0 z-10 bg-panel p-1">
+            <div className="bg-panel p-1">
               <input
                 aria-activedescendant={activeDescendant}
                 aria-autocomplete="list"
@@ -344,7 +344,11 @@ export function SearchableDropdown<T extends string | number>({
                 value={query}
               />
             </div>
-            <div id={listboxId} role="listbox">
+            <div
+              className="min-h-0 overflow-y-auto overscroll-contain"
+              id={listboxId}
+              role="listbox"
+            >
               {loading ? (
                 <div className="flex items-center gap-2 px-3 py-2.5 text-sm text-muted" role="status">
                   <LoaderCircle aria-hidden="true" className="size-4 animate-spin" />
