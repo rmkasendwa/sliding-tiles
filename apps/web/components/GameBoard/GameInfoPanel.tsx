@@ -191,7 +191,7 @@ export function GameInfoPanel({
                 </label>
                 <SearchableDropdown
                   aria-label="Current level"
-                  className="-ml-1 w-[calc(100%+0.25rem)] [&_input]:min-h-7 [&_input]:border-0 [&_input]:bg-transparent [&_input]:px-1 [&_input]:py-0 [&_input]:text-sm [&_input]:font-bold [&_input]:focus:ring-0"
+                  className="-ml-1 w-[calc(100%+0.25rem)] [&_[data-dropdown-trigger]]:min-h-7 [&_[data-dropdown-trigger]]:border-0 [&_[data-dropdown-trigger]]:bg-transparent [&_[data-dropdown-trigger]]:px-1 [&_[data-dropdown-trigger]]:py-0 [&_[data-dropdown-trigger]]:text-sm [&_[data-dropdown-trigger]]:font-bold [&_[data-dropdown-trigger]]:focus:ring-0"
                   disabled={isLevelSelectDisabled || isExpanded}
                   id={compactLevelSelectId}
                   onChange={(nextLevel) => {
@@ -291,7 +291,7 @@ export function GameInfoPanel({
                 </span>
               </div>
               <SearchableDropdown
-                className="[&_input]:min-h-10 [&_input]:bg-surface [&_input]:text-sm [&_input]:font-bold"
+                className="[&_[data-dropdown-trigger]]:min-h-10 [&_[data-dropdown-trigger]]:bg-surface [&_[data-dropdown-trigger]]:text-sm [&_[data-dropdown-trigger]]:font-bold"
                 disabled={isLevelSelectDisabled || !isExpanded}
                 id={levelSelectId}
                 onChange={(nextLevel) => {
