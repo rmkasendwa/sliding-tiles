@@ -1,5 +1,6 @@
 export type StoredPuzzleImage = {
   blob: Blob;
+  contentHash?: string;
   height: number;
   id: string;
   name: string;
@@ -7,6 +8,18 @@ export type StoredPuzzleImage = {
   type: string;
   updatedAt: number;
   width: number;
+};
+
+export type PuzzleImageImport = {
+  blob: Blob;
+  height: number;
+  name: string;
+  width: number;
+};
+
+export type PuzzleImageImportResult = {
+  duplicateCount: number;
+  imported: StoredPuzzleImage[];
 };
 
 const DATABASE_NAME = 'sliding-tiles';
@@ -85,6 +98,13 @@ function runTransaction<T>(
   );
 }
 
+async function hashBlob(blob: Blob) {
+  const digest = await crypto.subtle.digest('SHA-256', await blob.arrayBuffer());
+  return Array.from(new Uint8Array(digest), (byte) =>
+    byte.toString(16).padStart(2, '0'),
+  ).join('');
+}
+
 export async function loadStoredPuzzleImage() {
   const [images, selection] = await Promise.all([
     loadStoredPuzzleImages(),
@@ -119,26 +139,86 @@ export function storePuzzleImage(
   blob: Blob,
   metadata: Pick<StoredPuzzleImage, 'height' | 'name' | 'width'>,
 ) {
-  const id =
-    typeof crypto.randomUUID === 'function'
-      ? crypto.randomUUID()
-      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  const stored: StoredPuzzleImage = {
-    blob,
-    height: metadata.height,
-    id,
-    name: metadata.name,
-    size: blob.size,
-    type: blob.type,
-    updatedAt: Date.now(),
-    width: metadata.width,
-  };
+  return importStoredPuzzleImages([{ blob, ...metadata }]).then(
+    async ({ imported }) => {
+      const id =
+        imported[0]?.id ??
+        (await findStoredPuzzleImageByContents(blob))?.id;
+      if (!id) throw new Error('Could not save the puzzle image.');
+      await selectStoredPuzzleImage(id);
+      return id;
+    },
+  );
+}
 
-  return runTransaction<IDBValidKey>('readwrite', (store) =>
-    store.put(stored, id),
-  )
-    .then(() => selectStoredPuzzleImage(id))
-    .then(() => id);
+async function findStoredPuzzleImageByContents(blob: Blob) {
+  const contentHash = await hashBlob(blob);
+  const images = await loadStoredPuzzleImages();
+  const hashes = await Promise.all(
+    images.map(async (image) => image.contentHash ?? hashBlob(image.blob)),
+  );
+  return images.find((_, index) => hashes[index] === contentHash);
+}
+
+export async function importStoredPuzzleImages(
+  images: PuzzleImageImport[],
+): Promise<PuzzleImageImportResult> {
+  if (!images.length) return { duplicateCount: 0, imported: [] };
+
+  const existingImages = await loadStoredPuzzleImages();
+  const existingHashes = new Set(
+    await Promise.all(
+      existingImages.map(
+        async (image) => image.contentHash ?? hashBlob(image.blob),
+      ),
+    ),
+  );
+  const selectedHashes = new Set<string>();
+  const imported: StoredPuzzleImage[] = [];
+  let duplicateCount = 0;
+
+  for (const image of images) {
+    const contentHash = await hashBlob(image.blob);
+    if (existingHashes.has(contentHash) || selectedHashes.has(contentHash)) {
+      duplicateCount += 1;
+      continue;
+    }
+
+    selectedHashes.add(contentHash);
+    imported.push({
+      ...image,
+      contentHash,
+      id: `sha256-${contentHash}`,
+      size: image.blob.size,
+      type: image.blob.type,
+      updatedAt: Date.now(),
+    });
+  }
+
+  if (!imported.length) return { duplicateCount, imported };
+
+  await openDatabase().then(
+    (database) =>
+      new Promise<void>((resolve, reject) => {
+        const transaction = database.transaction(STORE_NAME, 'readwrite');
+        const store = transaction.objectStore(STORE_NAME);
+        imported.forEach((image) => store.put(image, image.id));
+        transaction.onabort = () =>
+          reject(
+            transaction.error ?? new Error('Browser storage transaction failed.'),
+          );
+        transaction.onerror = () =>
+          reject(
+            transaction.error ?? new Error('Browser storage transaction failed.'),
+          );
+        transaction.oncomplete = () => {
+          database.close();
+          resolve();
+        };
+      }),
+  );
+
+  return { duplicateCount, imported };
 }
 
 export function selectStoredPuzzleImage(id: string) {

@@ -16,6 +16,7 @@ import { ChangeEvent, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   deleteStoredPuzzleImage,
+  importStoredPuzzleImages,
   loadStoredPuzzleImages,
   StoredPuzzleImage,
 } from '@/lib/puzzleImageStorage';
@@ -104,6 +105,7 @@ export function CustomImagePicker({
 }: CustomImagePickerProps) {
   const [candidate, setCandidate] = useState<PuzzleImage>(currentImage);
   const [error, setError] = useState<string | null>(null);
+  const [importSummary, setImportSummary] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [deletingImageId, setDeletingImageId] = useState<string | null>(null);
   const [imagePendingDeletion, setImagePendingDeletion] = useState<
@@ -114,7 +116,6 @@ export function CustomImagePicker({
     Array<StoredPuzzleImage & { url: string }>
   >([]);
   const [url, setUrl] = useState('');
-  const objectUrlRef = useRef<string | null>(null);
   const savedImageUrlsRef = useRef<string[]>([]);
   const dialogRef = useRef<HTMLDivElement>(null);
   const deleteDialogRef = useRef<HTMLDivElement>(null);
@@ -230,7 +231,6 @@ export function CustomImagePicker({
         URL.revokeObjectURL(imageUrl),
       );
       savedImageUrlsRef.current = [];
-      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
     };
   }, []);
 
@@ -250,33 +250,75 @@ export function CustomImagePicker({
     }
   };
 
-  const selectFile = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      setError(
-        'Choose a supported image file, such as JPEG, PNG, WebP, GIF, or HEIC.',
-      );
-      return;
-    }
-    if (file.size > MAX_FILE_BYTES) {
-      setError('That image is larger than 20 MB. Choose a smaller file.');
-      return;
-    }
-    if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
-    objectUrlRef.current = URL.createObjectURL(file);
+  const selectFiles = async (event: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files ?? []);
+    event.target.value = '';
+    if (!files.length) return;
+
     setError(null);
+    setImportSummary(null);
     setIsLoading(true);
-    void loadImage(objectUrlRef.current, file.name, file)
-      .then(setCandidate)
-      .catch((loadError) => {
-        setError(
-          loadError instanceof Error
-            ? loadError.message
-            : 'That image could not be loaded.',
+    let rejectedCount = 0;
+    const validImages = [];
+
+    for (const file of files) {
+      if (!file.type.startsWith('image/') || file.size > MAX_FILE_BYTES) {
+        rejectedCount += 1;
+        continue;
+      }
+
+      const objectUrl = URL.createObjectURL(file);
+      try {
+        validImages.push(await loadImage(objectUrl, file.name, file));
+      } catch {
+        rejectedCount += 1;
+      } finally {
+        URL.revokeObjectURL(objectUrl);
+      }
+    }
+
+    try {
+      const { duplicateCount, imported } =
+        await importStoredPuzzleImages(
+          validImages.map(({ blob, height, name, width }) => ({
+            blob: blob!,
+            height,
+            name,
+            width,
+          })),
         );
-      })
-      .finally(() => setIsLoading(false));
+      const imagesWithUrls = imported.map((image) => {
+        const imageUrl = URL.createObjectURL(image.blob);
+        savedImageUrlsRef.current.push(imageUrl);
+        return { ...image, url: imageUrl };
+      });
+      if (imagesWithUrls.length) {
+        setSavedImages((images) => [...imagesWithUrls, ...images]);
+      }
+
+      const parts = [
+        `Added ${imported.length} ${imported.length === 1 ? 'image' : 'images'}.`,
+      ];
+      if (duplicateCount) {
+        parts.push(
+          `Skipped ${duplicateCount} ${
+            duplicateCount === 1 ? 'duplicate' : 'duplicates'
+          }.`,
+        );
+      }
+      if (rejectedCount) {
+        parts.push(
+          `Rejected ${rejectedCount} invalid or unsupported ${
+            rejectedCount === 1 ? 'file' : 'files'
+          }.`,
+        );
+      }
+      setImportSummary(parts.join(' '));
+    } catch {
+      setError('The selected images could not be saved. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const deleteSavedImage = async (
@@ -374,7 +416,8 @@ export function CustomImagePicker({
               <input
                 accept="image/*"
                 className="sr-only"
-                onChange={selectFile}
+                multiple
+                onChange={(event) => void selectFiles(event)}
                 type="file"
               />
             </label>
@@ -590,6 +633,14 @@ export function CustomImagePicker({
                 </span>
               </div>
             </div>
+            {importSummary ? (
+              <p
+                className="rounded-lg border border-primary/30 bg-primary-soft/50 p-3 text-sm font-bold text-accent-strong"
+                role="status"
+              >
+                {importSummary}
+              </p>
+            ) : null}
             {error ? (
               <p
                 aria-live="polite"
