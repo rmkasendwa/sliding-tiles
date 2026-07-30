@@ -5,6 +5,7 @@ import { useId, useSyncExternalStore } from 'react';
 import { routes } from '@/lib/routes';
 
 import { ProfileAvatar } from '../ProfileAvatar';
+import { SearchableDropdown } from '../SearchableDropdown';
 import { SolutionPreview } from './SolutionPreview';
 
 const INFO_PANEL_STORAGE_KEY = 'sliding-tiles:info-panel';
@@ -188,22 +189,22 @@ export function GameInfoPanel({
                 >
                   Current
                 </label>
-                <select
+                <SearchableDropdown
                   aria-label="Current level"
-                  className="-ml-1 min-h-6 w-[calc(100%+0.25rem)] cursor-pointer appearance-auto border-0 bg-transparent px-1 text-sm font-bold text-foreground outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-60"
+                  className="-ml-1 w-[calc(100%+0.25rem)] [&_input]:min-h-7 [&_input]:border-0 [&_input]:bg-transparent [&_input]:px-1 [&_input]:py-0 [&_input]:text-sm [&_input]:font-bold [&_input]:focus:ring-0"
                   disabled={isLevelSelectDisabled || isExpanded}
                   id={compactLevelSelectId}
-                  onChange={(event) =>
-                    onSelectLevel(Number(event.target.value))
-                  }
+                  onChange={(nextLevel) => {
+                    if (nextLevel !== undefined) onSelectLevel(Number(nextLevel));
+                  }}
+                  options={levelOptions.map((levelOption) => ({
+                    label: `Level ${levelOption}`,
+                    value: levelOption,
+                  }))}
+                  placeholder="Select level"
+                  searchPlaceholder="Find a level…"
                   value={level}
-                >
-                  {levelOptions.map((levelOption) => (
-                    <option key={levelOption} value={levelOption}>
-                      Level {levelOption}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
               <div className="rounded-[7px] border border-info/18 bg-info-surface px-3 py-2">
                 <p className="text-[0.7rem] font-extrabold uppercase text-info-strong">
@@ -289,19 +290,21 @@ export function GameInfoPanel({
                   Max {Math.max(highestReachedLevel, level)}
                 </span>
               </div>
-              <select
-                className="min-h-10 w-full cursor-pointer rounded-[7px] border border-line bg-surface px-3 text-sm font-bold text-foreground disabled:cursor-not-allowed disabled:opacity-60"
+              <SearchableDropdown
+                className="[&_input]:min-h-10 [&_input]:bg-surface [&_input]:text-sm [&_input]:font-bold"
                 disabled={isLevelSelectDisabled || !isExpanded}
                 id={levelSelectId}
-                onChange={(event) => onSelectLevel(Number(event.target.value))}
+                onChange={(nextLevel) => {
+                  if (nextLevel !== undefined) onSelectLevel(Number(nextLevel));
+                }}
+                options={levelOptions.map((levelOption) => ({
+                  label: `Level ${levelOption}`,
+                  value: levelOption,
+                }))}
+                placeholder="Select level"
+                searchPlaceholder="Find a level…"
                 value={level}
-              >
-                {levelOptions.map((levelOption) => (
-                  <option key={levelOption} value={levelOption}>
-                    Level {levelOption}
-                  </option>
-                ))}
-              </select>
+              />
               <p className="text-xs leading-5 text-muted">
                 Jumping levels starts a fresh puzzle and resets the timer and
                 move counter.
