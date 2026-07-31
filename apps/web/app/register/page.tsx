@@ -16,6 +16,14 @@ type RegisterPageProps = {
 export default async function RegisterPage({ searchParams }: RegisterPageProps) {
   const params = (await searchParams) ?? {};
   const returnTo = getSafeReturnTo(params.returnTo);
+  const oauthError = typeof params.oauthError === 'string' ? params.oauthError : undefined;
+  const oauthMessage = oauthError
+    ? oauthError === 'cancelled'
+      ? 'Google sign-up was cancelled. You can try again whenever you are ready.'
+      : oauthError === 'unavailable'
+        ? 'Google sign-up is temporarily unavailable. Please use the form or try again later.'
+        : 'We could not create your account with Google. Please try again.'
+    : undefined;
   const session = await getSession();
   if (session) {
     redirect(returnTo);
@@ -90,7 +98,7 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
               className="absolute -inset-2 hidden rounded-[20px] bg-linear-to-b from-warning/22 to-transparent blur-lg lg:block"
             />
             <div className="relative">
-              <AuthForm mode="register" returnTo={returnTo} />
+              <AuthForm mode="register" oauthError={oauthMessage} returnTo={returnTo} />
               <p className="mt-4 text-center leading-normal text-muted">
                 Already have an account?{' '}
                 <Link

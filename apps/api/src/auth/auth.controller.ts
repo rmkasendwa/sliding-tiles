@@ -189,6 +189,25 @@ export class AuthController {
     };
   }
 
+  @Post('google')
+  @ApiOperation({ summary: 'Exchange a Google authorization code for a session' })
+  async googleLogin(
+    @Body() body: unknown,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const code =
+      typeof body === 'object' && body !== null && 'code' in body
+        ? (body as { code?: unknown }).code
+        : undefined;
+    if (typeof code !== 'string' || !code.trim()) {
+      throw new BadRequestException('A Google authorization code is required.');
+    }
+    const user = await this.authService.loginWithGoogle(code.trim());
+    const session = await this.sessionService.createSession(user);
+    this.sessionService.setSessionCookie(response, session.token, session.expiresAt);
+    return { accessToken: session.token, user };
+  }
+
   @Post('forgot-password')
   @ApiOperation({ summary: 'Request a password reset email' })
   @ApiBody({

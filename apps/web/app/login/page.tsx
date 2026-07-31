@@ -17,6 +17,14 @@ type LoginPageProps = {
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = (await searchParams) ?? {};
   const returnTo = getSafeReturnTo(params.returnTo);
+  const oauthError = typeof params.oauthError === 'string' ? params.oauthError : undefined;
+  const oauthMessage = oauthError
+    ? oauthError === 'cancelled'
+      ? 'Google sign-in was cancelled. You can try again whenever you are ready.'
+      : oauthError === 'unavailable'
+        ? 'Google sign-in is temporarily unavailable. Please use your password or try again later.'
+        : 'We could not sign you in with Google. Please try again.'
+    : undefined;
   const session = await getSession();
   if (session) {
     redirect(returnTo);
@@ -96,7 +104,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
                 <Lock className="h-3.5 w-3.5 text-accent-strong" />
                 Secure sign-in
               </p>
-              <AuthForm mode="login" returnTo={returnTo} />
+              <AuthForm mode="login" oauthError={oauthMessage} returnTo={returnTo} />
               <p className="mt-4 text-center text-[0.9rem] leading-normal text-muted">
                 Need an account?{' '}
                 <Link

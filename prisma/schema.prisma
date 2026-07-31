@@ -17,7 +17,7 @@ model User {
   username                        String        @unique(map: "users_username_key")
   /// Case-insensitive uniqueness is enforced by the users_email_lower_key expression index.
   email                           String
-  passwordHash                    String        @map("password_hash")
+  passwordHash                    String?       @map("password_hash")
   role                            UserRole      @default(USER)
   promotedById                    String?       @map("promoted_by_id")
   promotedAt                      DateTime?     @map("promoted_at")
@@ -34,10 +34,25 @@ model User {
   promotedUsers                   User[]        @relation("UserPromotions")
   scores                          Leaderboard[]
   analyticsEvents                 AnonymousAnalyticsEvent[]
+  accounts                        OAuthAccount[]
 
   @@index([role], map: "users_role_idx")
   @@index([promotedById], map: "users_promoted_by_id_idx")
   @@map("users")
+}
+
+model OAuthAccount {
+  id                String   @id @default(cuid())
+  userId            String   @map("user_id")
+  provider          String
+  providerAccountId String   @map("provider_account_id")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "oauth_accounts_user_id_fkey")
+
+  @@unique([provider, providerAccountId], map: "oauth_accounts_provider_provider_account_id_key")
+  @@index([userId], map: "oauth_accounts_user_id_idx")
+  @@map("oauth_accounts")
 }
 
 model GameState {

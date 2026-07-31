@@ -71,7 +71,10 @@ export class AuthService {
       where: { id: userId },
     });
 
-    if (!user || !(await verifyPassword(currentPassword, user.passwordHash))) {
+    if (
+      !user?.passwordHash ||
+      !(await verifyPassword(currentPassword, user.passwordHash))
+    ) {
       throw new BadRequestException({
         errors: {
           currentPassword: ['Current password is incorrect.'],
@@ -599,10 +602,167 @@ export class AuthService {
       },
     });
 
-    if (!user || !(await verifyPassword(password, user.passwordHash))) {
+    if (
+      !user?.passwordHash ||
+      !(await verifyPassword(password, user.passwordHash))
+    ) {
       throw new UnauthorizedException('Email or password is incorrect.');
     }
 
     return this.toSessionUser(user);
+  }
+
+  async loginWithGoogle(code: string): Promise<SessionUser> {
+    const clientId = process.env.GOOGLE_CLIENT_ID?.trim();
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim();
+    if (!clientId || !clientSecret) {
+      throw new HttpException(
+        'Google sign-in is not configured.',
+        HttpStatus.SERVICE_UNAVAILABLE,
+      );
+    }
+
+    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+      body: new URLSearchParams({
+        client_id: clientId,
+        client_secret: clientSecret,
+        code,
+        grant_type: 'authorization_code',
+        redirect_uri: `${this.getWebBaseUrl()}/api/auth/google/callback`,
+      }),
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      method: 'POST',
+    });
+    const tokenBody = (await tokenResponse.json()) as { access_token?: string };
+    if (!tokenResponse.ok || !tokenBody.access_token) {
+      throw new UnauthorizedException('Google sign-in could not be completed.');
+    }
+
+    const profileResponse = await fetch(
+      'https://openidconnect.googleapis.com/v1/userinfo',
+      { headers: { Authorization: `Bearer ${tokenBody.access_token}` } },
+    );
+    const profile = (await profileResponse.json()) as {
+      email?: string;
+      email_verified?: boolean;
+      name?: string;
+      sub?: string;
+    };
+    if (
+      !profileResponse.ok ||
+      !profile.sub ||
+      !profile.email ||
+      profile.email_verified !== true
+    ) {
+      throw new UnauthorizedException(
+        'Google did not provide a verified email address.',
+      );
+    }
+
+    const email = this.normalizeEmail(profile.email);
+    const account = await this.prisma.oAuthAccount.findUnique({
+      include: { user: true },
+      where: {
+        provider_providerAccountId: {
+          provider: 'google',
+          providerAccountId: profile.sub,
+        },
+      },
+    });
+    if (account) {
+      return this.toSessionUser(account.user);
+    }
+
+    const existingUser = await this.prisma.user.findFirst({
+      where: { email },
+    });
+    if (existingUser) {
+      try {
+        await this.prisma.oAuthAccount.create({
+          data: {
+            provider: 'google',
+            providerAccountId: profile.sub,
+            userId: existingUser.id,
+          },
+        });
+        const user = await this.prisma.user.update({
+          data: { emailVerifiedAt: existingUser.emailVerifiedAt ?? new Date() },
+          where: { id: existingUser.id },
+        });
+        return this.toSessionUser(user);
+      } catch (error) {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === 'P2002'
+        ) {
+          const linked = await this.prisma.oAuthAccount.findUnique({
+            include: { user: true },
+            where: {
+              provider_providerAccountId: {
+                provider: 'google',
+                providerAccountId: profile.sub,
+              },
+            },
+          });
+          if (linked) return this.toSessionUser(linked.user);
+        }
+        throw error;
+      }
+    }
+
+    const usernameBase = this.sanitizeUsernameBase(
+      email.split('@')[0] || profile.name || 'player',
+    );
+    for (let suffix = 0; suffix < 100; suffix += 1) {
+      const suffixText = suffix === 0 ? '' : `_${suffix + 1}`;
+      const username = `${usernameBase.slice(0, 20 - suffixText.length)}${suffixText}`;
+      try {
+        const user = await this.prisma.user.create({
+          data: {
+            accounts: {
+              create: {
+                provider: 'google',
+                providerAccountId: profile.sub,
+              },
+            },
+            email,
+            emailVerifiedAt: new Date(),
+            name: profile.name?.trim() || email.split('@')[0],
+            username,
+          },
+        });
+        return this.toSessionUser(user);
+      } catch (error) {
+        if (
+          !(error instanceof Prisma.PrismaClientKnownRequestError) ||
+          error.code !== 'P2002'
+        ) {
+          throw error;
+        }
+        const linked = await this.prisma.oAuthAccount.findUnique({
+          include: { user: true },
+          where: {
+            provider_providerAccountId: {
+              provider: 'google',
+              providerAccountId: profile.sub,
+            },
+          },
+        });
+        if (linked) return this.toSessionUser(linked.user);
+        const matchingEmail = await this.prisma.user.findFirst({ where: { email } });
+        if (matchingEmail) {
+          await this.prisma.oAuthAccount.create({
+            data: {
+              provider: 'google',
+              providerAccountId: profile.sub,
+              userId: matchingEmail.id,
+            },
+          });
+          return this.toSessionUser(matchingEmail);
+        }
+      }
+    }
+
+    throw new ConflictException('Could not create a unique player name.');
   }
 }
