@@ -3,6 +3,7 @@ import { ChevronDown, Filter } from 'lucide-react';
 import { getAnalyticsParam, humanizeAnalyticsEventName } from '@/lib/admin';
 import type { AdminAnalyticsResponse } from '@/lib/api';
 
+import { DatePicker } from './DatePicker';
 import { SearchableDropdown } from './SearchableDropdown';
 
 export function AdminAnalyticsFilters({
@@ -77,20 +78,20 @@ export function AdminAnalyticsFilters({
         </label>
         <label className="grid min-w-0 gap-2 text-sm font-bold">
           From
-          <input
-            className="min-h-11 min-w-0 rounded-[7px] border border-line bg-panel px-3 text-base outline-none focus:border-accent"
+          <DatePicker
+            aria-label="From date"
+            allowClear
             defaultValue={getAnalyticsParam(params.dateFrom) ?? ''}
             name="dateFrom"
-            type="date"
           />
         </label>
         <label className="grid min-w-0 gap-2 text-sm font-bold">
           To
-          <input
-            className="min-h-11 min-w-0 rounded-[7px] border border-line bg-panel px-3 text-base outline-none focus:border-accent"
+          <DatePicker
+            aria-label="To date"
+            allowClear
             defaultValue={getAnalyticsParam(params.dateTo) ?? ''}
             name="dateTo"
-            type="date"
           />
         </label>
         <label className="grid min-w-0 gap-2 text-sm font-bold">
