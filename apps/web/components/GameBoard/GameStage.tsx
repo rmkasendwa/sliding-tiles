@@ -2,6 +2,7 @@
 
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import type { MutableRefObject, PointerEventHandler, RefObject } from 'react';
+import { Trophy } from 'lucide-react';
 
 import { BoardState, Slot, slotKey } from '@/lib/board';
 
@@ -16,6 +17,11 @@ import { CompletionEffects } from './CompletionEffects';
 import { GameHud } from './GameHud';
 import { GameToolbar } from './GameToolbar';
 import { ReplayResultPanel, type ReplayResult } from './ReplayResultPanel';
+
+export type PersonalBestNotice = {
+  improvementSeconds: number;
+  level: number;
+};
 
 type GameStageProps = {
   board: BoardState;
@@ -80,6 +86,7 @@ type GameStageProps = {
   onShuffle: () => void;
   onToggleFullscreen: () => void;
   onToggleMuted: () => void;
+  personalBestNotice: PersonalBestNotice | null;
   replayResult: ReplayResult | null;
   rows: number;
   suppressNextClickRef: MutableRefObject<boolean>;
@@ -181,6 +188,36 @@ const BoardTilesLayer = memo(function BoardTilesLayer({
   });
 });
 
+function formatImprovement(seconds: number) {
+  return `${seconds} ${seconds === 1 ? 'second' : 'seconds'}`;
+}
+
+function PersonalBestBanner({
+  notice,
+}: {
+  notice: PersonalBestNotice;
+}) {
+  return (
+    <div
+      className="absolute left-1/2 top-5 z-40 flex w-[min(26rem,calc(100%-2rem))] -translate-x-1/2 items-start gap-3 rounded-lg border border-success/35 bg-panel/95 p-4 text-foreground shadow-panel backdrop-blur"
+      role="status"
+    >
+      <span className="grid size-10 shrink-0 place-items-center rounded-md bg-success-soft text-success-strong">
+        <Trophy aria-hidden="true" className="size-5" />
+      </span>
+      <span className="min-w-0">
+        <span className="block text-sm font-extrabold text-success-strong">
+          New personal best
+        </span>
+        <span className="mt-0.5 block text-sm font-bold text-foreground">
+          Level {notice.level} improved by{' '}
+          {formatImprovement(notice.improvementSeconds)}.
+        </span>
+      </span>
+    </div>
+  );
+}
+
 export function GameStage({
   board,
   boardEntryAnimationKey,
@@ -234,6 +271,7 @@ export function GameStage({
   onShuffle,
   onToggleFullscreen,
   onToggleMuted,
+  personalBestNotice,
   replayResult,
   rows,
   suppressNextClickRef,
@@ -365,6 +403,9 @@ export function GameStage({
           isCompletionImageVisible={isCompletionImageVisible}
         />
       </div>
+      {personalBestNotice && isCelebrating && !replayResult ? (
+        <PersonalBestBanner notice={personalBestNotice} />
+      ) : null}
       <GameToolbar
         columns={columns}
         elapsedTimeLabel={elapsedTimeLabel}

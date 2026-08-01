@@ -244,6 +244,18 @@ export class LeaderboardService {
         ? board.elapsedTimeMs
         : Math.max(0, Date.now() - new Date(board.startedAt).getTime());
     const timeSeconds = Math.max(1, Math.round(elapsedMs / 1000));
+    const previousBest = await this.prisma.leaderboard.findFirst({
+      orderBy: [
+        { timeSeconds: 'asc' },
+        { moves: 'asc' },
+        { completedAt: 'asc' },
+      ],
+      select: { moves: true, timeSeconds: true },
+      where: {
+        level: board.level,
+        userId,
+      },
+    });
     const replaySource = replayOfId
       ? await this.prisma.leaderboard.findFirst({
           where: {
@@ -272,6 +284,15 @@ export class LeaderboardService {
       },
     });
 
-    return { score };
+    return {
+      personalBest:
+        previousBest && timeSeconds < previousBest.timeSeconds
+          ? {
+              improvementSeconds: previousBest.timeSeconds - timeSeconds,
+              previousBest,
+            }
+          : null,
+      score,
+    };
   }
 }

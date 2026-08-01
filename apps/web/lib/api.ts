@@ -81,6 +81,17 @@ export type ApiRunPage = {
   totalCount: number;
 };
 
+export type ApiCompletionResponse = {
+  personalBest: {
+    improvementSeconds: number;
+    previousBest: {
+      moves: number;
+      timeSeconds: number;
+    };
+  } | null;
+  score: ApiScore;
+};
+
 export type AdminUser = {
   createdAt: string;
   email: string;

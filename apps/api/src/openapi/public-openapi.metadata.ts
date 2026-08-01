@@ -233,6 +233,36 @@ export const publicApiSchemas = {
     required: scoreRequired(),
     type: 'object',
   },
+  LeaderboardRecordResponse: {
+    additionalProperties: false,
+    properties: {
+      personalBest: {
+        nullable: true,
+        oneOf: [
+          {
+            additionalProperties: false,
+            properties: {
+              improvementSeconds: { minimum: 1, type: 'integer' },
+              previousBest: {
+                additionalProperties: false,
+                properties: {
+                  moves: { minimum: 0, type: 'integer' },
+                  timeSeconds: { minimum: 1, type: 'integer' },
+                },
+                required: ['moves', 'timeSeconds'],
+                type: 'object',
+              },
+            },
+            required: ['improvementSeconds', 'previousBest'],
+            type: 'object',
+          },
+        ],
+      },
+      score: { $ref: '#/components/schemas/LeaderboardRecord' },
+    },
+    required: ['personalBest', 'score'],
+    type: 'object',
+  },
   LeaderboardResponse: {
     additionalProperties: false,
     properties: {

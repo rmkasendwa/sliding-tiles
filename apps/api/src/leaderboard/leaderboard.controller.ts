@@ -91,12 +91,7 @@ export class LeaderboardController {
   })
   @ApiCreatedResponse({
     description: 'Completion recorded.',
-    schema: {
-      additionalProperties: false,
-      properties: { score: ref('LeaderboardRecord') },
-      required: ['score'],
-      type: 'object',
-    },
+    schema: ref('LeaderboardRecordResponse'),
   })
   @ApiBadRequestResponse({
     description: 'The board failed validation or replay source is missing.',

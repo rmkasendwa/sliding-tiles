@@ -38,7 +38,7 @@ import {
   TILE_ENTRY_ANIMATION_MS,
   TILE_ENTRY_LOCK_IN_DELAY_MS,
 } from './constants';
-import { GameStage } from './GameStage';
+import { GameStage, type PersonalBestNotice } from './GameStage';
 import {
   CustomImagePicker,
   MAX_PUZZLE_ASPECT_RATIO,
@@ -195,6 +195,8 @@ function GameBoardContent({
   const [currentReplayBest, setCurrentReplayBest] =
     useState<ReplayPerformance | null>(replayBest ?? null);
   const [replayResult, setReplayResult] = useState<ReplayResult | null>(null);
+  const [personalBestNotice, setPersonalBestNotice] =
+    useState<PersonalBestNotice | null>(null);
   const [isCelebrating, setIsCelebrating] = useState(false);
   const [boardEntryAnimationKey, setBoardEntryAnimationKey] = useState(0);
   const [isBoardEntering, setIsBoardEntering] = useState(true);
@@ -535,6 +537,7 @@ function GameBoardContent({
       effectiveLevelStartedAtMs: number,
       source: 'auto-play' | 'player' = 'player',
     ) => {
+      setPersonalBestNotice(null);
       const completedElapsedTimeMs = completeClock(effectiveLevelStartedAtMs);
       const latestReplayPerformance = {
         moves: completedBoard.moves,
@@ -584,7 +587,20 @@ function GameBoardContent({
           },
           puzzleConfig: attemptStartBoard,
           replayOfId: activeReplayOfId,
-        });
+        })
+          .then((result) => {
+            if (!result.ok || activeReplayOfId || !result.personalBest) {
+              return;
+            }
+
+            setPersonalBestNotice({
+              improvementSeconds: result.personalBest.improvementSeconds,
+              level: completedBoard.level,
+            });
+          })
+          .catch((error) => {
+            console.warn('Could not record completed level.', error);
+          });
       }
 
       if (celebrationTimeoutRef.current !== null) {
@@ -636,6 +652,7 @@ function GameBoardContent({
           );
           setBoard(nextBoard);
           setIsCompletionImageVisible(false);
+          setPersonalBestNotice(null);
           setIsCelebrating(false);
           clearBoardHint();
           levelAdvanceTimeoutRef.current = null;
@@ -1324,6 +1341,7 @@ function GameBoardContent({
         onShuffle={shuffleLevel}
         onToggleFullscreen={() => void toggleBoardFullscreen()}
         onToggleMuted={toggleMuted}
+        personalBestNotice={personalBestNotice}
         replayResult={replayResult}
         rows={rows}
         suppressNextClickRef={suppressNextClickRef}

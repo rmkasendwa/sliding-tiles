@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 
-import { apiRequest } from '@/lib/api';
+import { ApiCompletionResponse, apiRequest } from '@/lib/api';
 import { BoardState } from '@/lib/board';
 import { getSession } from '@/lib/session';
 
@@ -42,18 +42,21 @@ export async function recordLevelAttempt({
     return { ok: false };
   }
 
-  await apiRequest('/leaderboard/completions', {
-    body: {
-      attemptType,
-      board,
-      puzzleConfig,
-      replayOfId: replayOfId ?? undefined,
+  const result = await apiRequest<ApiCompletionResponse>(
+    '/leaderboard/completions',
+    {
+      body: {
+        attemptType,
+        board,
+        puzzleConfig,
+        replayOfId: replayOfId ?? undefined,
+      },
+      method: 'POST',
     },
-    method: 'POST',
-  });
+  );
 
   revalidatePath('/leaderboard');
   revalidatePath('/profile');
 
-  return { ok: true };
+  return { ok: true, personalBest: result.personalBest };
 }
