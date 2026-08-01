@@ -205,9 +205,12 @@ function GameBoardContent({
   const [personalBestNotice, setPersonalBestNotice] =
     useState<PersonalBestNotice | null>(null);
   const [dailyCompletion, setDailyCompletion] = useState<{
+    moves: number;
     rank: number | null;
+    timeSeconds: number;
     totalCount: number;
   } | null>(null);
+  const [isDailyResultVisible, setIsDailyResultVisible] = useState(false);
   const [isCelebrating, setIsCelebrating] = useState(false);
   const [boardEntryAnimationKey, setBoardEntryAnimationKey] = useState(0);
   const [isBoardEntering, setIsBoardEntering] = useState(true);
@@ -591,6 +594,11 @@ function GameBoardContent({
       trackAnonymousEvent('game_completed', analyticsMetadata);
 
       if (dailyChallenge) {
+        const completedTimeSeconds = Math.max(
+          1,
+          Math.round(completedElapsedTimeMs / 1000),
+        );
+
         if (isSignedIn) {
           void recordDailyChallengeAttempt({
             board: {
@@ -606,10 +614,11 @@ function GameBoardContent({
               }
 
               setDailyCompletion({
+                moves: completedBoard.moves,
                 rank: result.rank ?? null,
+                timeSeconds: completedTimeSeconds,
                 totalCount: result.totalCount ?? 0,
               });
-              router.refresh();
             })
             .catch((error) => {
               console.warn('Could not record daily challenge.', error);
@@ -622,6 +631,12 @@ function GameBoardContent({
         celebrationTimeoutRef.current = window.setTimeout(() => {
           setIsCelebrating(true);
           celebrationTimeoutRef.current = null;
+
+          levelAdvanceTimeoutRef.current = window.setTimeout(() => {
+            setIsCelebrating(false);
+            setIsDailyResultVisible(true);
+            levelAdvanceTimeoutRef.current = null;
+          }, LEVEL_COMPLETE_ADVANCE_DELAY_MS);
         }, LEVEL_COMPLETE_CELEBRATION_DELAY_MS);
         return;
       }
@@ -721,7 +736,6 @@ function GameBoardContent({
       launchCompletionConfetti,
       playSound,
       resetClock,
-      router,
       showSolvedBoard,
       getAnalyticsMetadata,
       trackAnonymousEvent,
@@ -1292,6 +1306,14 @@ function GameBoardContent({
     },
     [playSound],
   );
+  const viewDailyRankings = useCallback(() => {
+    router.refresh();
+    window.requestAnimationFrame(() => {
+      document
+        .getElementById('daily-rankings')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }, [router]);
 
   useGameKeyboardControls({
     board,
@@ -1337,6 +1359,9 @@ function GameBoardContent({
         columns={columns}
         confettiBurstKey={confettiBurstKey}
         continueLevel={highestReachedLevel}
+        dailyChallengeResult={
+          isDailyResultVisible && dailyCompletion ? dailyCompletion : null
+        }
         elapsedTimeLabel={elapsedTimeLabel}
         hintedSlot={hintedSlot}
         imageAspectRatio={imageAspectRatio}
@@ -1381,6 +1406,7 @@ function GameBoardContent({
         movableSlotKeys={movableSlotKeys}
         onAutoPlayToggle={toggleAutoPlay}
         onAutoPlaySpeedChange={updateAutoPlaySpeed}
+        onDailyChallengeViewRankings={viewDailyRankings}
         onBoardPointerDown={startBoardHint}
         onBoardPointerLeave={clearBoardHintFromPointer}
         onBoardPointerUp={clearBoardHintFromPointer}
@@ -1414,24 +1440,6 @@ function GameBoardContent({
         suppressNextClickRef={suppressNextClickRef}
         tileRotationSeed={tileRotationSeed}
       />
-      {dailyCompletion ? (
-        <div
-          className="fixed inset-x-4 bottom-4 z-50 mx-auto grid max-w-md gap-2 rounded-lg border border-success/35 bg-panel/95 p-4 text-foreground shadow-panel backdrop-blur"
-          role="status"
-        >
-          <p className="text-sm font-extrabold uppercase text-success-strong">
-            Daily score submitted
-          </p>
-          <p className="text-sm font-bold">
-            {dailyCompletion.rank
-              ? `You are #${dailyCompletion.rank} of ${dailyCompletion.totalCount}.`
-              : 'Your ranking is being calculated.'}
-          </p>
-          <p className="text-xs leading-5 text-muted">
-            Come back tomorrow for a fresh shared puzzle.
-          </p>
-        </div>
-      ) : null}
 
       <ResponsiveGameInfoPanel
         columns={columns}

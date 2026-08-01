@@ -111,7 +111,10 @@ export default async function DailyChallengePage() {
         </section>
       )}
 
-      <section className="page-rail mx-auto grid gap-5 pb-12 pt-5">
+      <section
+        className="page-rail mx-auto grid gap-5 scroll-mt-24 pb-12 pt-5"
+        id="daily-rankings"
+      >
         <div className="grid gap-4 rounded-lg border border-accent/18 bg-panel p-4 shadow-panel min-[920px]:grid-cols-[minmax(0,1fr)_auto] min-[920px]:items-end">
           <div className="grid gap-2">
             <p className="text-[0.78rem] font-extrabold uppercase text-accent-strong">

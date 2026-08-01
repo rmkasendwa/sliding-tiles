@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react';
 import { CELEBRATION_PARTICLES, CONFETTI_PARTICLES } from './constants';
 
 type CompletionEffectsProps = {
+  celebrationMessage?: string;
   confettiBurstKey: number | null;
   isAutoPlayCompletion: boolean;
   isCelebrating: boolean;
@@ -11,6 +12,7 @@ type CompletionEffectsProps = {
 };
 
 export function CompletionEffects({
+  celebrationMessage,
   confettiBurstKey,
   isAutoPlayCompletion,
   isCelebrating,
@@ -77,7 +79,8 @@ export function CompletionEffects({
             <p className="mt-1 text-sm text-muted">
               {isAutoPlayCompletion
                 ? 'Enjoy the solved image. Your assisted result is coming up.'
-                : 'Enjoy the solved image. Next level is loading.'}
+                : (celebrationMessage ??
+                  'Enjoy the solved image. Next level is loading.')}
             </p>
           </div>
         </div>
