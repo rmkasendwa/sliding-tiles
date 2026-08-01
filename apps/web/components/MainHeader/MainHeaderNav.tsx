@@ -60,6 +60,7 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
   const pathname = usePathname();
   const isHomePage = pathname === routes.home;
   const isPlayPage = pathname === routes.play;
+  const isDailyPage = pathname === routes.daily;
   const [hasScrolledRevealPage, setHasScrolledRevealPage] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
@@ -67,7 +68,7 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
   const sessionDisplayName = session ? getUserDisplayName(session) : null;
   const isAdmin = session?.role === 'ADMIN';
   const shouldRevealHeader =
-    !(isHomePage || isPlayPage) || hasScrolledRevealPage;
+    !(isHomePage || isPlayPage || isDailyPage) || hasScrolledRevealPage;
   const closeDrawer = () => setIsDrawerOpen(false);
   const closeAccountMenu = () => setIsAccountMenuOpen(false);
   const accountMenuRef = useRef<HTMLDivElement>(null);
@@ -82,7 +83,7 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
   }, []);
 
   useEffect(() => {
-    if (!isHomePage && !isPlayPage) {
+    if (!isHomePage && !isPlayPage && !isDailyPage) {
       return;
     }
 
@@ -97,7 +98,7 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
       window.cancelAnimationFrame(frameId);
       window.removeEventListener('scroll', updateScrolledState);
     };
-  }, [isHomePage, isPlayPage]);
+  }, [isHomePage, isPlayPage, isDailyPage]);
 
   useEffect(() => {
     const frameId = window.requestAnimationFrame(() => {
@@ -171,7 +172,9 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
         Play
       </Link>
       <Link
-        aria-current={isRouteActive(pathname, routes.daily) ? 'page' : undefined}
+        aria-current={
+          isRouteActive(pathname, routes.daily) ? 'page' : undefined
+        }
         className={getNavLinkClass(isRouteActive(pathname, routes.daily))}
         href={routes.daily}
         onClick={closeDrawer}
@@ -234,7 +237,9 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
         ) : null}
       </Link>
       <Link
-        aria-current={isRouteActive(pathname, routes.daily) ? 'page' : undefined}
+        aria-current={
+          isRouteActive(pathname, routes.daily) ? 'page' : undefined
+        }
         className={getDrawerLinkClass(isRouteActive(pathname, routes.daily))}
         href={routes.daily}
         onClick={closeDrawer}
@@ -283,9 +288,7 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
             aria-current={
               isRouteActive(pathname, routes.runs) ? 'page' : undefined
             }
-            className={getDrawerLinkClass(
-              isRouteActive(pathname, routes.runs),
-            )}
+            className={getDrawerLinkClass(isRouteActive(pathname, routes.runs))}
             href={routes.runs}
             onClick={closeDrawer}
           >
@@ -365,7 +368,9 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
     <header
       className={[
         'top-0 z-50 border-b border-line bg-background/85 backdrop-blur transition-transform duration-300 ease-out',
-        isHomePage || isPlayPage ? 'fixed inset-x-0' : 'sticky',
+        isHomePage || isPlayPage || isDailyPage
+          ? 'fixed inset-x-0'
+          : 'sticky',
         shouldRevealHeader
           ? 'translate-y-0'
           : 'pointer-events-none -translate-y-full',
