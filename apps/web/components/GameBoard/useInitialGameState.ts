@@ -38,11 +38,13 @@ function getServerStorageSnapshot() {
 export function useInitialGameState({
   initialBoard,
   initialHighestReachedLevel,
+  isProgressRestoreDisabled = false,
   isSignedIn,
   replayOfId,
 }: {
   initialBoard: BoardState;
   initialHighestReachedLevel?: number;
+  isProgressRestoreDisabled?: boolean;
   isSignedIn: boolean;
   replayOfId?: string | null;
 }) {
@@ -53,20 +55,24 @@ export function useInitialGameState({
   );
   const storedProgressValue = useSyncExternalStore(
     subscribeToClientReady,
-    isSignedIn ? getServerStorageSnapshot : getAnonymousProgressSnapshot,
+    isSignedIn || isProgressRestoreDisabled
+      ? getServerStorageSnapshot
+      : getAnonymousProgressSnapshot,
     getServerStorageSnapshot,
   );
   const storedHighestLevelValue = useSyncExternalStore(
     subscribeToClientReady,
-    isSignedIn ? getServerStorageSnapshot : getHighestReachedLevelSnapshot,
+    isSignedIn || isProgressRestoreDisabled
+      ? getServerStorageSnapshot
+      : getHighestReachedLevelSnapshot,
     getServerStorageSnapshot,
   );
   const restoredProgress = useMemo(
     () =>
-      isSignedIn || replayOfId
+      isSignedIn || replayOfId || isProgressRestoreDisabled
         ? null
         : parseAnonymousGameProgress(storedProgressValue),
-    [isSignedIn, replayOfId, storedProgressValue],
+    [isProgressRestoreDisabled, isSignedIn, replayOfId, storedProgressValue],
   );
   const storedHighestReachedLevel = useMemo(() => {
     const storedLevel = Number.parseInt(storedHighestLevelValue ?? '', 10);

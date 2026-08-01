@@ -31,8 +31,21 @@ import {
 import { AuthGuard } from '../session/auth.guard';
 import { getAuthenticatedUser } from '../session/get-authenticated-user';
 import type { AuthenticatedRequest } from '../session/session.types';
-import { completedLevelSchema, parseBody } from '../shared/zod';
+import {
+  completedDailyChallengeSchema,
+  completedLevelSchema,
+  dailyChallengeDateSchema,
+  parseBody,
+} from '../shared/zod';
 import { LeaderboardService } from './leaderboard.service';
+
+function getCurrentChallengeDate() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function parseChallengeDate(date: string | undefined) {
+  return parseBody(dailyChallengeDateSchema, date ?? getCurrentChallengeDate());
+}
 
 @Controller('leaderboard')
 @ApiTags('Leaderboard')
@@ -70,6 +83,108 @@ export class LeaderboardController {
     const parsedTake = Number(take ?? 20);
     return this.leaderboardService.list(
       Number.isFinite(parsedTake) ? Math.min(Math.max(parsedTake, 1), 100) : 20,
+    );
+  }
+
+  @Get('daily')
+  @ApiOperation({ summary: 'List daily challenge rankings' })
+  @ApiQuery({
+    description: 'Challenge date in UTC, formatted as YYYY-MM-DD.',
+    name: 'date',
+    required: false,
+    schema: { type: 'string' },
+  })
+  @ApiQuery({
+    description: 'Number of scores to return. Values are clamped from 1 to 100.',
+    example: 50,
+    name: 'take',
+    required: false,
+    schema: { default: 50, maximum: 100, minimum: 1, type: 'integer' },
+  })
+  @ApiOkResponse({ description: 'Daily challenge rankings.' })
+  listDaily(@Query('date') date?: string, @Query('take') take?: string) {
+    const parsedTake = Number(take ?? 50);
+
+    return this.leaderboardService.listDaily(
+      parseChallengeDate(date),
+      Number.isFinite(parsedTake) ? Math.min(Math.max(parsedTake, 1), 100) : 50,
+    );
+  }
+
+  @Get('daily/mine')
+  @UseGuards(AuthGuard)
+  @AuthenticatedApi()
+  @ApiOperation({ summary: 'Get current user daily challenge rank' })
+  @ApiQuery({
+    description: 'Challenge date in UTC, formatted as YYYY-MM-DD.',
+    name: 'date',
+    required: false,
+    schema: { type: 'string' },
+  })
+  @ApiOkResponse({ description: 'Current user daily challenge rank.' })
+  @ApiUnauthorizedResponse({
+    description: 'Authentication is required.',
+    schema: ref('ErrorResponse'),
+  })
+  getDailyForUser(
+    @Query('date') date: string | undefined,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    const user = getAuthenticatedUser(request);
+    return this.leaderboardService.getDailyForUser(
+      user.id,
+      parseChallengeDate(date),
+    );
+  }
+
+  @Post('daily/completions')
+  @UseGuards(AuthGuard)
+  @AuthenticatedApi()
+  @ApiOperation({ summary: 'Record a completed daily challenge' })
+  @ApiBody({
+    examples: {
+      common: {
+        value: {
+          board: boardExample,
+          challengeDate: getCurrentChallengeDate(),
+          puzzleConfig: boardExample,
+        },
+      },
+    },
+    schema: {
+      properties: {
+        board: ref('BoardState'),
+        challengeDate: {
+          example: getCurrentChallengeDate(),
+          type: 'string',
+        },
+        puzzleConfig: ref('BoardState'),
+      },
+      required: ['board', 'challengeDate'],
+      type: 'object',
+    },
+  })
+  @ApiCreatedResponse({ description: 'Daily challenge completion recorded.' })
+  @ApiBadRequestResponse({
+    description: 'The board failed validation or the challenge was already submitted.',
+    schema: ref('ErrorResponse'),
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Authentication is required.',
+    schema: ref('ErrorResponse'),
+  })
+  recordCompletedDailyChallenge(
+    @Body() body: unknown,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    const user = getAuthenticatedUser(request);
+    const completedDailyChallenge = parseBody(
+      completedDailyChallengeSchema,
+      body,
+    );
+    return this.leaderboardService.recordCompletedDailyChallenge(
+      user.id,
+      completedDailyChallenge,
     );
   }
 

@@ -4,9 +4,16 @@ import { z } from 'zod';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { getGravatarUrl } from '../shared/gravatar';
-import { boardStateSchema, completedLevelSchema } from '../shared/zod';
+import {
+  boardStateSchema,
+  completedDailyChallengeSchema,
+  completedLevelSchema,
+} from '../shared/zod';
 
 type BoardStateDto = z.infer<typeof boardStateSchema>;
+type CompletedDailyChallengeDto = z.infer<
+  typeof completedDailyChallengeSchema
+>;
 type CompletedLevelDto = z.infer<typeof completedLevelSchema>;
 
 @Injectable()
@@ -185,6 +192,72 @@ export class LeaderboardService {
     };
   }
 
+  async listDaily(challengeDate: string, take = 50) {
+    const scores = await this.prisma.dailyChallengeScore.findMany({
+      select: {
+        challengeDate: true,
+        completedAt: true,
+        id: true,
+        level: true,
+        moves: true,
+        timeSeconds: true,
+        userId: true,
+        user: {
+          select: {
+            email: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: [
+        { timeSeconds: 'asc' },
+        { moves: 'asc' },
+        { completedAt: 'asc' },
+      ],
+      take,
+      where: { challengeDate },
+    });
+
+    return {
+      challengeDate,
+      generatedAt: new Date().toISOString(),
+      scores: scores.map(({ user, ...score }) => ({
+        ...score,
+        user: {
+          avatarUrl: getGravatarUrl(user.email),
+          name: user.name,
+        },
+      })),
+    };
+  }
+
+  async getDailyForUser(userId: string, challengeDate: string) {
+    const scores = await this.prisma.dailyChallengeScore.findMany({
+      orderBy: [
+        { timeSeconds: 'asc' },
+        { moves: 'asc' },
+        { completedAt: 'asc' },
+      ],
+      select: {
+        challengeDate: true,
+        completedAt: true,
+        id: true,
+        level: true,
+        moves: true,
+        timeSeconds: true,
+        userId: true,
+      },
+      where: { challengeDate },
+    });
+    const index = scores.findIndex((score) => score.userId === userId);
+
+    return {
+      rank: index >= 0 ? index + 1 : null,
+      score: index >= 0 ? scores[index] : null,
+      totalCount: scores.length,
+    };
+  }
+
   async getReplayBoard(userId: string, completionId: string) {
     const score = await this.prisma.leaderboard.findFirst({
       where: {
@@ -294,5 +367,48 @@ export class LeaderboardService {
           : null,
       score,
     };
+  }
+
+  async recordCompletedDailyChallenge(
+    userId: string,
+    data: CompletedDailyChallengeDto,
+  ) {
+    const { board, challengeDate, puzzleConfig } = data;
+    const elapsedMs =
+      board.elapsedTimeMs > 0
+        ? board.elapsedTimeMs
+        : Math.max(0, Date.now() - new Date(board.startedAt).getTime());
+    const timeSeconds = Math.max(1, Math.round(elapsedMs / 1000));
+
+    try {
+      const score = await this.prisma.dailyChallengeScore.create({
+        data: {
+          challengeDate,
+          level: board.level,
+          moves: board.moves,
+          puzzleConfig: (puzzleConfig ?? board) as unknown as Prisma.InputJsonValue,
+          timeSeconds,
+          userId,
+        },
+      });
+      const ranking = await this.getDailyForUser(userId, challengeDate);
+
+      return {
+        rank: ranking.rank,
+        score,
+        totalCount: ranking.totalCount,
+      };
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new BadRequestException(
+          "You have already submitted today's challenge.",
+        );
+      }
+
+      throw error;
+    }
   }
 }

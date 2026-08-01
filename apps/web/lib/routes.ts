@@ -5,6 +5,7 @@ export const routes = {
   adminUsers: '/admin/users',
   home: '/',
   play: '/play',
+  daily: '/daily',
   leaderboard: '/leaderboard',
   contact: '/contact',
   emailVerification: '/email-verification',

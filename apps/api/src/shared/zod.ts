@@ -148,6 +148,16 @@ export const completedLevelSchema = z.object({
   replayOfId: z.string().trim().min(1).optional(),
 });
 
+export const dailyChallengeDateSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Challenge date must be YYYY-MM-DD.');
+
+export const completedDailyChallengeSchema = z.object({
+  board: boardStateSchema,
+  challengeDate: dailyChallengeDateSchema,
+  puzzleConfig: boardStateSchema.optional(),
+});
+
 export const anonymousAnalyticsEventNames = [
   'landing_page_view',
   'signup_started',

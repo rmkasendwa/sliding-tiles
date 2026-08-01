@@ -133,7 +133,30 @@ export function createSolvedTileGrid([columnCount, rowCount]: Slot): TileGrid {
   );
 }
 
-export function randomizeTileGrid(tileGrid: TileGrid, moves: number) {
+type RandomSource = () => number;
+
+function createSeededRandom(seed: string): RandomSource {
+  let hash = 2166136261;
+
+  for (let index = 0; index < seed.length; index++) {
+    hash ^= seed.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return () => {
+    hash += 0x6d2b79f5;
+    let value = hash;
+    value = Math.imul(value ^ (value >>> 15), value | 1);
+    value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+export function randomizeTileGrid(
+  tileGrid: TileGrid,
+  moves: number,
+  random: RandomSource = Math.random,
+) {
   const maxSlot = getMaxSlot(tileGrid);
   let randomizedGrid = tileGrid;
   let emptySlot: Slot = [...maxSlot];
@@ -145,8 +168,7 @@ export function randomizeTileGrid(tileGrid: TileGrid, moves: number) {
       movableSlots.length > 1 && previousSlot
         ? movableSlots.filter((slot) => !slotsEqual(slot, previousSlot!))
         : movableSlots;
-    const slotInTransit =
-      candidates[Math.floor(Math.random() * candidates.length)];
+    const slotInTransit = candidates[Math.floor(random() * candidates.length)];
 
     randomizedGrid = moveTileLogically(
       randomizedGrid,
@@ -165,16 +187,22 @@ export function randomizeTileGrid(tileGrid: TileGrid, moves: number) {
   };
 }
 
-export function createBoardState(level = 1, dimensions = BASE_GRID_DIMENSIONS) {
+export function createBoardState(
+  level = 1,
+  dimensions = BASE_GRID_DIMENSIONS,
+  options: { seed?: string; startedAt?: string } = {},
+) {
   const solvedTileGrid = createSolvedTileGrid(dimensions);
   let randomizationMoves = dimensions[0] * dimensions[1] - 1;
   if (randomizationMoves > 3) {
     randomizationMoves *= 100;
   }
 
+  const random = options.seed ? createSeededRandom(options.seed) : Math.random;
   const { tileGrid, emptySlot, movableSlots } = randomizeTileGrid(
     solvedTileGrid,
     randomizationMoves,
+    random,
   );
 
   return {
@@ -185,8 +213,22 @@ export function createBoardState(level = 1, dimensions = BASE_GRID_DIMENSIONS) {
     movableSlots,
     moves: 0,
     elapsedTimeMs: 0,
-    startedAt: new Date().toISOString(),
+    startedAt: options.startedAt ?? new Date().toISOString(),
   } satisfies BoardState;
+}
+
+export function getDailyChallengeDateKey(date = new Date()) {
+  return date.toISOString().slice(0, 10);
+}
+
+export function createDailyChallengeBoard(
+  dateKey = getDailyChallengeDateKey(),
+) {
+  const level = 3;
+
+  return createBoardState(level, getDimensionsForLevel(level), {
+    seed: `daily:${dateKey}:v1`,
+  });
 }
 
 export function moveBoardTile(

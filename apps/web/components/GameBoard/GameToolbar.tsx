@@ -40,6 +40,8 @@ type GameToolbarProps = {
   autoPlayStatusMessage: string | null;
   isShuffleAnimationRunning: boolean;
   isSoundEnabled: boolean;
+  isImagePickerDisabled?: boolean;
+  isShuffleDisabled?: boolean;
   level: number;
   moves: number;
   onAutoPlayToggle: () => void;
@@ -71,6 +73,8 @@ export function GameToolbar({
   autoPlayStatusMessage,
   isShuffleAnimationRunning,
   isSoundEnabled,
+  isImagePickerDisabled = false,
+  isShuffleDisabled = false,
   level,
   moves,
   onAutoPlayToggle,
@@ -174,7 +178,7 @@ export function GameToolbar({
               <GameToolButton
                 aria-label="Choose a custom puzzle image"
                 description="Create this tile board from one of your own photos."
-                disabled={controlsLocked || isCelebrating}
+                disabled={isImagePickerDisabled || controlsLocked || isCelebrating}
                 icon={
                   <ImagePlus
                     aria-hidden="true"
@@ -217,11 +221,15 @@ export function GameToolbar({
               />
               <GameToolButton
                 aria-label={
-                  controlsLocked ? 'Puzzle is shuffling' : 'Shuffle puzzle'
+                  isShuffleDisabled
+                    ? 'Shuffle is unavailable for this puzzle'
+                    : controlsLocked
+                      ? 'Puzzle is shuffling'
+                      : 'Shuffle puzzle'
                 }
                 className={controlsLocked ? 'disabled:cursor-wait' : undefined}
                 description="Create a new puzzle configuration for this level."
-                disabled={controlsLocked}
+                disabled={isShuffleDisabled || controlsLocked}
                 icon={
                   <Shuffle
                     aria-hidden="true"
@@ -233,7 +241,9 @@ export function GameToolbar({
                 tooltip={
                   controlsLocked
                     ? 'Shuffling the puzzle'
-                    : 'Shuffle the puzzle (S)'
+                    : isShuffleDisabled
+                      ? 'Shuffle unavailable'
+                      : 'Shuffle the puzzle (S)'
                 }
                 type="button"
               />

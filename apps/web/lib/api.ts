@@ -92,6 +92,38 @@ export type ApiCompletionResponse = {
   score: ApiScore;
 };
 
+export type ApiDailyChallengeScore = {
+  challengeDate: string;
+  completedAt: string;
+  id: string;
+  level: number;
+  moves: number;
+  timeSeconds: number;
+  user?: {
+    avatarUrl: string;
+    name: string;
+  };
+  userId: string;
+};
+
+export type ApiDailyChallengeResponse = {
+  challengeDate: string;
+  generatedAt: string;
+  scores: ApiDailyChallengeScore[];
+};
+
+export type ApiDailyChallengeMineResponse = {
+  rank: number | null;
+  score: ApiDailyChallengeScore | null;
+  totalCount: number;
+};
+
+export type ApiDailyChallengeCompletionResponse = {
+  rank: number | null;
+  score: ApiDailyChallengeScore;
+  totalCount: number;
+};
+
 export type AdminUser = {
   createdAt: string;
   email: string;

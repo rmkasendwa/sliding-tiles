@@ -33,6 +33,7 @@ model User {
   promotedBy                      User?         @relation("UserPromotions", fields: [promotedById], references: [id], onDelete: SetNull, map: "users_promoted_by_id_fkey")
   promotedUsers                   User[]        @relation("UserPromotions")
   scores                          Leaderboard[]
+  dailyChallengeScores            DailyChallengeScore[]
   analyticsEvents                 AnonymousAnalyticsEvent[]
   accounts                        OAuthAccount[]
 
@@ -84,6 +85,23 @@ model Leaderboard {
   @@index([replayOfId], map: "leaderboards_replay_of_id_idx")
   @@index([userId, completedAt], map: "leaderboards_user_id_completed_at_idx")
   @@map("leaderboards")
+}
+
+model DailyChallengeScore {
+  id            String   @id @default(cuid())
+  challengeDate String   @map("challenge_date")
+  userId        String   @map("user_id")
+  level         Int
+  moves         Int
+  timeSeconds   Int      @map("time_seconds")
+  puzzleConfig  Json?    @map("puzzle_config")
+  completedAt   DateTime @default(now()) @map("completed_at")
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "daily_challenge_scores_user_id_fkey")
+
+  @@unique([challengeDate, userId], map: "daily_challenge_scores_challenge_date_user_id_key")
+  @@index([challengeDate, timeSeconds, moves], map: "daily_challenge_scores_date_time_moves_idx")
+  @@index([userId, completedAt], map: "daily_challenge_scores_user_completed_at_idx")
+  @@map("daily_challenge_scores")
 }
 
 model AnonymousAnalyticsEvent {

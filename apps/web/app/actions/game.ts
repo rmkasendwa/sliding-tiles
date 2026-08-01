@@ -2,7 +2,11 @@
 
 import { revalidatePath } from 'next/cache';
 
-import { ApiCompletionResponse, apiRequest } from '@/lib/api';
+import {
+  ApiCompletionResponse,
+  ApiDailyChallengeCompletionResponse,
+  apiRequest,
+} from '@/lib/api';
 import { BoardState } from '@/lib/board';
 import { getSession } from '@/lib/session';
 
@@ -59,4 +63,35 @@ export async function recordLevelAttempt({
   revalidatePath('/profile');
 
   return { ok: true, personalBest: result.personalBest };
+}
+
+export async function recordDailyChallengeAttempt({
+  board,
+  challengeDate,
+  puzzleConfig,
+}: {
+  board: BoardState;
+  challengeDate: string;
+  puzzleConfig?: BoardState;
+}) {
+  const session = await getSession();
+  if (!session) {
+    return { ok: false };
+  }
+
+  const result = await apiRequest<ApiDailyChallengeCompletionResponse>(
+    '/leaderboard/daily/completions',
+    {
+      body: {
+        board,
+        challengeDate,
+        puzzleConfig,
+      },
+      method: 'POST',
+    },
+  );
+
+  revalidatePath('/daily');
+
+  return { ok: true, rank: result.rank, totalCount: result.totalCount };
 }

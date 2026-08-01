@@ -65,6 +65,8 @@ type GameStageProps = {
   isShowingSolvedHint: boolean;
   isShuffleAnimationRunning: boolean;
   isSoundEnabled: boolean;
+  isImagePickerDisabled?: boolean;
+  isShuffleDisabled?: boolean;
   movableSlotKeys: ReadonlySet<string>;
   onAutoPlayToggle: () => void;
   onAutoPlaySpeedChange: (delayMs: number) => void;
@@ -250,6 +252,8 @@ export function GameStage({
   isShowingSolvedHint,
   isShuffleAnimationRunning,
   isSoundEnabled,
+  isImagePickerDisabled = false,
+  isShuffleDisabled = false,
   movableSlotKeys,
   onAutoPlayToggle,
   onAutoPlaySpeedChange,
@@ -421,6 +425,8 @@ export function GameStage({
         autoPlayStatusMessage={autoPlayStatusMessage}
         isShuffleAnimationRunning={isShuffleAnimationRunning}
         isSoundEnabled={isSoundEnabled}
+        isImagePickerDisabled={isImagePickerDisabled}
+        isShuffleDisabled={isShuffleDisabled}
         level={board.level}
         moves={board.moves}
         onAutoPlayToggle={onAutoPlayToggle}

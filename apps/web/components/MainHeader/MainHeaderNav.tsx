@@ -171,6 +171,14 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
         Play
       </Link>
       <Link
+        aria-current={isRouteActive(pathname, routes.daily) ? 'page' : undefined}
+        className={getNavLinkClass(isRouteActive(pathname, routes.daily))}
+        href={routes.daily}
+        onClick={closeDrawer}
+      >
+        Daily
+      </Link>
+      <Link
         aria-current={
           isRouteActive(pathname, routes.leaderboard) ? 'page' : undefined
         }
@@ -222,6 +230,17 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
       >
         <span>Play</span>
         {isRouteActive(pathname, routes.play) ? (
+          <span className="h-2 w-2 rounded-full bg-accent" aria-hidden="true" />
+        ) : null}
+      </Link>
+      <Link
+        aria-current={isRouteActive(pathname, routes.daily) ? 'page' : undefined}
+        className={getDrawerLinkClass(isRouteActive(pathname, routes.daily))}
+        href={routes.daily}
+        onClick={closeDrawer}
+      >
+        <span>Daily Challenge</span>
+        {isRouteActive(pathname, routes.daily) ? (
           <span className="h-2 w-2 rounded-full bg-accent" aria-hidden="true" />
         ) : null}
       </Link>

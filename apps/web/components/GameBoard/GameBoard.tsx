@@ -3,7 +3,10 @@
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { recordLevelAttempt } from '@/app/actions/game';
+import {
+  recordDailyChallengeAttempt,
+  recordLevelAttempt,
+} from '@/app/actions/game';
 import type { AnonymousTimerStatus } from '@/lib/anonymousGameStorage';
 import {
   BoardState,
@@ -56,6 +59,9 @@ import { useGameTimer } from './useGameTimer';
 import { useInitialGameState } from './useInitialGameState';
 
 export type GameBoardProps = {
+  dailyChallenge?: {
+    challengeDate: string;
+  };
   initialBoard: BoardState;
   initialHighestReachedLevel?: number;
   isSignedIn: boolean;
@@ -67,6 +73,7 @@ export type GameBoardProps = {
 };
 
 function GameBoardContent({
+  dailyChallenge,
   initialAttemptStartBoard,
   initialBoard,
   initialHighestReachedLevel,
@@ -197,6 +204,10 @@ function GameBoardContent({
   const [replayResult, setReplayResult] = useState<ReplayResult | null>(null);
   const [personalBestNotice, setPersonalBestNotice] =
     useState<PersonalBestNotice | null>(null);
+  const [dailyCompletion, setDailyCompletion] = useState<{
+    rank: number | null;
+    totalCount: number;
+  } | null>(null);
   const [isCelebrating, setIsCelebrating] = useState(false);
   const [boardEntryAnimationKey, setBoardEntryAnimationKey] = useState(0);
   const [isBoardEntering, setIsBoardEntering] = useState(true);
@@ -402,7 +413,8 @@ function GameBoardContent({
     elapsedTimeMs,
     highestReachedLevel,
     isGameComplete,
-    isPersistenceDisabled: isAutoPlayRunning || isAutoPlayCompletion,
+    isPersistenceDisabled:
+      Boolean(dailyChallenge) || isAutoPlayRunning || isAutoPlayCompletion,
     isSignedIn,
     timerStatus,
   });
@@ -578,6 +590,42 @@ function GameBoardContent({
 
       trackAnonymousEvent('game_completed', analyticsMetadata);
 
+      if (dailyChallenge) {
+        if (isSignedIn) {
+          void recordDailyChallengeAttempt({
+            board: {
+              ...completedBoard,
+              elapsedTimeMs: completedElapsedTimeMs,
+            },
+            challengeDate: dailyChallenge.challengeDate,
+            puzzleConfig: attemptStartBoard,
+          })
+            .then((result) => {
+              if (!result.ok) {
+                return;
+              }
+
+              setDailyCompletion({
+                rank: result.rank ?? null,
+                totalCount: result.totalCount ?? 0,
+              });
+              router.refresh();
+            })
+            .catch((error) => {
+              console.warn('Could not record daily challenge.', error);
+            });
+        }
+
+        if (celebrationTimeoutRef.current !== null) {
+          window.clearTimeout(celebrationTimeoutRef.current);
+        }
+        celebrationTimeoutRef.current = window.setTimeout(() => {
+          setIsCelebrating(true);
+          celebrationTimeoutRef.current = null;
+        }, LEVEL_COMPLETE_CELEBRATION_DELAY_MS);
+        return;
+      }
+
       if (isSignedIn) {
         void recordLevelAttempt({
           attemptType: activeReplayOfId ? 'replay' : 'original',
@@ -666,12 +714,14 @@ function GameBoardContent({
       clearBoardHint,
       completeClock,
       currentReplayBest,
+      dailyChallenge,
       exitReplayMode,
       isAutoPlayCompletion,
       isSignedIn,
       launchCompletionConfetti,
       playSound,
       resetClock,
+      router,
       showSolvedBoard,
       getAnalyticsMetadata,
       trackAnonymousEvent,
@@ -953,6 +1003,7 @@ function GameBoardContent({
 
       if (
         !Number.isFinite(targetLevel) ||
+        dailyChallenge ||
         targetLevel < 1 ||
         targetLevel > maxLevel ||
         targetLevel === board.level ||
@@ -1036,6 +1087,7 @@ function GameBoardContent({
       trackAnonymousEvent,
       cancelAutoPlay,
       cancelBoardSolve,
+      dailyChallenge,
     ],
   );
 
@@ -1136,6 +1188,10 @@ function GameBoardContent({
   ]);
 
   const shuffleLevel = useCallback(() => {
+    if (dailyChallenge) {
+      return;
+    }
+
     cancelAutoPlay();
     cancelBoardSolve(true);
     setIsAutoPlayCompletion(false);
@@ -1155,6 +1211,7 @@ function GameBoardContent({
     board.moves,
     cancelAutoPlay,
     cancelBoardSolve,
+    dailyChallenge,
     getAnalyticsMetadata,
     refreshBoard,
     trackAnonymousEvent,
@@ -1202,6 +1259,8 @@ function GameBoardContent({
 
   const gameModeLabel = activeReplayOfId
     ? 'Replay run'
+    : dailyChallenge
+      ? 'Daily challenge'
     : isSignedIn
       ? 'Saved run'
       : 'Anonymous run';
@@ -1240,6 +1299,7 @@ function GameBoardContent({
       isCelebrating ||
       isShuffleAnimationRunning ||
       isAutoPlayRunning ||
+      Boolean(dailyCompletion) ||
       Boolean(replayResult),
     movableSlotKeys,
     onMove: moveTile,
@@ -1293,6 +1353,7 @@ function GameBoardContent({
           Boolean(activeReplayOfId) ||
           isCelebrating ||
           isShuffleAnimationRunning ||
+          Boolean(dailyCompletion) ||
           Boolean(replayResult)
         }
         isAutoPlayCompletion={isAutoPlayCompletion}
@@ -1315,6 +1376,8 @@ function GameBoardContent({
         isShowingSolvedHint={isShowingSolvedHint}
         isShuffleAnimationRunning={isShuffleAnimationRunning}
         isSoundEnabled={isSoundEnabled}
+        isImagePickerDisabled={Boolean(dailyChallenge)}
+        isShuffleDisabled={Boolean(dailyChallenge)}
         movableSlotKeys={movableSlotKeys}
         onAutoPlayToggle={toggleAutoPlay}
         onAutoPlaySpeedChange={updateAutoPlaySpeed}
@@ -1325,6 +1388,10 @@ function GameBoardContent({
         onHint={setHintedSlot}
         onInvalidMove={showInvalidMoveFeedback}
         onOpenImagePicker={() => {
+          if (dailyChallenge) {
+            return;
+          }
+
           setImagePickerPortalContainer(
             isBoardFullscreen ? boardFrameRef.current : null,
           );
@@ -1347,6 +1414,24 @@ function GameBoardContent({
         suppressNextClickRef={suppressNextClickRef}
         tileRotationSeed={tileRotationSeed}
       />
+      {dailyCompletion ? (
+        <div
+          className="fixed inset-x-4 bottom-4 z-50 mx-auto grid max-w-md gap-2 rounded-lg border border-success/35 bg-panel/95 p-4 text-foreground shadow-panel backdrop-blur"
+          role="status"
+        >
+          <p className="text-sm font-extrabold uppercase text-success-strong">
+            Daily score submitted
+          </p>
+          <p className="text-sm font-bold">
+            {dailyCompletion.rank
+              ? `You are #${dailyCompletion.rank} of ${dailyCompletion.totalCount}.`
+              : 'Your ranking is being calculated.'}
+          </p>
+          <p className="text-xs leading-5 text-muted">
+            Come back tomorrow for a fresh shared puzzle.
+          </p>
+        </div>
+      ) : null}
 
       <ResponsiveGameInfoPanel
         columns={columns}
@@ -1355,6 +1440,7 @@ function GameBoardContent({
         imageAspectRatio={imageAspectRatio}
         imageUrl={puzzleImage.url}
         isLevelSelectDisabled={
+          Boolean(dailyChallenge) ||
           isShuffleAnimationRunning ||
           isCelebrating ||
           isAutoPlayRunning ||
@@ -1422,6 +1508,7 @@ function GameBoardContent({
 }
 
 export function GameBoard({
+  dailyChallenge,
   initialBoard,
   initialHighestReachedLevel: progressionLevel,
   isSignedIn,
@@ -1440,6 +1527,7 @@ export function GameBoard({
   } = useInitialGameState({
     initialBoard,
     initialHighestReachedLevel: progressionLevel,
+    isProgressRestoreDisabled: Boolean(dailyChallenge),
     isSignedIn,
     replayOfId,
   });
@@ -1459,6 +1547,7 @@ export function GameBoard({
   return (
     <SoundProvider enabled={soundEnabled}>
       <GameBoardContent
+        dailyChallenge={dailyChallenge}
         initialAttemptStartBoard={initialAttemptStartBoard}
         initialBoard={activeInitialBoard}
         initialHighestReachedLevel={initialHighestReachedLevel}
