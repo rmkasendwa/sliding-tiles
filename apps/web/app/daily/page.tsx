@@ -2,6 +2,7 @@ import { CalendarDays, Trophy } from 'lucide-react';
 import Link from 'next/link';
 
 import { CurrentUserBadge } from '@/components/CurrentUserBadge';
+import { DailyChallengePodium } from '@/components/DailyChallengePodium';
 import { GameBoard } from '@/components/GameBoard';
 import { ProfileAvatar } from '@/components/ProfileAvatar';
 import {
@@ -66,11 +67,6 @@ export default async function DailyChallengePage() {
   const scores = daily?.scores ?? [];
   const submittedScore = mine?.score ?? null;
   const currentUserRank = mine?.rank ?? null;
-  const podium = scores.slice(0, 3);
-  const podiumPlaceholders = Array.from(
-    { length: Math.max(0, 3 - podium.length) },
-    (_, index) => podium.length + index + 1,
-  );
   const fastestScore = scores[0] ?? null;
   const averageMoves =
     scores.length > 0
@@ -184,68 +180,11 @@ export default async function DailyChallengePage() {
           </article>
         </div>
 
-        <div className="grid gap-3 min-[860px]:grid-cols-3">
-          {podium.map((score, index) => {
-            const playerName = score.user?.name ?? 'Player';
-            const rank = index + 1;
-            const isCurrentUser = session?.id === score.userId;
-
-            return (
-              <article
-                className={[
-                  'rounded-lg border p-4 shadow-panel',
-                  rank === 1
-                    ? 'border-medal-gold-border bg-medal-gold-surface'
-                    : rank === 2
-                      ? 'border-medal-silver-border bg-medal-silver-surface'
-                      : 'border-medal-bronze-border bg-medal-bronze-surface',
-                ].join(' ')}
-                key={score.id}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-[0.78rem] font-extrabold uppercase text-muted">
-                    #{rank}
-                  </span>
-                  <span className="text-xs font-bold text-muted">
-                    {formatDuration(score.timeSeconds)}
-                  </span>
-                </div>
-                <div className="mt-3 flex min-w-0 items-center gap-2">
-                  <ProfileAvatar
-                    avatarUrl={score.user?.avatarUrl}
-                    name={playerName}
-                    size={36}
-                  />
-                  <p className="inline-flex min-w-0 items-center gap-1.5 font-bold">
-                    <span className="truncate">{playerName}</span>
-                    {isCurrentUser ? <CurrentUserBadge /> : null}
-                  </p>
-                </div>
-                <p className="mt-3 text-sm text-muted">{score.moves} moves</p>
-              </article>
-            );
-          })}
-          {podiumPlaceholders.map((rank) => (
-            <article
-              aria-label={`Rank ${rank} is open`}
-              className="grid min-h-36 content-between rounded-lg border border-dashed border-line bg-surface/35 p-4 text-muted shadow-card-soft"
-              key={`open-rank-${rank}`}
-            >
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-[0.78rem] font-extrabold uppercase">
-                  #{rank}
-                </span>
-                <span className="text-xs font-bold">--:--</span>
-              </div>
-              <div>
-                <p className="text-lg font-bold text-foreground/70">
-                  Open spot
-                </p>
-                <p className="mt-1 text-sm">Complete today&apos;s puzzle.</p>
-              </div>
-            </article>
-          ))}
-        </div>
+        <DailyChallengePodium
+          challengeDate={challengeDate}
+          currentUserId={session?.id}
+          initialScores={scores}
+        />
 
         <section className="grid gap-3 rounded-lg border border-accent/16 bg-panel p-4 shadow-panel">
           <div>

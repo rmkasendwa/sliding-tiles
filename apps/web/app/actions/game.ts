@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import {
   ApiCompletionResponse,
   ApiDailyChallengeCompletionResponse,
+  ApiDailyChallengeResponse,
   apiRequest,
 } from '@/lib/api';
 import { BoardState } from '@/lib/board';
@@ -92,4 +93,17 @@ export async function recordDailyChallengeAttempt({
   );
 
   return { ok: true, rank: result.rank, totalCount: result.totalCount };
+}
+
+export async function listDailyChallengeRankings({
+  challengeDate,
+}: {
+  challengeDate: string;
+}) {
+  const result = await apiRequest<ApiDailyChallengeResponse>(
+    `/leaderboard/daily?date=${encodeURIComponent(challengeDate)}&take=50`,
+    { token: null },
+  );
+
+  return result.scores;
 }

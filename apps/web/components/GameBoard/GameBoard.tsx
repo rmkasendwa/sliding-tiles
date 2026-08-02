@@ -7,6 +7,7 @@ import {
   recordDailyChallengeAttempt,
   recordLevelAttempt,
 } from '@/app/actions/game';
+import { DAILY_CHALLENGE_SUBMITTED_EVENT } from '@/components/DailyChallengePodium';
 import type { AnonymousTimerStatus } from '@/lib/anonymousGameStorage';
 import {
   BoardState,
@@ -618,6 +619,13 @@ function GameBoardContent({
                 timeSeconds: completedTimeSeconds,
                 totalCount: result.totalCount ?? 0,
               });
+              window.dispatchEvent(
+                new CustomEvent(DAILY_CHALLENGE_SUBMITTED_EVENT, {
+                  detail: {
+                    challengeDate: dailyChallenge.challengeDate,
+                  },
+                }),
+              );
             })
             .catch((error) => {
               console.warn('Could not record daily challenge.', error);
