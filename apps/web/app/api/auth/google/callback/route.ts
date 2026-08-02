@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { getSafeReturnTo } from '@/lib/authRedirect';
+import { getWebBaseUrl } from '@/lib/webBaseUrl';
 
 const STATE_COOKIE = 'google_oauth_state';
 const RETURN_COOKIE = 'google_oauth_return_to';
@@ -9,7 +10,7 @@ const ORIGIN_COOKIE = 'google_oauth_origin';
 function authPage(request: NextRequest, error: string) {
   const origin = request.cookies.get(ORIGIN_COOKIE)?.value === 'register' ? 'register' : 'login';
   const returnTo = getSafeReturnTo(request.cookies.get(RETURN_COOKIE)?.value);
-  const url = new URL(`/${origin}`, request.url);
+  const url = new URL(`/${origin}`, getWebBaseUrl(request.url));
   url.searchParams.set('oauthError', error);
   url.searchParams.set('returnTo', returnTo);
   const response = NextResponse.redirect(url);
@@ -42,7 +43,7 @@ export async function GET(request: NextRequest) {
     if (!apiResponse.ok || !body.accessToken) return authPage(request, 'failed');
 
     const returnTo = getSafeReturnTo(request.cookies.get(RETURN_COOKIE)?.value);
-    const response = NextResponse.redirect(new URL(returnTo, request.url));
+    const response = NextResponse.redirect(new URL(returnTo, getWebBaseUrl(request.url)));
     response.cookies.set('sliding_tiles_session', body.accessToken, {
       expires: new Date(Date.now() + 60 * 60 * 24 * 30 * 1000),
       httpOnly: true,

@@ -319,7 +319,11 @@ export class AuthService {
   }
 
   private getWebBaseUrl() {
-    return (process.env.WEB_BASE_URL ?? 'http://localhost:3000')
+    return (
+      process.env.WEB_BASE_URL ??
+      process.env.NEXT_PUBLIC_WEB_BASE_URL ??
+      'http://localhost:3000'
+    )
       .trim()
       .replace(/\/$/, '');
   }
