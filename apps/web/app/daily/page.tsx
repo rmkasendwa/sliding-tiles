@@ -96,7 +96,7 @@ export default async function DailyChallengePage() {
               {formatDuration(submittedScore.timeSeconds)}
               {currentUserRank ? ` · Rank #${currentUserRank}` : ''}
             </p>
-            <p className="max-w-md text-sm leading-6 text-muted">
+            <p className="max-w-md text-sm text-center leading-6 text-muted">
               This score is locked for today. A new shared puzzle appears at the
               next UTC daily reset.
             </p>
