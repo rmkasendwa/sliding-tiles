@@ -14,10 +14,6 @@ import {
   EMPTY_SLOT_HINT_DELAY_MS,
 } from './constants';
 import { CompletionEffects } from './CompletionEffects';
-import {
-  DailyChallengeResultPanel,
-  type DailyChallengeResult,
-} from './DailyChallengeResultPanel';
 import { GameHud } from './GameHud';
 import { GameToolbar } from './GameToolbar';
 import { ReplayResultPanel, type ReplayResult } from './ReplayResultPanel';
@@ -31,10 +27,10 @@ type GameStageProps = {
   board: BoardState;
   boardEntryAnimationKey: number;
   boardFrameRef: RefObject<HTMLElement | null>;
+  celebrationMessage?: string;
   columns: number;
   confettiBurstKey: number | null;
   continueLevel: number;
-  dailyChallengeResult: DailyChallengeResult | null;
   elapsedTimeLabel: string;
   hintedSlot: string | null;
   imageAspectRatio: number;
@@ -75,7 +71,6 @@ type GameStageProps = {
   movableSlotKeys: ReadonlySet<string>;
   onAutoPlayToggle: () => void;
   onAutoPlaySpeedChange: (delayMs: number) => void;
-  onDailyChallengeViewRankings: () => void;
   onBoardPointerDown: PointerEventHandler<HTMLDivElement>;
   onBoardPointerLeave: PointerEventHandler<HTMLDivElement>;
   onBoardPointerUp: PointerEventHandler<HTMLDivElement>;
@@ -230,10 +225,10 @@ export function GameStage({
   board,
   boardEntryAnimationKey,
   boardFrameRef,
+  celebrationMessage,
   columns,
   confettiBurstKey,
   continueLevel,
-  dailyChallengeResult,
   elapsedTimeLabel,
   hintedSlot,
   imageAspectRatio,
@@ -264,7 +259,6 @@ export function GameStage({
   movableSlotKeys,
   onAutoPlayToggle,
   onAutoPlaySpeedChange,
-  onDailyChallengeViewRankings,
   onBoardPointerDown,
   onBoardPointerLeave,
   onBoardPointerUp,
@@ -408,11 +402,7 @@ export function GameStage({
           }}
         />
         <CompletionEffects
-          celebrationMessage={
-            dailyChallengeResult
-              ? 'Enjoy the solved image. Your daily score is locked in.'
-              : undefined
-          }
+          celebrationMessage={celebrationMessage}
           confettiBurstKey={confettiBurstKey}
           imageUrl={imageUrl}
           isAutoPlayCompletion={isAutoPlayCompletion}
@@ -468,12 +458,6 @@ export function GameStage({
           level={board.level}
           onReset={onReset}
           onShuffle={onShuffle}
-        />
-      ) : null}
-      {dailyChallengeResult && !isCelebrating ? (
-        <DailyChallengeResultPanel
-          onViewRankings={onDailyChallengeViewRankings}
-          result={dailyChallengeResult}
         />
       ) : null}
     </section>

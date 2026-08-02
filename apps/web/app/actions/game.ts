@@ -91,7 +91,5 @@ export async function recordDailyChallengeAttempt({
     },
   );
 
-  revalidatePath('/daily');
-
   return { ok: true, rank: result.rank, totalCount: result.totalCount };
 }

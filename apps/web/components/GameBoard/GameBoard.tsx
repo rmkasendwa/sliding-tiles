@@ -210,7 +210,6 @@ function GameBoardContent({
     timeSeconds: number;
     totalCount: number;
   } | null>(null);
-  const [isDailyResultVisible, setIsDailyResultVisible] = useState(false);
   const [isCelebrating, setIsCelebrating] = useState(false);
   const [boardEntryAnimationKey, setBoardEntryAnimationKey] = useState(0);
   const [isBoardEntering, setIsBoardEntering] = useState(true);
@@ -631,12 +630,6 @@ function GameBoardContent({
         celebrationTimeoutRef.current = window.setTimeout(() => {
           setIsCelebrating(true);
           celebrationTimeoutRef.current = null;
-
-          levelAdvanceTimeoutRef.current = window.setTimeout(() => {
-            setIsCelebrating(false);
-            setIsDailyResultVisible(true);
-            levelAdvanceTimeoutRef.current = null;
-          }, LEVEL_COMPLETE_ADVANCE_DELAY_MS);
         }, LEVEL_COMPLETE_CELEBRATION_DELAY_MS);
         return;
       }
@@ -1306,15 +1299,6 @@ function GameBoardContent({
     },
     [playSound],
   );
-  const viewDailyRankings = useCallback(() => {
-    router.refresh();
-    window.requestAnimationFrame(() => {
-      document
-        .getElementById('daily-rankings')
-        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-  }, [router]);
-
   useGameKeyboardControls({
     board,
     isInteractionBlocked:
@@ -1359,8 +1343,12 @@ function GameBoardContent({
         columns={columns}
         confettiBurstKey={confettiBurstKey}
         continueLevel={highestReachedLevel}
-        dailyChallengeResult={
-          isDailyResultVisible && dailyCompletion ? dailyCompletion : null
+        celebrationMessage={
+          dailyChallenge
+            ? isSignedIn
+              ? 'Daily score submitted. Your first successful solve is locked for today.'
+              : 'Daily complete. Log in next time to lock in a leaderboard score.'
+            : undefined
         }
         elapsedTimeLabel={elapsedTimeLabel}
         hintedSlot={hintedSlot}
@@ -1406,7 +1394,6 @@ function GameBoardContent({
         movableSlotKeys={movableSlotKeys}
         onAutoPlayToggle={toggleAutoPlay}
         onAutoPlaySpeedChange={updateAutoPlaySpeed}
-        onDailyChallengeViewRankings={viewDailyRankings}
         onBoardPointerDown={startBoardHint}
         onBoardPointerLeave={clearBoardHintFromPointer}
         onBoardPointerUp={clearBoardHintFromPointer}
