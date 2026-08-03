@@ -278,15 +278,14 @@ export function CustomImagePicker({
     }
 
     try {
-      const { duplicateCount, imported } =
-        await importStoredPuzzleImages(
-          validImages.map(({ blob, height, name, width }) => ({
-            blob: blob!,
-            height,
-            name,
-            width,
-          })),
-        );
+      const { duplicateCount, imported } = await importStoredPuzzleImages(
+        validImages.map(({ blob, height, name, width }) => ({
+          blob: blob!,
+          height,
+          name,
+          width,
+        })),
+      );
       const imagesWithUrls = imported.map((image) => {
         const imageUrl = URL.createObjectURL(image.blob);
         savedImageUrlsRef.current.push(imageUrl);
@@ -497,7 +496,7 @@ export function CustomImagePicker({
                       <button
                         aria-label={`Preview saved image ${image.name}`}
                         aria-pressed={candidate.storedId === image.id}
-                        className="block w-full text-left focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent"
+                        className="block w-full text-left focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent"
                         onClick={() =>
                           setCandidate({
                             blob: image.blob,
