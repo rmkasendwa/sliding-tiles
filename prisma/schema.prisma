@@ -37,9 +37,12 @@ model User {
   analyticsEvents                 AnonymousAnalyticsEvent[]
   accounts                        OAuthAccount[]
   puzzleImages                    PuzzleImage[]
+  selectedPuzzleImageId           String?       @map("selected_puzzle_image_id")
+  selectedPuzzleImage             PuzzleImage?  @relation("SelectedPuzzleImage", fields: [selectedPuzzleImageId], references: [id], onDelete: SetNull, map: "users_selected_puzzle_image_id_fkey")
 
   @@index([role], map: "users_role_idx")
   @@index([promotedById], map: "users_promoted_by_id_idx")
+  @@index([selectedPuzzleImageId], map: "users_selected_puzzle_image_id_idx")
   @@map("users")
 }
 
@@ -56,6 +59,7 @@ model PuzzleImage {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "puzzle_images_user_id_fkey")
+  selectedBy  User[]   @relation("SelectedPuzzleImage")
 
   @@unique([userId, contentHash], map: "puzzle_images_user_id_content_hash_key")
   @@index([userId, updatedAt], map: "puzzle_images_user_id_updated_at_idx")

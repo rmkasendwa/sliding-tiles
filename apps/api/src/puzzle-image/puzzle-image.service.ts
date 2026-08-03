@@ -22,21 +22,44 @@ export class PuzzleImageService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  listForUser(userId: string) {
-    return this.prisma.puzzleImage.findMany({
-      orderBy: { updatedAt: 'desc' },
-      select: {
-        contentHash: true,
-        contentType: true,
-        height: true,
-        id: true,
-        name: true,
-        size: true,
-        updatedAt: true,
-        width: true,
-      },
-      where: { userId },
+  async listForUser(userId: string) {
+    const [images, user] = await Promise.all([
+      this.prisma.puzzleImage.findMany({
+        orderBy: { updatedAt: 'desc' },
+        select: {
+          contentHash: true,
+          contentType: true,
+          height: true,
+          id: true,
+          name: true,
+          size: true,
+          updatedAt: true,
+          width: true,
+        },
+        where: { userId },
+      }),
+      this.prisma.user.findUnique({
+        select: { selectedPuzzleImage: { select: { contentHash: true } } },
+        where: { id: userId },
+      }),
+    ]);
+    return {
+      images,
+      selectedContentHash: user?.selectedPuzzleImage?.contentHash ?? null,
+    };
+  }
+
+  async selectForUser(userId: string, contentHash: string) {
+    const image = await this.prisma.puzzleImage.findFirst({
+      select: { id: true },
+      where: { contentHash, userId },
     });
+    if (!image) throw new NotFoundException('Puzzle image not found.');
+    await this.prisma.user.update({
+      data: { selectedPuzzleImageId: image.id },
+      where: { id: userId },
+    });
+    return { selectedContentHash: contentHash };
   }
 
   async saveForUser(

@@ -7,6 +7,7 @@ import {
   Get,
   Param,
   Post,
+  Put,
   Req,
   Res,
   UploadedFile,
@@ -31,8 +32,16 @@ export class PuzzleImageController {
 
   @Get()
   async list(@Req() request: AuthenticatedRequest) {
-    const images = await this.puzzleImages.listForUser(getAuthenticatedUser(request).id);
-    return { images };
+    return this.puzzleImages.listForUser(getAuthenticatedUser(request).id);
+  }
+
+  @Put('selection')
+  select(@Req() request: AuthenticatedRequest & { body: { contentHash?: string } }) {
+    const contentHash = request.body.contentHash ?? '';
+    if (!HASH_PATTERN.test(contentHash)) {
+      throw new BadRequestException('A valid image content hash is required.');
+    }
+    return this.puzzleImages.selectForUser(getAuthenticatedUser(request).id, contentHash);
   }
 
   @Post()

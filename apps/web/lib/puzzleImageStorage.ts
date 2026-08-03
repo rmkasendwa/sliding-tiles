@@ -247,7 +247,14 @@ async function synchronize() {
   const response = await fetch('/api/puzzle-images', { cache: 'no-store' });
   if (response.status === 401) return;
   if (!response.ok) throw new Error('Could not load synchronized puzzle images.');
-  const { images: remoteImages } = (await response.json()) as { images: RemotePuzzleImage[] };
+  const { images: remoteImages, selectedContentHash } = (await response.json()) as {
+    images: RemotePuzzleImage[];
+    selectedContentHash: string | null;
+  };
+  const localSelection = await runTransaction<StoredPuzzleImageSelection | undefined>(
+    'readonly',
+    (store) => store.get(SELECTED_IMAGE_KEY),
+  );
   const localImages = await loadStoredPuzzleImages();
   const localHashes = new Set(
     await Promise.all(localImages.map((image) => image.contentHash ?? hashBlob(image.blob))),
@@ -268,6 +275,14 @@ async function synchronize() {
   );
   await importStoredPuzzleImages(downloads);
 
+  if (selectedContentHash) {
+    const synchronizedImages = await loadStoredPuzzleImages();
+    const selectedImage = synchronizedImages.find(
+      (image) => image.contentHash === selectedContentHash,
+    );
+    if (selectedImage) await saveLocalSelection(selectedImage.id);
+  }
+
   const remoteHashes = new Set(remoteImages.map((image) => image.contentHash));
   await Promise.all(
     localImages.map(async (image) => {
@@ -285,14 +300,47 @@ async function synchronize() {
       }
     }),
   );
+
+  if (!selectedContentHash && localSelection?.selectedId) {
+    const selectedImage = localImages.find(
+      (image) => image.id === localSelection.selectedId,
+    );
+    if (selectedImage) {
+      await saveRemoteSelection(
+        selectedImage.contentHash ?? (await hashBlob(selectedImage.blob)),
+      );
+    }
+  }
 }
 
-export function selectStoredPuzzleImage(id: string) {
+function saveLocalSelection(id: string) {
   const selection: StoredPuzzleImageSelection = { selectedId: id };
 
   return runTransaction<IDBValidKey>('readwrite', (store) =>
     store.put(selection, SELECTED_IMAGE_KEY),
   ).then(() => undefined);
+}
+
+async function saveRemoteSelection(contentHash: string) {
+  const response = await fetch('/api/puzzle-images', {
+    body: JSON.stringify({ contentHash }),
+    headers: { 'Content-Type': 'application/json' },
+    method: 'PUT',
+  });
+  if (!response.ok && response.status !== 401) {
+    throw new Error('Could not synchronize the selected puzzle image.');
+  }
+}
+
+export async function selectStoredPuzzleImage(id: string) {
+  await saveLocalSelection(id);
+  await synchronizeStoredPuzzleImages();
+  const image = (await loadStoredPuzzleImages()).find(
+    (candidate) => candidate.id === id,
+  );
+  if (!image) throw new Error('Could not find the selected puzzle image.');
+  await saveRemoteSelection(image.contentHash ?? (await hashBlob(image.blob)));
+  await saveLocalSelection(id);
 }
 
 export function selectExternalPuzzleImage(
