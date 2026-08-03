@@ -1,10 +1,8 @@
 import { CalendarDays, Trophy } from 'lucide-react';
 import Link from 'next/link';
 
-import { CurrentUserBadge } from '@/components/CurrentUserBadge';
-import { DailyChallengePodium } from '@/components/DailyChallengePodium';
+import { DailyChallengeRankingsSummary } from '@/components/DailyChallengePodium';
 import { GameBoard } from '@/components/GameBoard';
-import { ProfileAvatar } from '@/components/ProfileAvatar';
 import {
   ApiDailyChallengeMineResponse,
   ApiDailyChallengeResponse,
@@ -67,14 +65,6 @@ export default async function DailyChallengePage() {
   const scores = daily?.scores ?? [];
   const submittedScore = mine?.score ?? null;
   const currentUserRank = mine?.rank ?? null;
-  const fastestScore = scores[0] ?? null;
-  const averageMoves =
-    scores.length > 0
-      ? Math.round(
-          scores.reduce((total, score) => total + score.moves, 0) /
-            scores.length,
-        )
-      : null;
 
   return (
     <>
@@ -155,114 +145,11 @@ export default async function DailyChallengePage() {
           </div>
         ) : null}
 
-        <div className="grid gap-3 min-[760px]:grid-cols-3">
-          <article className="rounded-lg border border-accent/18 bg-primary-soft p-4 shadow-card-soft">
-            <p className="text-[0.72rem] font-extrabold uppercase text-accent-strong">
-              Posted scores
-            </p>
-            <p className="mt-1 text-3xl font-bold">{scores.length}</p>
-          </article>
-          <article className="rounded-lg border border-info/22 bg-info-surface p-4 shadow-card-soft">
-            <p className="text-[0.72rem] font-extrabold uppercase text-info-strong">
-              Fastest time
-            </p>
-            <p className="mt-1 text-3xl font-bold">
-              {fastestScore ? formatDuration(fastestScore.timeSeconds) : '-'}
-            </p>
-          </article>
-          <article className="rounded-lg border border-warning/28 bg-warning-surface p-4 shadow-card-soft">
-            <p className="text-[0.72rem] font-extrabold uppercase text-warning-strong">
-              Average moves
-            </p>
-            <p className="mt-1 text-3xl font-bold">
-              {averageMoves === null ? '-' : averageMoves}
-            </p>
-          </article>
-        </div>
-
-        <DailyChallengePodium
+        <DailyChallengeRankingsSummary
           challengeDate={challengeDate}
           currentUserId={session?.id}
           initialScores={scores}
         />
-
-        <section className="grid gap-3 rounded-lg border border-accent/16 bg-panel p-4 shadow-panel">
-          <div>
-            <p className="text-[0.76rem] font-extrabold uppercase text-accent-strong">
-              Today&apos;s rankings
-            </p>
-            <h2 className="mt-1 text-2xl leading-tight">Leaderboard</h2>
-          </div>
-
-          {scores.length > 0 ? (
-            <div className="overflow-hidden rounded-lg border border-line">
-              <table className="w-full border-collapse">
-                <thead className="bg-primary-soft">
-                  <tr>
-                    <th className="border-b border-line p-3 text-left text-xs uppercase text-muted">
-                      Rank
-                    </th>
-                    <th className="border-b border-line p-3 text-left text-xs uppercase text-muted">
-                      Player
-                    </th>
-                    <th className="border-b border-line p-3 text-left text-xs uppercase text-muted">
-                      Moves
-                    </th>
-                    <th className="border-b border-line p-3 text-left text-xs uppercase text-muted">
-                      Time
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {scores.map((score, index) => {
-                    const isCurrentUser = session?.id === score.userId;
-                    const playerName = score.user?.name ?? 'Player';
-
-                    return (
-                      <tr
-                        className={
-                          isCurrentUser
-                            ? 'bg-accent/12'
-                            : index % 2 === 0
-                              ? 'bg-surface/40'
-                              : 'bg-panel'
-                        }
-                        key={score.id}
-                      >
-                        <td className="border-b border-line p-3 font-bold">
-                          #{index + 1}
-                        </td>
-                        <td className="border-b border-line p-3">
-                          <span className="inline-flex min-w-0 items-center gap-2">
-                            <ProfileAvatar
-                              avatarUrl={score.user?.avatarUrl}
-                              name={playerName}
-                              size={28}
-                            />
-                            <span className="truncate font-bold">
-                              {playerName}
-                            </span>
-                            {isCurrentUser ? <CurrentUserBadge /> : null}
-                          </span>
-                        </td>
-                        <td className="border-b border-line p-3">
-                          {score.moves}
-                        </td>
-                        <td className="border-b border-line p-3">
-                          {formatDuration(score.timeSeconds)}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <p className="rounded-lg border border-dashed border-line p-4 text-sm text-muted">
-              No one has posted today&apos;s challenge yet.
-            </p>
-          )}
-        </section>
       </section>
     </>
   );
