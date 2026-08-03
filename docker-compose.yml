@@ -33,14 +33,18 @@ services:
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-Sliding Tiles <onboarding@resend.dev>}
       PUBLIC_API_BASE_URL: ${PUBLIC_API_BASE_URL:-http://localhost:3000}
+      PUZZLE_IMAGE_STORAGE_PATH: /app/data/puzzle-images
       RUN_MIGRATIONS: ${RUN_MIGRATIONS:-true}
       SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET must be set}
       WEB_BASE_URL: ${WEB_BASE_URL:-http://localhost:3000}
     ports:
       - '${WEB_PORT:-3000}:${WEB_PORT:-3000}'
+    volumes:
+      - puzzle-image-data:/app/data/puzzle-images
     profiles:
       - app
     restart: unless-stopped
 
 volumes:
   postgres-data:
+  puzzle-image-data:

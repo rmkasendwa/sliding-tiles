@@ -22,6 +22,17 @@ export type PuzzleImageImportResult = {
   imported: StoredPuzzleImage[];
 };
 
+type RemotePuzzleImage = {
+  contentHash: string;
+  contentType: string;
+  height: number;
+  id: string;
+  name: string;
+  size: number;
+  updatedAt: string;
+  width: number;
+};
+
 const DATABASE_NAME = 'sliding-tiles';
 const DATABASE_VERSION = 1;
 const IMAGE_KEY = 'current';
@@ -221,6 +232,61 @@ export async function importStoredPuzzleImages(
   return { duplicateCount, imported };
 }
 
+let activeSynchronization: Promise<void> | null = null;
+
+/** Reconciles the authenticated user's server library with the IndexedDB cache. */
+export function synchronizeStoredPuzzleImages() {
+  if (activeSynchronization) return activeSynchronization;
+  activeSynchronization = synchronize().finally(() => {
+    activeSynchronization = null;
+  });
+  return activeSynchronization;
+}
+
+async function synchronize() {
+  const response = await fetch('/api/puzzle-images', { cache: 'no-store' });
+  if (response.status === 401) return;
+  if (!response.ok) throw new Error('Could not load synchronized puzzle images.');
+  const { images: remoteImages } = (await response.json()) as { images: RemotePuzzleImage[] };
+  const localImages = await loadStoredPuzzleImages();
+  const localHashes = new Set(
+    await Promise.all(localImages.map((image) => image.contentHash ?? hashBlob(image.blob))),
+  );
+  const missingRemoteImages = remoteImages.filter((image) => !localHashes.has(image.contentHash));
+
+  const downloads = await Promise.all(
+    missingRemoteImages.map(async (image) => {
+      const imageResponse = await fetch(`/api/puzzle-images/${encodeURIComponent(image.id)}`);
+      if (!imageResponse.ok) throw new Error('Could not download a synchronized puzzle image.');
+      return {
+        blob: await imageResponse.blob(),
+        height: image.height,
+        name: image.name,
+        width: image.width,
+      };
+    }),
+  );
+  await importStoredPuzzleImages(downloads);
+
+  const remoteHashes = new Set(remoteImages.map((image) => image.contentHash));
+  await Promise.all(
+    localImages.map(async (image) => {
+      const contentHash = image.contentHash ?? (await hashBlob(image.blob));
+      if (remoteHashes.has(contentHash)) return;
+      const formData = new FormData();
+      formData.set('contentHash', contentHash);
+      formData.set('file', image.blob, image.name);
+      formData.set('height', String(image.height));
+      formData.set('name', image.name);
+      formData.set('width', String(image.width));
+      const uploadResponse = await fetch('/api/puzzle-images', { body: formData, method: 'POST' });
+      if (!uploadResponse.ok && uploadResponse.status !== 401) {
+        throw new Error('Could not synchronize a puzzle image.');
+      }
+    }),
+  );
+}
+
 export function selectStoredPuzzleImage(id: string) {
   const selection: StoredPuzzleImageSelection = { selectedId: id };
 
@@ -241,8 +307,9 @@ export function selectExternalPuzzleImage(
   ).then(() => undefined);
 }
 
-export function deleteStoredPuzzleImage(id: string) {
-  return openDatabase().then(
+export async function deleteStoredPuzzleImage(id: string) {
+  const image = (await loadStoredPuzzleImages()).find((candidate) => candidate.id === id);
+  await openDatabase().then(
     (database) =>
       new Promise<void>((resolve, reject) => {
         const transaction = database.transaction(STORE_NAME, 'readwrite');
@@ -272,4 +339,17 @@ export function deleteStoredPuzzleImage(id: string) {
         };
       }),
   );
+
+  if (!image) return;
+  const response = await fetch('/api/puzzle-images', { cache: 'no-store' });
+  if (response.status === 401) return;
+  if (!response.ok) throw new Error('Could not load synchronized puzzle images.');
+  const { images } = (await response.json()) as { images: RemotePuzzleImage[] };
+  const contentHash = image.contentHash ?? (await hashBlob(image.blob));
+  const remote = images.find((candidate) => candidate.contentHash === contentHash);
+  if (!remote) return;
+  const deleteResponse = await fetch(`/api/puzzle-images/${encodeURIComponent(remote.id)}`, { method: 'DELETE' });
+  if (!deleteResponse.ok && deleteResponse.status !== 404) {
+    throw new Error('Could not delete the synchronized puzzle image.');
+  }
 }

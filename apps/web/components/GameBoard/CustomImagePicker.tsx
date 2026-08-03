@@ -19,6 +19,7 @@ import {
   importStoredPuzzleImages,
   loadStoredPuzzleImages,
   StoredPuzzleImage,
+  synchronizeStoredPuzzleImages,
 } from '@/lib/puzzleImageStorage';
 
 export type PuzzleImage = {
@@ -204,7 +205,9 @@ export function CustomImagePicker({
   useEffect(() => {
     let isCancelled = false;
 
-    void loadStoredPuzzleImages()
+    void synchronizeStoredPuzzleImages()
+      .catch(() => undefined)
+      .then(() => loadStoredPuzzleImages())
       .then((images) => {
         if (isCancelled) return;
         const imagesWithUrls = images.map((image) => {
@@ -313,6 +316,10 @@ export function CustomImagePicker({
         );
       }
       setImportSummary(parts.join(' '));
+      void synchronizeStoredPuzzleImages().catch(() => {
+        if (!navigator.onLine) return;
+        setError('Your images were saved on this device, but cloud synchronization will retry later.');
+      });
     } catch {
       setError('The selected images could not be saved. Please try again.');
     } finally {

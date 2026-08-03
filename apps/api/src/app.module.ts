@@ -8,6 +8,7 @@ import { GameStateModule } from './game-state/game-state.module';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProfileModule } from './profile/profile.module';
+import { PuzzleImageModule } from './puzzle-image/puzzle-image.module';
 import { SessionModule } from './session/session.module';
 
 @Module({
@@ -21,6 +22,7 @@ import { SessionModule } from './session/session.module';
     GameStateModule,
     LeaderboardModule,
     ProfileModule,
+    PuzzleImageModule,
   ],
 })
 export class AppModule {}

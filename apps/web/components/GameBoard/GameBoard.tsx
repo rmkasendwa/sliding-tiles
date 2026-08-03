@@ -27,6 +27,7 @@ import {
   selectExternalPuzzleImage,
   selectStoredPuzzleImage,
   storePuzzleImage,
+  synchronizeStoredPuzzleImages,
 } from '@/lib/puzzleImageStorage';
 
 import { SoundProvider, useSound } from '../SoundProvider';
@@ -143,7 +144,9 @@ function GameBoardContent({
   useEffect(() => {
     let isCancelled = false;
 
-    void loadStoredPuzzleImage()
+    void synchronizeStoredPuzzleImages()
+      .catch(() => undefined)
+      .then(() => loadStoredPuzzleImage())
       .then((stored) => {
         if (!stored || isCancelled || hasSelectedPuzzleImageRef.current) return;
 

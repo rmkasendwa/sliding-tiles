@@ -36,10 +36,30 @@ model User {
   dailyChallengeScores            DailyChallengeScore[]
   analyticsEvents                 AnonymousAnalyticsEvent[]
   accounts                        OAuthAccount[]
+  puzzleImages                    PuzzleImage[]
 
   @@index([role], map: "users_role_idx")
   @@index([promotedById], map: "users_promoted_by_id_idx")
   @@map("users")
+}
+
+model PuzzleImage {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  contentHash String   @map("content_hash")
+  objectKey   String   @map("object_key")
+  name        String
+  contentType String   @map("content_type")
+  size        Int
+  width       Int
+  height      Int
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "puzzle_images_user_id_fkey")
+
+  @@unique([userId, contentHash], map: "puzzle_images_user_id_content_hash_key")
+  @@index([userId, updatedAt], map: "puzzle_images_user_id_updated_at_idx")
+  @@map("puzzle_images")
 }
 
 model OAuthAccount {
