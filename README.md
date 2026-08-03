@@ -243,8 +243,8 @@ docker run --rm \
   -e WEB_BASE_URL="https://your-web-domain.example" \
   -e PUBLIC_API_BASE_URL="https://your-api-domain.example" \
   -e API_CORS_ORIGINS="https://your-web-domain.example" \
-  -e PUZZLE_IMAGE_STORAGE_PATH="/app/data/puzzle-images" \
-  -v sliding-tiles-images:/app/data/puzzle-images \
+  -e S3_BUCKET="your-production-bucket" \
+  -e AWS_REGION="us-east-1" \
   -e RESEND_API_KEY="re_your_api_key" \
   -e RESEND_FROM_EMAIL="Sliding Tiles <accounts@your-domain.example>" \
   sliding-tiles:latest
@@ -252,9 +252,10 @@ docker run --rm \
 
 By default the container runs database migrations before starting the app. Set
 `RUN_MIGRATIONS=false` if your host runs migrations separately.
-Custom puzzle images are stored beneath `PUZZLE_IMAGE_STORAGE_PATH`; mount that
-directory on persistent storage in production. Docker Compose configures a
-named volume for it automatically.
+Custom puzzle images use the S3 API in every environment. Docker Compose starts
+a local MinIO service (API on `9000`, console on `9001`) and creates the bucket
+automatically. In AWS production, omit `S3_ENDPOINT` and provide the bucket,
+region, and workload credentials through the deployment platform.
 
 For a local production-style run with Docker Compose:
 
@@ -266,6 +267,7 @@ npm run docker:up
 The `app` compose profile starts:
 
 - `postgres`
+- `minio` plus a one-shot `minio-init` bucket initializer
 - `app`, a single container that runs migrations, then starts the API on
   internal port `4001` and web on `WEB_PORT`
 
@@ -290,7 +292,8 @@ API_CORS_ORIGINS="https://your-web-domain.example"
 PUBLIC_API_BASE_URL="https://your-api-domain.example"
 WEB_BASE_URL="https://your-web-domain.example"
 RUN_MIGRATIONS=true
-PUZZLE_IMAGE_STORAGE_PATH="/app/data/puzzle-images"
+S3_BUCKET="your-production-bucket"
+AWS_REGION="us-east-1"
 ```
 
 Stop the Docker stack with:

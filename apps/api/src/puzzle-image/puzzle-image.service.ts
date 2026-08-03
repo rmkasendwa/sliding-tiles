@@ -1,16 +1,24 @@
-import { createReadStream } from 'node:fs';
-import { mkdir, unlink, writeFile } from 'node:fs/promises';
-import { dirname, join, resolve } from 'node:path';
+import { Readable } from 'node:stream';
 
+import {
+  DeleteObjectCommand,
+  GetObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from '@aws-sdk/client-s3';
 import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class PuzzleImageService {
-  private readonly storageRoot = resolve(
-    process.env.PUZZLE_IMAGE_STORAGE_PATH ?? join(process.cwd(), 'data', 'puzzle-images'),
-  );
+  private readonly bucket = process.env.S3_BUCKET ?? 'sliding-tiles';
+  private readonly storage = new S3Client({
+    ...(process.env.S3_ENDPOINT
+      ? { endpoint: process.env.S3_ENDPOINT, forcePathStyle: true }
+      : {}),
+    region: process.env.AWS_REGION ?? 'us-east-1',
+  });
 
   constructor(private readonly prisma: PrismaService) {}
 
@@ -36,12 +44,17 @@ export class PuzzleImageService {
     file: { buffer: Buffer; mimetype: string; originalname: string; size: number },
     metadata: { contentHash: string; height: number; name?: string; width: number },
   ) {
-    const objectKey = `${userId}/${metadata.contentHash}`;
-    const objectPath = this.objectPath(objectKey);
-    await mkdir(dirname(objectPath), { recursive: true });
-    await writeFile(objectPath, file.buffer, { flag: 'wx' }).catch((error: NodeJS.ErrnoException) => {
-      if (error.code !== 'EEXIST') throw error;
-    });
+    const objectKey = `users/${userId}/puzzle-images/${metadata.contentHash}`;
+    await this.storage.send(
+      new PutObjectCommand({
+        Body: file.buffer,
+        Bucket: this.bucket,
+        ContentLength: file.size,
+        ContentType: file.mimetype,
+        Key: objectKey,
+        Metadata: { sha256: metadata.contentHash },
+      }),
+    );
 
     const image = await this.prisma.puzzleImage.upsert({
       create: {
@@ -69,24 +82,22 @@ export class PuzzleImageService {
   async openForUser(userId: string, id: string) {
     const image = await this.prisma.puzzleImage.findFirst({ where: { id, userId } });
     if (!image) throw new NotFoundException('Puzzle image not found.');
-    return { image, stream: createReadStream(this.objectPath(image.objectKey)) };
+    const object = await this.storage.send(
+      new GetObjectCommand({ Bucket: this.bucket, Key: image.objectKey }),
+    );
+    if (!(object.Body instanceof Readable)) {
+      throw new NotFoundException('Puzzle image content not found.');
+    }
+    return { image, stream: object.Body };
   }
 
   async deleteForUser(userId: string, id: string) {
     const image = await this.prisma.puzzleImage.findFirst({ where: { id, userId } });
     if (!image) throw new NotFoundException('Puzzle image not found.');
+    await this.storage.send(
+      new DeleteObjectCommand({ Bucket: this.bucket, Key: image.objectKey }),
+    );
     await this.prisma.puzzleImage.delete({ where: { id } });
-    await unlink(this.objectPath(image.objectKey)).catch((error: NodeJS.ErrnoException) => {
-      if (error.code !== 'ENOENT') throw error;
-    });
     return { deleted: true };
-  }
-
-  private objectPath(objectKey: string) {
-    const path = resolve(this.storageRoot, objectKey);
-    if (!path.startsWith(`${this.storageRoot}${process.platform === 'win32' ? '\\' : '/'}`)) {
-      throw new Error('Invalid object key.');
-    }
-    return path;
   }
 }

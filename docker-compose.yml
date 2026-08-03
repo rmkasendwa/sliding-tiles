@@ -16,35 +16,65 @@ services:
       timeout: 5s
       retries: 10
 
+  minio:
+    image: quay.io/minio/minio:RELEASE.2025-07-23T15-54-02Z
+    command: server /data --console-address ':9001'
+    environment:
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-sliding-tiles-development}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-sliding-tiles}
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - minio-data:/data
+
+  minio-init:
+    image: quay.io/minio/mc:latest
+    depends_on:
+      - minio
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - >-
+        until mc alias set local http://minio:9000 "$${MINIO_ROOT_USER}" "$${MINIO_ROOT_PASSWORD}"; do sleep 1; done;
+        mc mb --ignore-existing local/${S3_BUCKET:-sliding-tiles}
+    environment:
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-sliding-tiles-development}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-sliding-tiles}
+
   app:
     build:
       context: .
       dockerfile: Dockerfile
     depends_on:
+      minio-init:
+        condition: service_completed_successfully
       postgres:
         condition: service_healthy
     environment:
       API_BASE_URL: ${DOCKER_API_BASE_URL:-http://localhost:4001/api}
       API_CORS_ORIGINS: ${API_CORS_ORIGINS:-http://localhost:3000}
       API_PORT: 4001
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-sliding-tiles}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-sliding-tiles-development}
       DATABASE_URL: ${DOCKER_DATABASE_URL:-postgresql://sliding_tiles:sliding_tiles@postgres:5432/sliding_tiles?schema=public}
       NODE_ENV: production
       PORT: ${WEB_PORT:-3000}
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-Sliding Tiles <onboarding@resend.dev>}
       PUBLIC_API_BASE_URL: ${PUBLIC_API_BASE_URL:-http://localhost:3000}
-      PUZZLE_IMAGE_STORAGE_PATH: /app/data/puzzle-images
+      S3_BUCKET: ${S3_BUCKET:-sliding-tiles}
+      S3_ENDPOINT: http://minio:9000
       RUN_MIGRATIONS: ${RUN_MIGRATIONS:-true}
       SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET must be set}
       WEB_BASE_URL: ${WEB_BASE_URL:-http://localhost:3000}
     ports:
       - '${WEB_PORT:-3000}:${WEB_PORT:-3000}'
-    volumes:
-      - puzzle-image-data:/app/data/puzzle-images
     profiles:
       - app
     restart: unless-stopped
 
 volumes:
+  minio-data:
   postgres-data:
-  puzzle-image-data:
