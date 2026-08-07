@@ -172,7 +172,7 @@ export default async function LeaderboardPage() {
               Live top 50
             </span>
             <span className="rounded-full border border-warning/35 bg-warning-soft/78 px-3 py-1 text-xs font-bold uppercase text-warning-strong shadow-sm">
-              Best level, then time
+              Best level, then active time
             </span>
             {currentUserRank > 0 ? (
               <span className="rounded-full border border-info/28 bg-info-soft/78 px-3 py-1 text-xs font-bold uppercase text-info-strong shadow-sm">
@@ -200,7 +200,7 @@ export default async function LeaderboardPage() {
                 </p>
                 <p className="text-sm leading-snug text-muted">
                   Level {scores[0].level} · {scores[0].moves} moves ·{' '}
-                  {formatDuration(scores[0].timeSeconds)}
+                  Active {formatDuration(scores[0].timeSeconds)}
                 </p>
               </div>
               <p className="text-xs leading-snug text-muted">
@@ -273,7 +273,7 @@ export default async function LeaderboardPage() {
                     {score.moves} mv
                   </p>
                   <p className="rounded-md border border-foreground/8 bg-surface/60 px-2 py-1.5">
-                    {formatDuration(score.timeSeconds)}
+                    Active {formatDuration(score.timeSeconds)}
                   </p>
                 </div>
               </article>
@@ -311,7 +311,7 @@ export default async function LeaderboardPage() {
           </article>
           <article className="rounded-lg border border-warning/30 bg-[linear-gradient(160deg,var(--color-warning-soft),var(--color-surface))] p-4 shadow-panel">
             <p className="text-[0.75rem] font-extrabold uppercase text-warning-strong">
-              Best run
+              Best active
             </p>
             <p className="mt-1 text-2xl font-bold">
               {fastestRun ? formatDuration(fastestRun.timeSeconds) : '-'}
@@ -461,7 +461,11 @@ export default async function LeaderboardPage() {
                 </p>
                 <p className="mt-1 text-sm text-muted">
                   Level {score.level} · {score.moves} moves ·{' '}
-                  {formatDuration(score.timeSeconds)}
+                  Active {formatDuration(score.timeSeconds)}
+                  {score.totalTimeSeconds &&
+                  score.totalTimeSeconds !== score.timeSeconds
+                    ? ` · Total ${formatDuration(score.totalTimeSeconds)}`
+                    : ''}
                 </p>
               </article>
             );
@@ -490,7 +494,10 @@ export default async function LeaderboardPage() {
                   Moves
                 </th>
                 <th className="border-b border-line p-3.5 text-left text-[0.84rem] uppercase text-muted">
-                  Time
+                  Active time
+                </th>
+                <th className="border-b border-line p-3.5 text-left text-[0.84rem] uppercase text-muted">
+                  Total time
                 </th>
                 <th className="border-b border-line p-3.5 text-left text-[0.84rem] uppercase text-muted">
                   Pace
@@ -543,6 +550,9 @@ export default async function LeaderboardPage() {
                   </td>
                   <td className="border-b border-line p-3.5 text-left">
                     {formatDuration(score.timeSeconds)}
+                  </td>
+                  <td className="border-b border-line p-3.5 text-left">
+                    {formatDuration(score.totalTimeSeconds ?? score.timeSeconds)}
                   </td>
                   <td className="border-b border-line p-3.5 text-left text-sm text-muted">
                     {perLevel(score.timeSeconds, score.level, 1)}s/lvl

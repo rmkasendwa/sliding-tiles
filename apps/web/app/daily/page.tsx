@@ -79,7 +79,11 @@ export default async function DailyChallengePage() {
             </h2>
             <p className="text-sm font-bold text-foreground">
               {submittedScore.moves} moves ·{' '}
-              {formatDuration(submittedScore.timeSeconds)}
+              Active {formatDuration(submittedScore.timeSeconds)}
+              {submittedScore.totalTimeSeconds &&
+              submittedScore.totalTimeSeconds !== submittedScore.timeSeconds
+                ? ` · Total ${formatDuration(submittedScore.totalTimeSeconds)}`
+                : ''}
               {currentUserRank ? ` · Rank #${currentUserRank}` : ''}
             </p>
             <p className="max-w-md text-sm text-center leading-6 text-muted">
@@ -114,8 +118,9 @@ export default async function DailyChallengePage() {
               {formatChallengeDate(challengeDate)}
             </h1>
             <p className="max-w-2xl text-sm leading-6 text-muted">
-              Same puzzle for everyone, ranked by completion time and then move
-              count. Your first successful submission is final.
+              Same puzzle for everyone, ranked by active play time and then move
+              count. Idle pauses stay visible in total time, and your first
+              successful submission is final.
             </p>
           </div>
           <div className="flex flex-wrap gap-2 min-[920px]:justify-end">

@@ -27,10 +27,6 @@ function formatDateTime(isoDate: string) {
   }).format(new Date(isoDate));
 }
 
-function formatPace(timeSeconds: number, level: number) {
-  return `${(timeSeconds / Math.max(level, 1)).toFixed(1)}s/lvl`;
-}
-
 export function RunHistoryList({
   continuation,
   runs,
@@ -95,13 +91,14 @@ export function RunHistoryList({
               </div>
               <div className="grid grid-cols-3 gap-2 text-sm max-[620px]:grid-cols-1">
                 <p className="rounded-md border border-line bg-surface/80 px-2 py-1.5">
-                  Time: {formatDuration(run.timeSeconds)}
+                  Active: {formatDuration(run.timeSeconds)}
+                </p>
+                <p className="rounded-md border border-line bg-surface/80 px-2 py-1.5">
+                  Total:{' '}
+                  {formatDuration(run.totalTimeSeconds ?? run.timeSeconds)}
                 </p>
                 <p className="rounded-md border border-line bg-surface/80 px-2 py-1.5">
                   Moves: {run.moves}
-                </p>
-                <p className="rounded-md border border-line bg-surface/80 px-2 py-1.5">
-                  Pace: {formatPace(run.timeSeconds, run.level)}
                 </p>
               </div>
               <div className="grid gap-2 rounded-md border border-line bg-surface/70 px-2.5 py-2 text-xs text-muted">

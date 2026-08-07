@@ -58,7 +58,9 @@ export type ApiScore = {
   moves: number;
   puzzleConfig?: BoardState | null;
   replayOfId?: string | null;
+  pausedDurationSeconds: number;
   timeSeconds: number;
+  totalTimeSeconds: number | null;
   user?: {
     avatarUrl: string;
     name: string;
@@ -107,7 +109,9 @@ export type ApiDailyChallengeScore = {
   id: string;
   level: number;
   moves: number;
+  pausedDurationSeconds: number;
   timeSeconds: number;
+  totalTimeSeconds: number | null;
   user?: {
     avatarUrl: string;
     name: string;

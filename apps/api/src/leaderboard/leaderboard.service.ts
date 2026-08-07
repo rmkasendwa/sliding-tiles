@@ -79,6 +79,29 @@ export function calculateStreakUpdate({
   };
 }
 
+export function calculateCompletionTiming(board: BoardStateDto, now = Date.now()) {
+  const fallbackTotalElapsedMs = Math.max(
+    0,
+    now - new Date(board.startedAt).getTime(),
+  );
+  const activeElapsedMs =
+    board.elapsedTimeMs > 0 ? board.elapsedTimeMs : fallbackTotalElapsedMs;
+  const totalElapsedMs = Math.max(
+    activeElapsedMs,
+    board.totalElapsedTimeMs ?? activeElapsedMs + (board.pausedDurationMs ?? 0),
+  );
+  const pausedDurationMs = Math.max(
+    board.pausedDurationMs ?? 0,
+    totalElapsedMs - activeElapsedMs,
+  );
+
+  return {
+    pausedDurationSeconds: Math.round(pausedDurationMs / 1000),
+    timeSeconds: Math.max(1, Math.round(activeElapsedMs / 1000)),
+    totalTimeSeconds: Math.max(1, Math.round(totalElapsedMs / 1000)),
+  };
+}
+
 @Injectable()
 export class LeaderboardService {
   constructor(private readonly prisma: PrismaService) {}
@@ -149,9 +172,11 @@ export class LeaderboardService {
           id: true,
           level: true,
           moves: true,
+          pausedDurationSeconds: true,
           puzzleConfig: true,
           replayOfId: true,
           timeSeconds: true,
+          totalTimeSeconds: true,
           userId: true,
         },
         skip: cursor ? 1 : 0,
@@ -274,7 +299,9 @@ export class LeaderboardService {
         level: true,
         moves: true,
         replayOfId: true,
+        pausedDurationSeconds: true,
         timeSeconds: true,
+        totalTimeSeconds: true,
         userId: true,
         user: {
           select: {
@@ -307,7 +334,9 @@ export class LeaderboardService {
         id: true,
         level: true,
         moves: true,
+        pausedDurationSeconds: true,
         timeSeconds: true,
+        totalTimeSeconds: true,
         userId: true,
         user: {
           select: {
@@ -351,7 +380,9 @@ export class LeaderboardService {
         id: true,
         level: true,
         moves: true,
+        pausedDurationSeconds: true,
         timeSeconds: true,
+        totalTimeSeconds: true,
         userId: true,
       },
       where: { challengeDate },
@@ -411,7 +442,9 @@ export class LeaderboardService {
         ...board,
         elapsedTimeMs: 0,
         moves: 0,
+        pausedDurationMs: 0,
         startedAt: new Date().toISOString(),
+        totalElapsedTimeMs: 0,
       } satisfies BoardStateDto,
       replayOfId: replayRootId,
     };
@@ -419,11 +452,8 @@ export class LeaderboardService {
 
   async recordCompletedLevel(userId: string, data: CompletedLevelDto) {
     const { attemptType, board, completion, puzzleConfig, replayOfId } = data;
-    const elapsedMs =
-      board.elapsedTimeMs > 0
-        ? board.elapsedTimeMs
-        : Math.max(0, Date.now() - new Date(board.startedAt).getTime());
-    const timeSeconds = Math.max(1, Math.round(elapsedMs / 1000));
+    const { pausedDurationSeconds, timeSeconds, totalTimeSeconds } =
+      calculateCompletionTiming(board);
     const previousBest = await this.prisma.leaderboard.findFirst({
       orderBy: [
         { timeSeconds: 'asc' },
@@ -458,9 +488,11 @@ export class LeaderboardService {
           attemptType,
           level: board.level,
           moves: board.moves,
+          pausedDurationSeconds,
           puzzleConfig: storedPuzzleConfig as unknown as Prisma.InputJsonValue,
           replayOfId: attemptType === 'replay' ? replayRootId : null,
           timeSeconds,
+          totalTimeSeconds,
           userId,
         },
       });
@@ -491,11 +523,8 @@ export class LeaderboardService {
     data: CompletedDailyChallengeDto,
   ) {
     const { board, challengeDate, completion, puzzleConfig } = data;
-    const elapsedMs =
-      board.elapsedTimeMs > 0
-        ? board.elapsedTimeMs
-        : Math.max(0, Date.now() - new Date(board.startedAt).getTime());
-    const timeSeconds = Math.max(1, Math.round(elapsedMs / 1000));
+    const { pausedDurationSeconds, timeSeconds, totalTimeSeconds } =
+      calculateCompletionTiming(board);
 
     try {
       const { score, streak } = await this.prisma.$transaction(async (tx) => {
@@ -504,8 +533,10 @@ export class LeaderboardService {
             challengeDate,
             level: board.level,
             moves: board.moves,
+            pausedDurationSeconds,
             puzzleConfig: (puzzleConfig ?? board) as unknown as Prisma.InputJsonValue,
             timeSeconds,
+            totalTimeSeconds,
             userId,
           },
         });

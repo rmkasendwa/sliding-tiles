@@ -19,7 +19,9 @@ export type BoardState = {
   movableSlots: Slot[];
   moves: number;
   elapsedTimeMs: number;
+  pausedDurationMs?: number;
   startedAt: string;
+  totalElapsedTimeMs?: number;
   solutionMoves?: Slot[];
 };
 
@@ -29,6 +31,10 @@ export function normalizeBoardState(
   return {
     ...board,
     elapsedTimeMs: 'elapsedTimeMs' in board ? board.elapsedTimeMs : 0,
+    pausedDurationMs:
+      'pausedDurationMs' in board ? board.pausedDurationMs : undefined,
+    totalElapsedTimeMs:
+      'totalElapsedTimeMs' in board ? board.totalElapsedTimeMs : undefined,
   };
 }
 
@@ -40,7 +46,9 @@ export function resetBoardAttempt(
     ...board,
     elapsedTimeMs: 0,
     moves: 0,
+    pausedDurationMs: 0,
     startedAt,
+    totalElapsedTimeMs: 0,
   };
 }
 

@@ -119,11 +119,14 @@ function GameBoardContent({
     elapsedTimeMs,
     isFocusPaused,
     isGameComplete,
+    pausedDurationMs,
     prepareClockForBoardChange,
     resetClock,
     startClockForValidMove,
     stopClockForAssistedPlay,
     timerStatus,
+    totalElapsedTimeLabel,
+    totalElapsedTimeMs,
   } = useGameTimer(initialBoard, initialTimerStatus);
   const {
     close: closeInfoModal,
@@ -436,7 +439,9 @@ function GameBoardContent({
     isPersistenceDisabled:
       Boolean(dailyChallenge) || isAutoPlayRunning || isAutoPlayCompletion,
     isSignedIn,
+    pausedDurationMs,
     timerStatus,
+    totalElapsedTimeMs,
   });
 
   const movableSlotKeys = useMemo(() => {
@@ -566,12 +571,21 @@ function GameBoardContent({
   const completeLevel = useCallback(
     (
       completedBoard: BoardState,
-      effectiveLevelStartedAtMs: number,
+      effectiveTimerState: {
+        activeStartedAtMs: number;
+        pausedDurationMs: number;
+        sessionStartedAtMs: number;
+      },
       source: 'auto-play' | 'player' = 'player',
     ) => {
       setPersonalBestNotice(null);
       setStreakNotice(null);
-      const completedElapsedTimeMs = completeClock(effectiveLevelStartedAtMs);
+      const completedTimerSnapshot = completeClock(effectiveTimerState);
+      const completedElapsedTimeMs =
+        completedTimerSnapshot.activeElapsedTimeMs;
+      const completedTotalElapsedTimeMs =
+        completedTimerSnapshot.totalElapsedTimeMs;
+      const completedPausedDurationMs = completedTimerSnapshot.pausedDurationMs;
       const latestReplayPerformance = {
         moves: completedBoard.moves,
         timeSeconds: Math.max(1, Math.round(completedElapsedTimeMs / 1000)),
@@ -622,6 +636,8 @@ function GameBoardContent({
             board: {
               ...completedBoard,
               elapsedTimeMs: completedElapsedTimeMs,
+              pausedDurationMs: completedPausedDurationMs,
+              totalElapsedTimeMs: completedTotalElapsedTimeMs,
             },
             challengeDate: dailyChallenge.challengeDate,
             completion: getLocalCompletion(),
@@ -672,6 +688,8 @@ function GameBoardContent({
           board: {
             ...completedBoard,
             elapsedTimeMs: completedElapsedTimeMs,
+            pausedDurationMs: completedPausedDurationMs,
+            totalElapsedTimeMs: completedTotalElapsedTimeMs,
           },
           completion: getLocalCompletion(),
           puzzleConfig: attemptStartBoard,
@@ -800,12 +818,19 @@ function GameBoardContent({
       setBoard(nextBoard);
 
       if (nextBoard !== currentBoard) {
-        const effectiveLevelStartedAtMs = isAutoPlayMove || isAutoPlayCompletion
-          ? Date.now()
+        const moveTimeMs = Date.now();
+        const effectiveTimerState = isAutoPlayMove || isAutoPlayCompletion
+          ? {
+              activeStartedAtMs: moveTimeMs,
+              pausedDurationMs: 0,
+              sessionStartedAtMs: moveTimeMs,
+            }
           : startClockForValidMove();
         const currentElapsedTimeMs = Math.max(
           0,
-          Date.now() - effectiveLevelStartedAtMs,
+          Date.now() -
+            effectiveTimerState.activeStartedAtMs -
+            effectiveTimerState.pausedDurationMs,
         );
         if (!isAutoPlayMove) {
           trackAnonymousEvent(
@@ -818,7 +843,7 @@ function GameBoardContent({
         playSound('move');
 
         if (isTileGridInOrder(nextBoard.tileGrid)) {
-          completeLevel(nextBoard, effectiveLevelStartedAtMs, source);
+          completeLevel(nextBoard, effectiveTimerState, source);
         }
       }
     },
@@ -1392,6 +1417,7 @@ function GameBoardContent({
             : undefined
         }
         elapsedTimeLabel={elapsedTimeLabel}
+        totalElapsedTimeLabel={totalElapsedTimeLabel}
         hintedSlot={hintedSlot}
         imageAspectRatio={imageAspectRatio}
         imageUrl={puzzleImage.url}

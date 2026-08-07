@@ -89,6 +89,7 @@ export const boardExample = {
     [3, 2],
   ],
   moves: 64,
+  pausedDurationMs: 22000,
   solutionMoves: [
     [3, 2],
     [3, 1],
@@ -100,6 +101,7 @@ export const boardExample = {
     [9, 10, 11, 12],
     [13, 14, 15, null],
   ],
+  totalElapsedTimeMs: 64000,
 };
 
 export const scoreExample = {
@@ -108,8 +110,10 @@ export const scoreExample = {
   id: 'completion_123',
   level: 7,
   moves: 64,
+  pausedDurationSeconds: 22,
   replayOfId: null,
   timeSeconds: 42,
+  totalTimeSeconds: 64,
   userId: 'clx_player_123',
 };
 
@@ -120,8 +124,10 @@ function scoreProperties() {
     id: { type: 'string' },
     level: { minimum: 1, type: 'integer' },
     moves: { minimum: 0, type: 'integer' },
+    pausedDurationSeconds: { minimum: 0, type: 'integer' },
     replayOfId: { nullable: true, type: 'string' },
     timeSeconds: { minimum: 1, type: 'integer' },
+    totalTimeSeconds: { minimum: 1, nullable: true, type: 'integer' },
     userId: { type: 'string' },
   };
 }
@@ -133,8 +139,10 @@ function scoreRequired() {
     'id',
     'level',
     'moves',
+    'pausedDurationSeconds',
     'replayOfId',
     'timeSeconds',
+    'totalTimeSeconds',
     'userId',
   ];
 }

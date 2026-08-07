@@ -21,6 +21,7 @@ import { GameToolButton } from './GameToolButton';
 type GameToolbarProps = {
   columns: number;
   elapsedTimeLabel: string;
+  totalElapsedTimeLabel: string;
   isBoardFullscreen: boolean;
   isCelebrating: boolean;
   isFocusPaused: boolean;
@@ -61,6 +62,7 @@ type GameToolbarProps = {
 export function GameToolbar({
   columns,
   elapsedTimeLabel,
+  totalElapsedTimeLabel,
   isBoardFullscreen,
   isCelebrating,
   isFocusPaused,
@@ -169,7 +171,11 @@ export function GameToolbar({
             aria-label={`${moves} ${moves === 1 ? 'move' : 'moves'}, elapsed time ${elapsedTimeLabel}`}
             className="game-toolbar-dock__stats play-overlay-float board-overlay whitespace-nowrap rounded-[7px] border px-1.5 py-2 text-sm font-bold text-accent-strong max-[480px]:text-xs"
           >
-            {moves} {moves === 1 ? 'move' : 'moves'} · {elapsedTimeLabel}
+            {moves} {moves === 1 ? 'move' : 'moves'} · Active{' '}
+            {elapsedTimeLabel}
+            {totalElapsedTimeLabel !== elapsedTimeLabel
+              ? ` · Total ${totalElapsedTimeLabel}`
+              : ''}
           </div>
         </div>
         <div className="game-toolbar-dock__tools flex max-w-full shrink-0 flex-wrap items-center justify-end gap-1 text-accent-strong max-[520px]:w-full max-[520px]:justify-center max-[520px]:border-t max-[520px]:border-line max-[520px]:pt-1.5">

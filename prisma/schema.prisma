@@ -100,6 +100,8 @@ model Leaderboard {
   level        Int
   moves        Int
   timeSeconds  Int      @map("time_seconds")
+  totalTimeSeconds      Int?     @map("total_time_seconds")
+  pausedDurationSeconds Int      @default(0) @map("paused_duration_seconds")
   attemptType  String   @default("original") @map("attempt_type")
   replayOfId   String?  @map("replay_of_id")
   puzzleConfig Json?    @map("puzzle_config")
@@ -119,6 +121,8 @@ model DailyChallengeScore {
   level         Int
   moves         Int
   timeSeconds   Int      @map("time_seconds")
+  totalTimeSeconds      Int?     @map("total_time_seconds")
+  pausedDurationSeconds Int      @default(0) @map("paused_duration_seconds")
   puzzleConfig  Json?    @map("puzzle_config")
   completedAt   DateTime @default(now()) @map("completed_at")
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "daily_challenge_scores_user_id_fkey")

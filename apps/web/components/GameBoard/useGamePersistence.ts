@@ -24,7 +24,9 @@ type GamePersistenceOptions = {
   isGameComplete: boolean;
   isPersistenceDisabled?: boolean;
   isSignedIn: boolean;
+  pausedDurationMs: number;
   timerStatus: AnonymousTimerStatus;
+  totalElapsedTimeMs: number;
 };
 
 export function useGamePersistence({
@@ -36,7 +38,9 @@ export function useGamePersistence({
   isGameComplete,
   isPersistenceDisabled = false,
   isSignedIn,
+  pausedDurationMs,
   timerStatus,
+  totalElapsedTimeMs,
 }: GamePersistenceOptions) {
   useEffect(() => {
     if (isSignedIn) {
@@ -65,6 +69,8 @@ export function useGamePersistence({
     const boardWithElapsed = {
       ...board,
       elapsedTimeMs,
+      pausedDurationMs,
+      totalElapsedTimeMs,
     };
 
     if (isPersistenceDisabled) {
@@ -105,6 +111,8 @@ export function useGamePersistence({
     isGameComplete,
     isPersistenceDisabled,
     isSignedIn,
+    pausedDurationMs,
     timerStatus,
+    totalElapsedTimeMs,
   ]);
 }

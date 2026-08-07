@@ -197,7 +197,7 @@ export default async function ProfilePage() {
       value: firstCompletedRun ? `Level ${firstCompletedRun.level}` : 'Pending',
     },
     {
-      label: 'Personal best',
+      label: 'Best active',
       value: bestRun ? formatDuration(bestRun.timeSeconds) : 'Pending',
     },
     {
@@ -287,7 +287,7 @@ export default async function ProfilePage() {
           </div>
           <dl className="mt-4 grid grid-cols-2 gap-2.5 text-sm">
             <div className="rounded-[7px] border border-accent/18 bg-surface/68 p-2.5">
-              <dt className="text-accent-strong">Best time</dt>
+              <dt className="text-accent-strong">Best active</dt>
               <dd className="mt-1 font-bold text-foreground">
                 {bestRun ? formatDuration(bestRun.timeSeconds) : '-'}
               </dd>
@@ -446,7 +446,7 @@ export default async function ProfilePage() {
             </p>
             <p className="mt-1 text-sm text-muted">
               {latestRun
-                ? `${formatDuration(latestRun.timeSeconds)} · ${latestRun.moves} moves`
+                ? `Active ${formatDuration(latestRun.timeSeconds)} · ${latestRun.moves} moves`
                 : 'No completed runs yet'}
             </p>
             {latestReplay ? (
@@ -563,7 +563,7 @@ export default async function ProfilePage() {
               </article>
               <article className="rounded-lg border border-warning/22 bg-warning-surface p-4">
                 <p className="text-[0.75rem] font-extrabold uppercase text-warning-strong">
-                  Fastest clear
+                  Fastest active
                 </p>
                 <p className="mt-1 text-2xl font-bold">
                   {bestRun ? formatDuration(bestRun.timeSeconds) : '-'}
@@ -630,7 +630,7 @@ export default async function ProfilePage() {
               <div className="grid gap-2.5">
                 <article className="rounded-lg border border-accent/18 bg-surface/66 p-3">
                   <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.08em] text-accent-strong">
-                    Fastest clear
+                    Fastest active
                   </p>
                   <p className="mt-1 text-sm font-bold text-foreground">
                     {bestRun

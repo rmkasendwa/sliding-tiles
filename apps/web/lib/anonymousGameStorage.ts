@@ -33,9 +33,11 @@ const boardSchema = z.object({
   level: z.number().int().positive(),
   movableSlots: z.array(slotSchema),
   moves: z.number().int().nonnegative(),
+  pausedDurationMs: z.number().finite().nonnegative().optional(),
   solutionMoves: z.array(slotSchema).optional(),
   startedAt: z.string().datetime(),
   tileGrid: z.array(z.array(tileSchema)),
+  totalElapsedTimeMs: z.number().finite().nonnegative().optional(),
 });
 const anonymousGameProgressSchema = z.object({
   attemptStartBoard: boardSchema,

@@ -38,6 +38,7 @@ type GameStageProps = {
   confettiBurstKey: number | null;
   continueLevel: number;
   elapsedTimeLabel: string;
+  totalElapsedTimeLabel: string;
   hintedSlot: string | null;
   imageAspectRatio: number;
   imageUrl: string;
@@ -285,6 +286,7 @@ export function GameStage({
   confettiBurstKey,
   continueLevel,
   elapsedTimeLabel,
+  totalElapsedTimeLabel,
   hintedSlot,
   imageAspectRatio,
   imageUrl,
@@ -475,6 +477,7 @@ export function GameStage({
       <GameToolbar
         columns={columns}
         elapsedTimeLabel={elapsedTimeLabel}
+        totalElapsedTimeLabel={totalElapsedTimeLabel}
         isBoardFullscreen={isBoardFullscreen}
         isCelebrating={isCelebrating}
         isFocusPaused={isFocusPaused}

@@ -5,6 +5,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { AnonymousTimerStatus } from '@/lib/anonymousGameStorage';
 import type { BoardState } from '@/lib/board';
 
+import {
+  IDLE_PAUSE_DELAY_MS,
+  getActiveStartForResume,
+  getIdlePausedSnapshot,
+  getTimerSnapshot,
+  type RunningTimerState,
+} from './gameTiming';
+
 function formatElapsedTime(milliseconds: number) {
   const totalSeconds = Math.max(0, Math.floor(milliseconds / 1000));
   const hours = Math.floor(totalSeconds / 3600);
@@ -22,11 +30,23 @@ export function useGameTimer(
   initialBoard: BoardState,
   initialTimerStatus?: AnonymousTimerStatus,
 ) {
-  const [levelStartedAtMs, setLevelStartedAtMs] = useState(() => {
+  const [sessionStartedAtMs, setSessionStartedAtMs] = useState(() => {
+    const initialTotalElapsed = Math.max(
+      0,
+      initialBoard.totalElapsedTimeMs ?? initialBoard.elapsedTimeMs ?? 0,
+    );
+    return Date.now() - initialTotalElapsed;
+  });
+  const [activeStartedAtMs, setActiveStartedAtMs] = useState(() => {
+    const now = Date.now();
     const initialElapsed = Math.max(0, initialBoard.elapsedTimeMs ?? 0);
-    return Date.now() - initialElapsed;
+    const initialPaused = Math.max(0, initialBoard.pausedDurationMs ?? 0);
+    return now - initialElapsed - initialPaused;
   });
   const [clockNowMs, setClockNowMs] = useState(() => Date.now());
+  const [pausedDurationMs, setPausedDurationMs] = useState(
+    () => Math.max(0, initialBoard.pausedDurationMs ?? 0),
+  );
   const [isClockRunning, setIsClockRunning] = useState(
     () =>
       initialTimerStatus === 'running' ||
@@ -35,9 +55,63 @@ export function useGameTimer(
   const [isFocusPaused, setIsFocusPaused] = useState(
     initialTimerStatus === 'paused',
   );
+  const [isIdlePaused, setIsIdlePaused] = useState(false);
   const [isGameComplete, setIsGameComplete] = useState(false);
+  const activeStartedAtMsRef = useRef(activeStartedAtMs);
+  const idlePauseTimeoutRef = useRef<number | null>(null);
   const isClockRunningRef = useRef(isClockRunning);
   const isGameCompleteRef = useRef(false);
+  const pausedDurationMsRef = useRef(pausedDurationMs);
+  const sessionStartedAtMsRef = useRef(sessionStartedAtMs);
+
+  const clearIdlePauseTimeout = useCallback(() => {
+    if (idlePauseTimeoutRef.current !== null) {
+      window.clearTimeout(idlePauseTimeoutRef.current);
+      idlePauseTimeoutRef.current = null;
+    }
+  }, []);
+
+  const pauseClockForIdle = useCallback(
+    (idleStartedAtMs: number) => {
+      if (!isClockRunningRef.current || isGameCompleteRef.current) {
+        return;
+      }
+
+      const pausedAtMs = Date.now();
+      const snapshot = getIdlePausedSnapshot({
+        idleStartedAtMs,
+        nowMs: pausedAtMs,
+        state: {
+          activeStartedAtMs: activeStartedAtMsRef.current,
+          pausedDurationMs: pausedDurationMsRef.current,
+          sessionStartedAtMs: sessionStartedAtMsRef.current,
+        },
+      });
+
+      pausedDurationMsRef.current = snapshot.pausedDurationMs;
+      isClockRunningRef.current = false;
+      setClockNowMs(pausedAtMs);
+      setPausedDurationMs(snapshot.pausedDurationMs);
+      setIsClockRunning(false);
+      setIsFocusPaused(false);
+      setIsIdlePaused(true);
+    },
+    [],
+  );
+
+  const scheduleIdlePause = useCallback(() => {
+    clearIdlePauseTimeout();
+
+    if (!isClockRunningRef.current || isGameCompleteRef.current) {
+      return;
+    }
+
+    const idleStartedAtMs = Date.now();
+    idlePauseTimeoutRef.current = window.setTimeout(() => {
+      idlePauseTimeoutRef.current = null;
+      pauseClockForIdle(idleStartedAtMs);
+    }, IDLE_PAUSE_DELAY_MS);
+  }, [clearIdlePauseTimeout, pauseClockForIdle]);
 
   useEffect(() => {
     if (!isClockRunning) {
@@ -52,11 +126,24 @@ export function useGameTimer(
   }, [isClockRunning]);
 
   useEffect(() => {
+    activeStartedAtMsRef.current = activeStartedAtMs;
+  }, [activeStartedAtMs]);
+
+  useEffect(() => {
+    pausedDurationMsRef.current = pausedDurationMs;
+  }, [pausedDurationMs]);
+
+  useEffect(() => {
+    sessionStartedAtMsRef.current = sessionStartedAtMs;
+  }, [sessionStartedAtMs]);
+
+  useEffect(() => {
     const pauseClockForFocusLoss = () => {
       if (!isClockRunningRef.current || isGameCompleteRef.current) {
         return;
       }
 
+      clearIdlePauseTimeout();
       const pausedAt = Date.now();
       isClockRunningRef.current = false;
       setClockNowMs(pausedAt);
@@ -77,75 +164,136 @@ export function useGameTimer(
       window.removeEventListener('blur', pauseClockForFocusLoss);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, []);
+  }, [clearIdlePauseTimeout]);
+
+  useEffect(() => {
+    return clearIdlePauseTimeout;
+  }, [clearIdlePauseTimeout]);
 
   const resetClock = useCallback(() => {
     const levelStart = Date.now();
-    setLevelStartedAtMs(levelStart);
+    clearIdlePauseTimeout();
+    activeStartedAtMsRef.current = levelStart;
+    pausedDurationMsRef.current = 0;
+    sessionStartedAtMsRef.current = levelStart;
+    setActiveStartedAtMs(levelStart);
     setClockNowMs(levelStart);
+    setPausedDurationMs(0);
+    setSessionStartedAtMs(levelStart);
     setIsClockRunning(false);
     setIsFocusPaused(false);
+    setIsIdlePaused(false);
     setIsGameComplete(false);
     isClockRunningRef.current = false;
     isGameCompleteRef.current = false;
-  }, []);
+  }, [clearIdlePauseTimeout]);
 
   const prepareClockForBoardChange = useCallback(() => {
+    clearIdlePauseTimeout();
     setIsClockRunning(false);
     setIsFocusPaused(false);
+    setIsIdlePaused(false);
     setIsGameComplete(false);
     isClockRunningRef.current = false;
     isGameCompleteRef.current = false;
-  }, []);
+  }, [clearIdlePauseTimeout]);
 
   const startClockForValidMove = useCallback(() => {
+    const moveTime = Date.now();
     if (isClockRunningRef.current) {
-      return levelStartedAtMs;
+      scheduleIdlePause();
+      return {
+        activeStartedAtMs: activeStartedAtMsRef.current,
+        pausedDurationMs: pausedDurationMsRef.current,
+        sessionStartedAtMs: sessionStartedAtMsRef.current,
+      };
     }
 
-    const moveTime = Date.now();
-    const preservedElapsedTimeMs = isFocusPaused
-      ? Math.max(0, clockNowMs - levelStartedAtMs)
-      : 0;
-    const levelStart = moveTime - preservedElapsedTimeMs;
+    const snapshot =
+      isFocusPaused || isIdlePaused
+        ? getTimerSnapshot(
+            {
+              activeStartedAtMs: activeStartedAtMsRef.current,
+              pausedDurationMs: pausedDurationMsRef.current,
+              sessionStartedAtMs: sessionStartedAtMsRef.current,
+            },
+            clockNowMs,
+          )
+        : {
+            activeElapsedTimeMs: 0,
+            pausedDurationMs: 0,
+            totalElapsedTimeMs: 0,
+          };
+    const nextPausedDurationMs =
+      snapshot.pausedDurationMs +
+      (isFocusPaused || isIdlePaused ? Math.max(0, moveTime - clockNowMs) : 0);
+    const activeStart = getActiveStartForResume({
+      activeElapsedTimeMs: snapshot.activeElapsedTimeMs,
+      nowMs: moveTime,
+      pausedDurationMs: nextPausedDurationMs,
+    });
+    const sessionStart =
+      isFocusPaused || isIdlePaused
+        ? sessionStartedAtMsRef.current
+        : moveTime;
 
-    setLevelStartedAtMs(levelStart);
+    activeStartedAtMsRef.current = activeStart;
+    pausedDurationMsRef.current = nextPausedDurationMs;
+    sessionStartedAtMsRef.current = sessionStart;
+    setActiveStartedAtMs(activeStart);
     setClockNowMs(moveTime);
+    setPausedDurationMs(nextPausedDurationMs);
+    setSessionStartedAtMs(sessionStart);
     setIsClockRunning(true);
     setIsFocusPaused(false);
+    setIsIdlePaused(false);
     isClockRunningRef.current = true;
+    scheduleIdlePause();
 
-    return levelStart;
-  }, [clockNowMs, isFocusPaused, levelStartedAtMs]);
+    return {
+      activeStartedAtMs: activeStart,
+      pausedDurationMs: nextPausedDurationMs,
+      sessionStartedAtMs: sessionStart,
+    };
+  }, [clockNowMs, isFocusPaused, isIdlePaused, scheduleIdlePause]);
 
   const stopClockForAssistedPlay = useCallback(() => {
+    clearIdlePauseTimeout();
     const stoppedAtMs = isFocusPaused ? clockNowMs : Date.now();
 
     isClockRunningRef.current = false;
     setClockNowMs(stoppedAtMs);
     setIsClockRunning(false);
     setIsFocusPaused(false);
-  }, [clockNowMs, isFocusPaused]);
+    setIsIdlePaused(false);
+  }, [clearIdlePauseTimeout, clockNowMs, isFocusPaused]);
 
-  const completeClock = useCallback((effectiveLevelStartedAtMs: number) => {
+  const completeClock = useCallback((effectiveTimerState: RunningTimerState) => {
+    clearIdlePauseTimeout();
     const completedAtMs = Date.now();
-    const elapsedTimeMs = Math.max(
-      0,
-      completedAtMs - effectiveLevelStartedAtMs,
-    );
+    const snapshot = getTimerSnapshot(effectiveTimerState, completedAtMs);
 
     isGameCompleteRef.current = true;
     isClockRunningRef.current = false;
     setClockNowMs(completedAtMs);
     setIsClockRunning(false);
     setIsFocusPaused(false);
+    setIsIdlePaused(false);
     setIsGameComplete(true);
 
-    return elapsedTimeMs;
-  }, []);
+    return snapshot;
+  }, [clearIdlePauseTimeout]);
 
-  const elapsedTimeMs = Math.max(0, clockNowMs - levelStartedAtMs);
-  const timerStatus: AnonymousTimerStatus = isFocusPaused
+  const timerSnapshot = getTimerSnapshot(
+    {
+      activeStartedAtMs,
+      pausedDurationMs,
+      sessionStartedAtMs,
+    },
+    clockNowMs,
+  );
+  const elapsedTimeMs = timerSnapshot.activeElapsedTimeMs;
+  const timerStatus: AnonymousTimerStatus = isFocusPaused || isIdlePaused
     ? 'paused'
     : isClockRunning
       ? 'running'
@@ -159,11 +307,14 @@ export function useGameTimer(
     isClockRunning,
     isFocusPaused,
     isGameComplete,
-    levelStartedAtMs,
+    isIdlePaused,
+    pausedDurationMs: timerSnapshot.pausedDurationMs,
     prepareClockForBoardChange,
     resetClock,
     startClockForValidMove,
     stopClockForAssistedPlay,
     timerStatus,
+    totalElapsedTimeMs: timerSnapshot.totalElapsedTimeMs,
+    totalElapsedTimeLabel: formatElapsedTime(timerSnapshot.totalElapsedTimeMs),
   };
 }

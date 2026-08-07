@@ -92,7 +92,7 @@ export function DailyChallengeRankingsSummary({
         </article>
         <article className="rounded-lg border border-info/22 bg-info-surface p-4 shadow-card-soft">
           <p className="text-[0.72rem] font-extrabold uppercase text-info-strong">
-            Fastest time
+            Fastest active
           </p>
           <p className="mt-1 text-3xl font-bold">
             {fastestScore ? formatDuration(fastestScore.timeSeconds) : '-'}
@@ -131,7 +131,7 @@ export function DailyChallengeRankingsSummary({
                   #{rank}
                 </span>
                 <span className="text-xs font-bold text-muted">
-                  {formatDuration(score.timeSeconds)}
+                  Active {formatDuration(score.timeSeconds)}
                 </span>
               </div>
               <div className="mt-3 flex min-w-0 items-center gap-2">
@@ -192,7 +192,10 @@ export function DailyChallengeRankingsSummary({
                     Moves
                   </th>
                   <th className="border-b border-line p-3 text-left text-xs uppercase text-muted">
-                    Time
+                    Active time
+                  </th>
+                  <th className="border-b border-line p-3 text-left text-xs uppercase text-muted">
+                    Total time
                   </th>
                 </tr>
               </thead>
@@ -233,6 +236,11 @@ export function DailyChallengeRankingsSummary({
                       </td>
                       <td className="border-b border-line p-3">
                         {formatDuration(score.timeSeconds)}
+                      </td>
+                      <td className="border-b border-line p-3">
+                        {formatDuration(
+                          score.totalTimeSeconds ?? score.timeSeconds,
+                        )}
                       </td>
                     </tr>
                   );

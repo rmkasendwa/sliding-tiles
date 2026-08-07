@@ -32,6 +32,7 @@ export const boardStateSchema = z.object({
     z.tuple([z.number().int().nonnegative(), z.number().int().nonnegative()]),
   ),
   moves: z.number().int().nonnegative(),
+  pausedDurationMs: z.number().int().nonnegative().default(0),
   solutionMoves: z
     .array(
       z.tuple([z.number().int().nonnegative(), z.number().int().nonnegative()]),
@@ -39,6 +40,7 @@ export const boardStateSchema = z.object({
     .optional(),
   startedAt: z.string().datetime(),
   tileGrid: z.array(z.array(z.unknown())),
+  totalElapsedTimeMs: z.number().int().nonnegative().optional(),
 });
 
 export const loginSchema = z.object({

@@ -102,13 +102,13 @@ export function ReplayResultPanel({
           {resultHeading}
         </h2>
         <p className="mt-2 text-sm text-muted" id="replay-result-summary">
-          Previous best: {result.previousBest.timeSeconds}s ·{' '}
+          Previous best active: {result.previousBest.timeSeconds}s ·{' '}
           {result.previousBest.moves} moves
         </p>
 
         <div className="mt-5 grid grid-cols-2 gap-3">
           <div className="rounded-md border border-line bg-background/70 p-3">
-            <p className="text-xs font-bold text-muted">Time</p>
+            <p className="text-xs font-bold text-muted">Active time</p>
             <p className="mt-1 text-lg font-extrabold">
               {result.latest.timeSeconds}s
             </p>
