@@ -54,25 +54,18 @@ cp .env.example .env
 npm install
 ```
 
-5. Start the local database before running migrations:
+5. Run the full development stack:
 
 ```bash
-docker compose up -d postgres
+npm run dev
 ```
 
-6. Run database migrations:
+This waits for PostgreSQL and local object storage, creates the development
+bucket, applies all committed database migrations, generates the Prisma Client,
+and then starts the NestJS API and Next.js web app. Open the URL for your
+`WEB_PORT`, such as `http://localhost:3000`.
 
-```bash
-npm run db:migrate
-```
-
-7. Generate the Prisma Client:
-
-```bash
-npm run db:generate
-```
-
-8. Bootstrap the first admin only after that person has created an account
+6. Bootstrap the first admin only after that person has created an account
    through the normal Sliding Tiles registration flow. There is no default
    admin account.
 
@@ -86,15 +79,6 @@ WHERE email = 'your-email@example.com';
 After this one-time database update, that admin can manage future promotions
 and demotions from `/admin/users`. Role changes made in the admin UI record
 `promoted_by_id` and `promoted_at`.
-
-9. Run the full development stack:
-
-```bash
-npm run dev
-```
-
-This starts PostgreSQL, the NestJS API, and the Next.js web app. Open the URL
-for your `WEB_PORT`, such as `http://localhost:3000`.
 
 To run each service manually after the database is already running:
 
@@ -112,7 +96,7 @@ PORT=4000 npm run web:dev
 ## Development commands
 
 ```bash
-npm run dev          # start Postgres, API, and web using .env
+npm run dev          # prepare infrastructure/database, then start API and web
 npm run api:dev      # start only the NestJS API on API_PORT, default 4001
 npm run web:dev      # start only the Next.js web app from apps/web
 npm run lint         # lint the full repository
