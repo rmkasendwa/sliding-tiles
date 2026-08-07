@@ -6,7 +6,13 @@ import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { ProfileSettingsForm } from '@/components/ProfileSettingsForm';
 import { RunHistoryList } from '@/components/RunHistoryList';
 import { ThemeSettings } from '@/components/ThemeSettings';
-import { ApiGameState, ApiRunPage, ApiScore, apiRequest } from '@/lib/api';
+import {
+  ApiGameState,
+  ApiRunPage,
+  ApiScore,
+  ApiStreak,
+  apiRequest,
+} from '@/lib/api';
 import { pageMetadata } from '@/lib/metadata';
 import { getLoginUrl } from '@/lib/authRedirect';
 import { routes } from '@/lib/routes';
@@ -38,6 +44,19 @@ function formatDateTime(isoDate: string) {
   }).format(new Date(isoDate));
 }
 
+function formatDateKey(dateKey: string | null) {
+  if (!dateKey) {
+    return 'No completions yet';
+  }
+
+  return new Intl.DateTimeFormat('en', {
+    day: 'numeric',
+    month: 'short',
+    timeZone: 'UTC',
+    year: 'numeric',
+  }).format(new Date(`${dateKey}T00:00:00.000Z`));
+}
+
 function formatPace(timeSeconds: number, level: number) {
   const safeLevel = Math.max(level, 1);
   return `${(timeSeconds / safeLevel).toFixed(1)}s/lvl`;
@@ -57,10 +76,11 @@ export default async function ProfilePage() {
     redirect(getLoginUrl(routes.profile));
   }
 
-  const [{ gameState, scores }, recentRunsPage] = await Promise.all([
+  const [{ gameState, scores, streak }, recentRunsPage] = await Promise.all([
     apiRequest<{
       gameState: ApiGameState | null;
       scores: ApiScore[];
+      streak: ApiStreak;
     }>('/profile'),
     apiRequest<ApiRunPage>('/leaderboard/mine?take=5'),
   ]);
@@ -191,6 +211,10 @@ export default async function ProfilePage() {
   ];
   const playerLabel = getUserDisplayName(session);
   const playerHandle = session.username ? `@${session.username}` : playerLabel;
+  const streakDayLabel =
+    streak.currentStreak === 1 ? '1 day' : `${streak.currentStreak} days`;
+  const longestStreakDayLabel =
+    streak.longestStreak === 1 ? '1 day' : `${streak.longestStreak} days`;
 
   return (
     <section className="page-rail mx-auto grid max-w-300 gap-5 py-5">
@@ -212,6 +236,9 @@ export default async function ProfilePage() {
             </span>
             <span className="rounded-full border border-info/28 bg-info-soft/78 px-3 py-1 text-xs font-bold uppercase text-info-strong shadow-sm">
               {completedRuns} completed runs
+            </span>
+            <span className="rounded-full border border-warning/35 bg-warning-soft/78 px-3 py-1 text-xs font-bold uppercase text-warning-strong shadow-sm">
+              {streakDayLabel} streak
             </span>
             {achievementBadges.slice(0, 2).map((badge, index) => (
               <span
@@ -278,9 +305,9 @@ export default async function ProfilePage() {
               </dd>
             </div>
             <div className="rounded-[7px] border border-clay/20 bg-surface/68 p-2.5">
-              <dt className="text-clay-strong">Saved board</dt>
+              <dt className="text-clay-strong">Streak best</dt>
               <dd className="mt-1 font-bold text-foreground">
-                {gameState ? `Level ${gameState.level}` : 'None'}
+                {longestStreakDayLabel}
               </dd>
             </div>
           </dl>
@@ -345,6 +372,56 @@ export default async function ProfilePage() {
               ))}
             </div>
           </section>
+        </div>
+      </section>
+
+      <section
+        className="profile-reveal grid gap-4 rounded-xl border border-warning/18 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-warning-surface)_86%,transparent),color-mix(in_srgb,var(--color-surface)_96%,transparent))] p-4 shadow-panel"
+        style={{ animationDelay: '55ms' }}
+      >
+        <div className="flex items-end justify-between gap-3 border-b border-warning/18 pb-2">
+          <h2 className="text-[1.12rem] font-bold">Daily Streak</h2>
+          <span className="text-xs font-bold uppercase tracking-[0.08em] text-warning-strong">
+            Local days
+          </span>
+        </div>
+        <div className="grid gap-3 min-[780px]:grid-cols-4">
+          <article className="rounded-lg border border-warning/26 bg-surface/70 p-4">
+            <p className="text-[0.75rem] font-extrabold uppercase text-warning-strong">
+              Current streak
+            </p>
+            <p className="mt-1 text-2xl font-bold">{streakDayLabel}</p>
+          </article>
+          <article className="rounded-lg border border-celebration/24 bg-surface/70 p-4">
+            <p className="text-[0.75rem] font-extrabold uppercase text-celebration">
+              Longest streak
+            </p>
+            <p className="mt-1 text-2xl font-bold">
+              {longestStreakDayLabel}
+            </p>
+          </article>
+          <article className="rounded-lg border border-info/20 bg-surface/70 p-4">
+            <p className="text-[0.75rem] font-extrabold uppercase text-info-strong">
+              Last counted day
+            </p>
+            <p className="mt-1 text-sm font-bold text-foreground">
+              {formatDateKey(streak.lastCompletionLocalDate)}
+            </p>
+            {streak.lastCompletionTimeZone ? (
+              <p className="mt-1 text-xs text-muted">
+                {streak.lastCompletionTimeZone}
+              </p>
+            ) : null}
+          </article>
+          <article className="rounded-lg border border-clay/20 bg-surface/70 p-4">
+            <p className="text-[0.75rem] font-extrabold uppercase text-clay-strong">
+              Reset rule
+            </p>
+            <p className="mt-1 text-sm font-bold text-foreground">
+              Complete at least one puzzle each local day. Missing one or more
+              full days starts the next completion at day 1.
+            </p>
+          </article>
         </div>
       </section>
 

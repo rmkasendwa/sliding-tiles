@@ -43,7 +43,11 @@ import {
   TILE_ENTRY_ANIMATION_MS,
   TILE_ENTRY_LOCK_IN_DELAY_MS,
 } from './constants';
-import { GameStage, type PersonalBestNotice } from './GameStage';
+import {
+  GameStage,
+  type PersonalBestNotice,
+  type StreakNotice,
+} from './GameStage';
 import {
   CustomImagePicker,
   MAX_PUZZLE_ASPECT_RATIO,
@@ -73,6 +77,15 @@ export type GameBoardProps = {
   replayOfId?: string | null;
   soundEnabled?: boolean;
 };
+
+function getLocalCompletion() {
+  const now = new Date();
+
+  return {
+    localDate: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`,
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  };
+}
 
 function GameBoardContent({
   dailyChallenge,
@@ -208,6 +221,7 @@ function GameBoardContent({
   const [replayResult, setReplayResult] = useState<ReplayResult | null>(null);
   const [personalBestNotice, setPersonalBestNotice] =
     useState<PersonalBestNotice | null>(null);
+  const [streakNotice, setStreakNotice] = useState<StreakNotice | null>(null);
   const [dailyCompletion, setDailyCompletion] = useState<{
     moves: number;
     rank: number | null;
@@ -556,6 +570,7 @@ function GameBoardContent({
       source: 'auto-play' | 'player' = 'player',
     ) => {
       setPersonalBestNotice(null);
+      setStreakNotice(null);
       const completedElapsedTimeMs = completeClock(effectiveLevelStartedAtMs);
       const latestReplayPerformance = {
         moves: completedBoard.moves,
@@ -609,13 +624,19 @@ function GameBoardContent({
               elapsedTimeMs: completedElapsedTimeMs,
             },
             challengeDate: dailyChallenge.challengeDate,
+            completion: getLocalCompletion(),
             puzzleConfig: attemptStartBoard,
           })
             .then((result) => {
-              if (!result.ok) {
+              if (!result.ok || !result.streak) {
                 return;
               }
 
+              setStreakNotice({
+                currentStreak: result.streak.currentStreak,
+                longestStreak: result.streak.longestStreak,
+                milestone: result.streak.newlyAchievedMilestone ?? null,
+              });
               setDailyCompletion({
                 moves: completedBoard.moves,
                 rank: result.rank ?? null,
@@ -652,18 +673,27 @@ function GameBoardContent({
             ...completedBoard,
             elapsedTimeMs: completedElapsedTimeMs,
           },
+          completion: getLocalCompletion(),
           puzzleConfig: attemptStartBoard,
           replayOfId: activeReplayOfId,
         })
           .then((result) => {
-            if (!result.ok || activeReplayOfId || !result.personalBest) {
+            if (!result.ok || !result.streak) {
               return;
             }
 
-            setPersonalBestNotice({
-              improvementSeconds: result.personalBest.improvementSeconds,
-              level: completedBoard.level,
+            setStreakNotice({
+              currentStreak: result.streak.currentStreak,
+              longestStreak: result.streak.longestStreak,
+              milestone: result.streak.newlyAchievedMilestone ?? null,
             });
+
+            if (!activeReplayOfId && result.personalBest) {
+              setPersonalBestNotice({
+                improvementSeconds: result.personalBest.improvementSeconds,
+                level: completedBoard.level,
+              });
+            }
           })
           .catch((error) => {
             console.warn('Could not record completed level.', error);
@@ -1435,6 +1465,7 @@ function GameBoardContent({
         personalBestNotice={personalBestNotice}
         replayResult={replayResult}
         rows={rows}
+        streakNotice={streakNotice}
         suppressNextClickRef={suppressNextClickRef}
         tileRotationSeed={tileRotationSeed}
       />

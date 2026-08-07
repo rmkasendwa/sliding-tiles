@@ -16,9 +16,116 @@ type CompletedDailyChallengeDto = z.infer<
 >;
 type CompletedLevelDto = z.infer<typeof completedLevelSchema>;
 
+const STREAK_MILESTONES = [7, 30, 100, 365] as const;
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
+function getUtcDateKey(date = new Date()) {
+  return date.toISOString().slice(0, 10);
+}
+
+function getDateKeyDelta(previousDateKey: string, nextDateKey: string) {
+  const previousTime = Date.parse(`${previousDateKey}T00:00:00.000Z`);
+  const nextTime = Date.parse(`${nextDateKey}T00:00:00.000Z`);
+
+  if (!Number.isFinite(previousTime) || !Number.isFinite(nextTime)) {
+    return 0;
+  }
+
+  return Math.round((nextTime - previousTime) / ONE_DAY_MS);
+}
+
+export function calculateStreakUpdate({
+  celebratedMilestones,
+  currentStreak,
+  lastCompletionLocalDate,
+  localDate,
+  longestStreak,
+}: {
+  celebratedMilestones: number[];
+  currentStreak: number;
+  lastCompletionLocalDate: string | null;
+  localDate: string;
+  longestStreak: number;
+}) {
+  const dayDelta = lastCompletionLocalDate
+    ? getDateKeyDelta(lastCompletionLocalDate, localDate)
+    : null;
+  const nextCurrentStreak =
+    dayDelta === 0
+      ? currentStreak
+      : dayDelta === 1
+        ? currentStreak + 1
+        : 1;
+  const nextLongestStreak = Math.max(longestStreak, nextCurrentStreak);
+  const nextMilestone = STREAK_MILESTONES.find(
+    (milestone) =>
+      nextCurrentStreak >= milestone &&
+      !celebratedMilestones.includes(milestone),
+  );
+  const newlyAchievedMilestone =
+    nextMilestone &&
+    dayDelta !== 0
+      ? nextMilestone
+      : null;
+  const nextCelebratedMilestones = newlyAchievedMilestone
+    ? [...celebratedMilestones, newlyAchievedMilestone].sort((a, b) => a - b)
+    : celebratedMilestones;
+
+  return {
+    celebratedMilestones: nextCelebratedMilestones,
+    currentStreak: nextCurrentStreak,
+    longestStreak: nextLongestStreak,
+    newlyAchievedMilestone,
+  };
+}
+
 @Injectable()
 export class LeaderboardService {
   constructor(private readonly prisma: PrismaService) {}
+
+  private async updateStreakForCompletion(
+    tx: Prisma.TransactionClient,
+    userId: string,
+    completion?: { localDate: string; timeZone?: string },
+  ) {
+    const localDate = completion?.localDate ?? getUtcDateKey();
+    const timeZone = completion?.timeZone ?? null;
+    const existing = await tx.userStreak.findUnique({ where: { userId } });
+    const streakUpdate = calculateStreakUpdate({
+      celebratedMilestones: existing?.celebratedMilestones ?? [],
+      currentStreak: existing?.currentStreak ?? 0,
+      lastCompletionLocalDate: existing?.lastCompletionLocalDate ?? null,
+      localDate,
+      longestStreak: existing?.longestStreak ?? 0,
+    });
+
+    const streak = await tx.userStreak.upsert({
+      create: {
+        celebratedMilestones: streakUpdate.celebratedMilestones,
+        currentStreak: streakUpdate.currentStreak,
+        lastCompletionLocalDate: localDate,
+        lastCompletionTimeZone: timeZone,
+        longestStreak: streakUpdate.longestStreak,
+        userId,
+      },
+      update: {
+        celebratedMilestones: streakUpdate.celebratedMilestones,
+        currentStreak: streakUpdate.currentStreak,
+        lastCompletionLocalDate: localDate,
+        lastCompletionTimeZone: timeZone,
+        longestStreak: streakUpdate.longestStreak,
+      },
+      where: { userId },
+    });
+
+    return {
+      currentStreak: streak.currentStreak,
+      lastCompletionLocalDate: streak.lastCompletionLocalDate,
+      lastCompletionTimeZone: streak.lastCompletionTimeZone,
+      longestStreak: streak.longestStreak,
+      newlyAchievedMilestone: streakUpdate.newlyAchievedMilestone,
+    };
+  }
 
   async listForUser(
     userId: string,
@@ -311,7 +418,7 @@ export class LeaderboardService {
   }
 
   async recordCompletedLevel(userId: string, data: CompletedLevelDto) {
-    const { attemptType, board, puzzleConfig, replayOfId } = data;
+    const { attemptType, board, completion, puzzleConfig, replayOfId } = data;
     const elapsedMs =
       board.elapsedTimeMs > 0
         ? board.elapsedTimeMs
@@ -345,16 +452,25 @@ export class LeaderboardService {
     const replayRootId = replaySource?.replayOfId ?? replaySource?.id ?? null;
     const storedPuzzleConfig =
       replaySource?.puzzleConfig ?? puzzleConfig ?? board;
-    const score = await this.prisma.leaderboard.create({
-      data: {
-        attemptType,
-        level: board.level,
-        moves: board.moves,
-        puzzleConfig: storedPuzzleConfig as unknown as Prisma.InputJsonValue,
-        replayOfId: attemptType === 'replay' ? replayRootId : null,
-        timeSeconds,
+    const { score, streak } = await this.prisma.$transaction(async (tx) => {
+      const score = await tx.leaderboard.create({
+        data: {
+          attemptType,
+          level: board.level,
+          moves: board.moves,
+          puzzleConfig: storedPuzzleConfig as unknown as Prisma.InputJsonValue,
+          replayOfId: attemptType === 'replay' ? replayRootId : null,
+          timeSeconds,
+          userId,
+        },
+      });
+      const streak = await this.updateStreakForCompletion(
+        tx,
         userId,
-      },
+        completion,
+      );
+
+      return { score, streak };
     });
 
     return {
@@ -366,6 +482,7 @@ export class LeaderboardService {
             }
           : null,
       score,
+      streak,
     };
   }
 
@@ -373,7 +490,7 @@ export class LeaderboardService {
     userId: string,
     data: CompletedDailyChallengeDto,
   ) {
-    const { board, challengeDate, puzzleConfig } = data;
+    const { board, challengeDate, completion, puzzleConfig } = data;
     const elapsedMs =
       board.elapsedTimeMs > 0
         ? board.elapsedTimeMs
@@ -381,21 +498,31 @@ export class LeaderboardService {
     const timeSeconds = Math.max(1, Math.round(elapsedMs / 1000));
 
     try {
-      const score = await this.prisma.dailyChallengeScore.create({
-        data: {
-          challengeDate,
-          level: board.level,
-          moves: board.moves,
-          puzzleConfig: (puzzleConfig ?? board) as unknown as Prisma.InputJsonValue,
-          timeSeconds,
+      const { score, streak } = await this.prisma.$transaction(async (tx) => {
+        const score = await tx.dailyChallengeScore.create({
+          data: {
+            challengeDate,
+            level: board.level,
+            moves: board.moves,
+            puzzleConfig: (puzzleConfig ?? board) as unknown as Prisma.InputJsonValue,
+            timeSeconds,
+            userId,
+          },
+        });
+        const streak = await this.updateStreakForCompletion(
+          tx,
           userId,
-        },
+          completion,
+        );
+
+        return { score, streak };
       });
       const ranking = await this.getDailyForUser(userId, challengeDate);
 
       return {
         rank: ranking.rank,
         score,
+        streak,
         totalCount: ranking.totalCount,
       };
     } catch (error) {

@@ -30,6 +30,7 @@ model User {
   createdAt                       DateTime      @default(now()) @map("created_at")
   updatedAt                       DateTime      @updatedAt @map("updated_at")
   gameState                       GameState?
+  streak                          UserStreak?
   promotedBy                      User?         @relation("UserPromotions", fields: [promotedById], references: [id], onDelete: SetNull, map: "users_promoted_by_id_fkey")
   promotedUsers                   User[]        @relation("UserPromotions")
   scores                          Leaderboard[]
@@ -126,6 +127,22 @@ model DailyChallengeScore {
   @@index([challengeDate, timeSeconds, moves], map: "daily_challenge_scores_date_time_moves_idx")
   @@index([userId, completedAt], map: "daily_challenge_scores_user_completed_at_idx")
   @@map("daily_challenge_scores")
+}
+
+model UserStreak {
+  id                      String   @id @default(cuid())
+  userId                  String   @unique(map: "user_streaks_user_id_key") @map("user_id")
+  currentStreak           Int      @default(0) @map("current_streak")
+  longestStreak           Int      @default(0) @map("longest_streak")
+  lastCompletionLocalDate String?  @map("last_completion_local_date")
+  lastCompletionTimeZone  String?  @map("last_completion_time_zone")
+  celebratedMilestones    Int[]    @default([]) @map("celebrated_milestones")
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "user_streaks_user_id_fkey")
+
+  @@index([userId, lastCompletionLocalDate], map: "user_streaks_user_id_last_completion_local_date_idx")
+  @@map("user_streaks")
 }
 
 model AnonymousAnalyticsEvent {

@@ -66,6 +66,14 @@ export type ApiScore = {
   userId: string;
 };
 
+export type ApiStreak = {
+  currentStreak: number;
+  lastCompletionLocalDate: string | null;
+  lastCompletionTimeZone: string | null;
+  longestStreak: number;
+  newlyAchievedMilestone?: number | null;
+};
+
 export type ApiRun = Omit<ApiScore, 'puzzleConfig'> & {
   canReplay: boolean;
   levelBest: {
@@ -90,6 +98,7 @@ export type ApiCompletionResponse = {
     };
   } | null;
   score: ApiScore;
+  streak: ApiStreak;
 };
 
 export type ApiDailyChallengeScore = {
@@ -121,6 +130,7 @@ export type ApiDailyChallengeMineResponse = {
 export type ApiDailyChallengeCompletionResponse = {
   rank: number | null;
   score: ApiDailyChallengeScore;
+  streak: ApiStreak;
   totalCount: number;
 };
 

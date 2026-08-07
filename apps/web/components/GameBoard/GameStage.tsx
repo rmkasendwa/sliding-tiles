@@ -2,7 +2,7 @@
 
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import type { MutableRefObject, PointerEventHandler, RefObject } from 'react';
-import { Trophy } from 'lucide-react';
+import { Flame, Sparkles, Trophy } from 'lucide-react';
 
 import { BoardState, Slot, slotKey } from '@/lib/board';
 
@@ -21,6 +21,12 @@ import { ReplayResultPanel, type ReplayResult } from './ReplayResultPanel';
 export type PersonalBestNotice = {
   improvementSeconds: number;
   level: number;
+};
+
+export type StreakNotice = {
+  currentStreak: number;
+  longestStreak: number;
+  milestone: number | null;
 };
 
 type GameStageProps = {
@@ -92,6 +98,7 @@ type GameStageProps = {
   personalBestNotice: PersonalBestNotice | null;
   replayResult: ReplayResult | null;
   rows: number;
+  streakNotice: StreakNotice | null;
   suppressNextClickRef: MutableRefObject<boolean>;
   tileRotationSeed: number;
 };
@@ -221,6 +228,54 @@ function PersonalBestBanner({
   );
 }
 
+function StreakBanner({ notice }: { notice: StreakNotice }) {
+  const isMilestone = notice.milestone !== null;
+
+  return (
+    <div
+      className={[
+        'absolute left-1/2 z-40 flex w-[min(26rem,calc(100%-2rem))] -translate-x-1/2 items-start gap-3 rounded-lg border bg-panel/95 p-4 text-foreground shadow-panel backdrop-blur',
+        isMilestone
+          ? 'top-24 border-celebration/45 animate-[celebration-fade-in_700ms_ease-out_both]'
+          : 'top-24 border-warning/35',
+      ].join(' ')}
+      role="status"
+    >
+      <span
+        className={[
+          'grid size-10 shrink-0 place-items-center rounded-md',
+          isMilestone
+            ? 'bg-celebration/18 text-celebration'
+            : 'bg-warning-soft text-warning-strong',
+        ].join(' ')}
+      >
+        {isMilestone ? (
+          <Sparkles aria-hidden="true" className="size-5" />
+        ) : (
+          <Flame aria-hidden="true" className="size-5" />
+        )}
+      </span>
+      <span className="min-w-0">
+        <span
+          className={[
+            'block text-sm font-extrabold',
+            isMilestone ? 'text-celebration' : 'text-warning-strong',
+          ].join(' ')}
+        >
+          {isMilestone
+            ? `${notice.milestone}-day streak milestone`
+            : 'Daily streak updated'}
+        </span>
+        <span className="mt-0.5 block text-sm font-bold text-foreground">
+          Current streak: {notice.currentStreak} day
+          {notice.currentStreak === 1 ? '' : 's'} · Longest:{' '}
+          {notice.longestStreak} day{notice.longestStreak === 1 ? '' : 's'}
+        </span>
+      </span>
+    </div>
+  );
+}
+
 export function GameStage({
   board,
   boardEntryAnimationKey,
@@ -280,6 +335,7 @@ export function GameStage({
   personalBestNotice,
   replayResult,
   rows,
+  streakNotice,
   suppressNextClickRef,
   tileRotationSeed,
 }: GameStageProps) {
@@ -412,6 +468,9 @@ export function GameStage({
       </div>
       {personalBestNotice && isCelebrating && !replayResult ? (
         <PersonalBestBanner notice={personalBestNotice} />
+      ) : null}
+      {streakNotice && isCelebrating && !replayResult ? (
+        <StreakBanner notice={streakNotice} />
       ) : null}
       <GameToolbar
         columns={columns}

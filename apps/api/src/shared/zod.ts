@@ -141,9 +141,17 @@ export const saveGameStateSchema = z.object({
   board: boardStateSchema,
 });
 
+const localCompletionSchema = z.object({
+  localDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Local date must be YYYY-MM-DD.'),
+  timeZone: z.string().trim().min(1).max(100).optional(),
+});
+
 export const completedLevelSchema = z.object({
   attemptType: z.enum(['original', 'replay']).default('original'),
   board: boardStateSchema,
+  completion: localCompletionSchema.optional(),
   puzzleConfig: boardStateSchema.optional(),
   replayOfId: z.string().trim().min(1).optional(),
 });
@@ -155,6 +163,7 @@ export const dailyChallengeDateSchema = z
 export const completedDailyChallengeSchema = z.object({
   board: boardStateSchema,
   challengeDate: dailyChallengeDateSchema,
+  completion: localCompletionSchema.optional(),
   puzzleConfig: boardStateSchema.optional(),
 });
 
