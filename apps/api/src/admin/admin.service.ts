@@ -21,6 +21,9 @@ const primaryEventNames = [
   'signup_started',
   'signup_completed',
   'login_completed',
+  'google_auth_started',
+  'google_auth_completed',
+  'google_auth_failed',
   'game_started',
   'game_completed',
   'game_abandoned',
@@ -45,6 +48,12 @@ const primaryEventNames = [
   'leaderboard_opened',
   'signup_prompt_shown',
   'signup_clicked',
+] as const;
+
+const googleAuthEventNames = [
+  'google_auth_started',
+  'google_auth_completed',
+  'google_auth_failed',
 ] as const;
 
 const eventAliases: Record<string, string[]> = {
@@ -195,6 +204,7 @@ export class AdminService {
       gamesCompleted,
       completedStats,
       usageCounts,
+      googleAuth,
       eventCounts,
       recentEvents,
     ] = await Promise.all([
@@ -210,6 +220,7 @@ export class AdminService {
         where: completedWhere,
       }),
       this.getUsageCounts(where),
+      this.getGoogleAuthAnalytics(where),
       this.getEventCounts(where),
       this.prisma.anonymousAnalyticsEvent.findMany({
         orderBy: [{ occurredAt: 'desc' }, { id: 'desc' }],
@@ -217,6 +228,7 @@ export class AdminService {
           id: true,
           eventName: true,
           level: true,
+          metadata: true,
           moveCount: true,
           occurredAt: true,
           puzzleSize: true,
@@ -246,6 +258,7 @@ export class AdminService {
       eventCounts,
       eventNames: primaryEventNames,
       filters: query,
+      googleAuth,
       metrics: {
         averageActivePlayTimeMs: average(
           completedStats.map((event) => event.timerValueMs),
@@ -346,6 +359,74 @@ export class AdminService {
     };
   }
 
+  private async getGoogleAuthAnalytics(
+    where: Prisma.AnonymousAnalyticsEventWhereInput,
+  ) {
+    const events = await this.prisma.anonymousAnalyticsEvent.findMany({
+      orderBy: { occurredAt: 'desc' },
+      select: {
+        eventName: true,
+        metadata: true,
+      },
+      take: 5000,
+      where: {
+        ...where,
+        eventName: { in: [...googleAuthEventNames] },
+      },
+    });
+
+    const started = events.filter(
+      (event) => event.eventName === 'google_auth_started',
+    );
+    const completed = events.filter(
+      (event) => event.eventName === 'google_auth_completed',
+    );
+    const failed = events.filter(
+      (event) => event.eventName === 'google_auth_failed',
+    );
+    const countMetadata = (items: typeof events, key: string) => {
+      const counts: Record<string, number> = {};
+      for (const item of items) {
+        const value = getMetadataString(item.metadata, key);
+        if (value) {
+          counts[value] = (counts[value] ?? 0) + 1;
+        }
+      }
+
+      return counts;
+    };
+    const startedByEntryPoint = countMetadata(started, 'entryPoint');
+    const completedByEntryPoint = countMetadata(completed, 'entryPoint');
+    const failedByEntryPoint = countMetadata(failed, 'entryPoint');
+
+    return {
+      anonymousProgressCompletions: completed.filter(
+        (event) =>
+          getMetadataBoolean(event.metadata, 'anonymousProgressExisted') ===
+          true,
+      ).length,
+      completed: completed.length,
+      completedByEntryPoint: {
+        login: completedByEntryPoint.login ?? 0,
+        signup: completedByEntryPoint.signup ?? 0,
+      },
+      failed: failed.length,
+      failedByEntryPoint: {
+        login: failedByEntryPoint.login ?? 0,
+        signup: failedByEntryPoint.signup ?? 0,
+      },
+      failureCategories: countMetadata(failed, 'failureCategory'),
+      outcomes: countMetadata(completed, 'outcome'),
+      started: started.length,
+      startedByEntryPoint: {
+        login: startedByEntryPoint.login ?? 0,
+        signup: startedByEntryPoint.signup ?? 0,
+      },
+      successRate:
+        started.length > 0 ? (completed.length / started.length) * 100 : 0,
+    };
+  }
+
   private async getEventCounts(where: Prisma.AnonymousAnalyticsEventWhereInput) {
     const trendStart = new Date();
     trendStart.setUTCHours(0, 0, 0, 0);
@@ -425,4 +506,22 @@ export class AdminService {
       return min === undefined || max === undefined ? null : max - min;
     });
   }
+}
+
+function getMetadataRecord(metadata: Prisma.JsonValue | null) {
+  return metadata && typeof metadata === 'object' && !Array.isArray(metadata)
+    ? metadata
+    : null;
+}
+
+function getMetadataString(metadata: Prisma.JsonValue | null, key: string) {
+  const record = getMetadataRecord(metadata);
+  const value = record?.[key];
+  return typeof value === 'string' ? value : null;
+}
+
+function getMetadataBoolean(metadata: Prisma.JsonValue | null, key: string) {
+  const record = getMetadataRecord(metadata);
+  const value = record?.[key];
+  return typeof value === 'boolean' ? value : null;
 }

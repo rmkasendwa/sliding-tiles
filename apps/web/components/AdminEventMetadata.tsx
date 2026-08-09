@@ -1,16 +1,22 @@
 import {
   Clock3,
+  CheckCircle2,
   Expand,
   Globe,
+  KeyRound,
+  Link2,
+  LogIn,
   Monitor,
   MonitorSmartphone,
   MousePointer2,
   Smartphone,
+  TriangleAlert,
   type LucideIcon,
 } from 'lucide-react';
 
 type AdminEventMetadataProps = {
   event: {
+    metadata: Record<string, unknown> | null;
     moveCount: number | null;
     screenHeight: number | null;
     screenWidth: number | null;
@@ -97,6 +103,26 @@ function getDeviceInfo(userAgent: string | null, screenWidth: number | null) {
   return { icon: Monitor, value: 'Desktop' };
 }
 
+function getMetadataString(
+  metadata: Record<string, unknown> | null,
+  key: string,
+) {
+  const value = metadata?.[key];
+  return typeof value === 'string' ? value : null;
+}
+
+function getMetadataBoolean(
+  metadata: Record<string, unknown> | null,
+  key: string,
+) {
+  const value = metadata?.[key];
+  return typeof value === 'boolean' ? value : null;
+}
+
+function formatMetadataValue(value: string) {
+  return value.replaceAll('_', ' ');
+}
+
 function BrowserIcon({ name }: { name: BrowserIconName }) {
   if (name === 'chrome') {
     return (
@@ -149,7 +175,52 @@ function BrowserIcon({ name }: { name: BrowserIconName }) {
 export function AdminEventMetadata({ event }: AdminEventMetadataProps) {
   const browser = getBrowserInfo(event.userAgent);
   const device = getDeviceInfo(event.userAgent, event.screenWidth);
+  const entryPoint = getMetadataString(event.metadata, 'entryPoint');
+  const outcome = getMetadataString(event.metadata, 'outcome');
+  const failureCategory = getMetadataString(event.metadata, 'failureCategory');
+  const provider = getMetadataString(event.metadata, 'provider');
+  const anonymousProgressExisted =
+    getMetadataBoolean(event.metadata, 'anonymousProgressExisted') ??
+    getMetadataBoolean(event.metadata, 'previouslyPlayingAnonymously');
   const metadataItems: Array<MetadataItem | null> = [
+    provider === 'google'
+      ? {
+          icon: KeyRound,
+          label: 'Provider',
+          tone: 'border-info/30 bg-info-soft text-info-strong',
+          value: 'Google',
+        }
+      : null,
+    entryPoint
+      ? {
+          icon: LogIn,
+          label: 'Entry',
+          value: formatMetadataValue(entryPoint),
+        }
+      : null,
+    outcome
+      ? {
+          icon: CheckCircle2,
+          label: 'Outcome',
+          tone: 'border-success/30 bg-success-soft text-success-strong',
+          value: formatMetadataValue(outcome),
+        }
+      : null,
+    failureCategory
+      ? {
+          icon: TriangleAlert,
+          label: 'Failure',
+          tone: 'border-danger/30 bg-danger/10 text-danger',
+          value: formatMetadataValue(failureCategory),
+        }
+      : null,
+    anonymousProgressExisted === null
+      ? null
+      : {
+          icon: Link2,
+          label: 'Anon progress',
+          value: anonymousProgressExisted ? 'Yes' : 'No',
+        },
     browser
       ? {
           browserIcon: browser.icon,

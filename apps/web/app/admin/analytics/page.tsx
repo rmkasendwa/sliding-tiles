@@ -1,4 +1,12 @@
-import { BarChart3, ChevronRight, MousePointerClick } from 'lucide-react';
+import {
+  AlertTriangle,
+  BarChart3,
+  CheckCircle2,
+  ChevronRight,
+  KeyRound,
+  Link2,
+  MousePointerClick,
+} from 'lucide-react';
 import Link from 'next/link';
 
 import { AdminAnalyticsEventsList } from '@/components/AdminAnalyticsEventsList';
@@ -98,6 +106,53 @@ function EventCountCard({
   );
 }
 
+function GoogleAuthStat({
+  label,
+  value,
+  tone = 'text-foreground',
+}: {
+  label: string;
+  tone?: string;
+  value: number | string;
+}) {
+  return (
+    <article className="rounded-[7px] border border-line bg-panel px-3 py-2">
+      <p className="text-xs font-extrabold uppercase text-muted">{label}</p>
+      <p className={`mt-1 text-2xl font-black leading-none ${tone}`}>
+        {typeof value === 'number' ? value.toLocaleString() : value}
+      </p>
+    </article>
+  );
+}
+
+function CountList({
+  emptyLabel,
+  items,
+}: {
+  emptyLabel: string;
+  items: Record<string, number>;
+}) {
+  const entries = Object.entries(items).filter(([, count]) => count > 0);
+
+  if (entries.length === 0) {
+    return <p className="text-sm text-muted">{emptyLabel}</p>;
+  }
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {entries.map(([name, count]) => (
+        <span
+          className="inline-flex min-h-8 items-center gap-2 rounded-full border border-line bg-panel px-3 text-xs font-bold text-foreground"
+          key={name}
+        >
+          <span className="text-muted">{name.replaceAll('_', ' ')}</span>
+          <span>{count.toLocaleString()}</span>
+        </span>
+      ))}
+    </div>
+  );
+}
+
 export default async function AdminAnalyticsPage({
   searchParams,
 }: AdminAnalyticsPageProps) {
@@ -137,6 +192,123 @@ export default async function AdminAnalyticsPage({
       </section>
 
       <section className="grid gap-4">
+        <div className="rounded-lg border border-line bg-surface p-4 shadow-panel">
+          <div className="mb-3 flex items-center gap-2">
+            <KeyRound aria-hidden="true" className="size-5 text-accent" />
+            <h2 className="text-xl">Google Auth</h2>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <GoogleAuthStat
+              label="Started"
+              value={analytics.googleAuth.started}
+            />
+            <GoogleAuthStat
+              label="Completed"
+              tone="text-success-strong"
+              value={analytics.googleAuth.completed}
+            />
+            <GoogleAuthStat
+              label="Failed"
+              tone="text-danger"
+              value={analytics.googleAuth.failed}
+            />
+            <GoogleAuthStat
+              label="Success rate"
+              value={formatAnalyticsMetric(
+                analytics.googleAuth.successRate,
+                'percent',
+              )}
+            />
+          </div>
+
+          <div className="mt-4 grid gap-3 lg:grid-cols-2">
+            <div className="grid gap-3 rounded-[7px] border border-line bg-panel p-3">
+              <div className="flex items-center gap-2">
+                <MousePointerClick
+                  aria-hidden="true"
+                  className="size-4 text-accent"
+                />
+                <h3 className="text-sm font-black">Entry Points</h3>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-3">
+                <GoogleAuthStat
+                  label="Login starts"
+                  value={analytics.googleAuth.startedByEntryPoint.login}
+                />
+                <GoogleAuthStat
+                  label="Signup starts"
+                  value={analytics.googleAuth.startedByEntryPoint.signup}
+                />
+                <GoogleAuthStat
+                  label="Anonymous completions"
+                  value={analytics.googleAuth.anonymousProgressCompletions}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-3 rounded-[7px] border border-line bg-panel p-3">
+              <div className="flex items-center gap-2">
+                <CheckCircle2
+                  aria-hidden="true"
+                  className="size-4 text-success-strong"
+                />
+                <h3 className="text-sm font-black">Completed Outcomes</h3>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-3">
+                <GoogleAuthStat
+                  label="New accounts"
+                  value={analytics.googleAuth.outcomes.new_account ?? 0}
+                />
+                <GoogleAuthStat
+                  label="Existing Google"
+                  value={
+                    analytics.googleAuth.outcomes
+                      .existing_google_account ?? 0
+                  }
+                />
+                <GoogleAuthStat
+                  label="Linked account"
+                  value={
+                    analytics.googleAuth.outcomes
+                      .linked_existing_account ?? 0
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-3 rounded-[7px] border border-line bg-panel p-3">
+              <div className="flex items-center gap-2">
+                <Link2 aria-hidden="true" className="size-4 text-info-strong" />
+                <h3 className="text-sm font-black">Completed By Entry</h3>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <GoogleAuthStat
+                  label="Login"
+                  value={analytics.googleAuth.completedByEntryPoint.login}
+                />
+                <GoogleAuthStat
+                  label="Signup"
+                  value={analytics.googleAuth.completedByEntryPoint.signup}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-3 rounded-[7px] border border-line bg-panel p-3">
+              <div className="flex items-center gap-2">
+                <AlertTriangle
+                  aria-hidden="true"
+                  className="size-4 text-danger"
+                />
+                <h3 className="text-sm font-black">Failures</h3>
+              </div>
+              <CountList
+                emptyLabel="No Google auth failures in this view."
+                items={analytics.googleAuth.failureCategories}
+              />
+            </div>
+          </div>
+        </div>
+
         <div className="rounded-lg border border-line bg-surface p-4 shadow-panel">
           <div className="mb-3 flex items-center gap-2">
             <BarChart3 aria-hidden="true" className="size-5 text-accent" />

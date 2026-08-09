@@ -196,10 +196,33 @@ export type AdminAnalyticsEventName =
   | 'signup_prompt_shown'
   | 'signup_clicked';
 
+export type AdminGoogleAuthAnalytics = {
+  anonymousProgressCompletions: number;
+  completed: number;
+  completedByEntryPoint: {
+    login: number;
+    signup: number;
+  };
+  failed: number;
+  failedByEntryPoint: {
+    login: number;
+    signup: number;
+  };
+  failureCategories: Record<string, number>;
+  outcomes: Record<string, number>;
+  started: number;
+  startedByEntryPoint: {
+    login: number;
+    signup: number;
+  };
+  successRate: number;
+};
+
 export type AdminAnalyticsEvent = {
   eventName: AdminAnalyticsEventName;
   id: string;
   level: number | null;
+  metadata: Record<string, unknown> | null;
   moveCount: number | null;
   occurredAt: string;
   puzzleSize: string | null;
@@ -219,6 +242,7 @@ export type AdminAnalyticsResponse = {
     trend: number[];
   }>;
   eventNames: AdminAnalyticsEventName[];
+  googleAuth: AdminGoogleAuthAnalytics;
   metrics: {
     averageActivePlayTimeMs: number | null;
     averageMovesPerCompletedGame: number | null;
