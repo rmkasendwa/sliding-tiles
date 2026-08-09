@@ -102,9 +102,7 @@ export function ThemeControl({
     <fieldset
       aria-label="Theme preference"
       className={
-        isCompact
-          ? 'inline-grid rounded-[9px] border border-line bg-panel p-1'
-          : 'grid gap-2'
+        isCompact ? 'inline-grid' : 'grid gap-2'
       }
     >
       <legend className="sr-only">Theme preference</legend>
@@ -126,10 +124,10 @@ export function ThemeControl({
             return (
               <label
                 className={[
-                  'group relative grid size-9 cursor-pointer place-items-center rounded-[7px] border text-muted transition-[border-color,background-color,color,box-shadow]',
+                  'group relative grid size-9 cursor-pointer place-items-center rounded-full text-muted transition-[background-color,color]',
                   isSelected
-                    ? 'border-primary/50 bg-primary text-primary-contrast shadow-button-primary'
-                    : 'border-transparent hover:bg-accent/10 hover:text-accent-strong',
+                    ? 'bg-primary/12 text-primary'
+                    : 'hover:bg-accent/10 hover:text-accent-strong',
                 ].join(' ')}
                 key={theme}
                 title={`${label} theme`}
