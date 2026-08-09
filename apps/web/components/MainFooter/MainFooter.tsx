@@ -1,5 +1,4 @@
 import { ExternalLink, Trophy } from 'lucide-react';
-import Link from 'next/link';
 
 import { ApiScore, apiRequest } from '@/lib/api';
 import { routes } from '@/lib/routes';
@@ -7,6 +6,7 @@ import { getSession } from '@/lib/session';
 import { formatCopyright, getApiDocsUrl, siteConfig } from '@/lib/site';
 
 import { FooterLeaderboardCta } from './FooterLeaderboardCta';
+import { MainFooterLink } from './MainFooterLink';
 import { FrogLogo } from '../FrogLogo';
 import { ProfileAvatar } from '../ProfileAvatar';
 
@@ -94,12 +94,12 @@ export async function MainFooter() {
           <div className="flex items-center gap-3">
             <FrogLogo className="w-10 shrink-0" variant="monochrome" />
             <div>
-              <Link
-                className="font-bold text-foreground transition-colors hover:text-accent-strong"
+              <MainFooterLink
+                className="font-bold text-foreground"
                 href={routes.home}
               >
                 {siteConfig.name}
-              </Link>
+              </MainFooterLink>
               <p className="font-extrabold text-accent-strong">
                 {siteConfig.tagline}
               </p>
@@ -141,12 +141,9 @@ export async function MainFooter() {
           <ul className="mt-3 grid gap-2">
             {visibleFooterLinks.map((link) => (
               <li key={link.href}>
-                <Link
-                  className="transition-colors hover:text-accent-strong"
-                  href={link.href}
-                >
+                <MainFooterLink href={link.href}>
                   {link.label}
-                </Link>
+                </MainFooterLink>
               </li>
             ))}
           </ul>
@@ -159,12 +156,9 @@ export async function MainFooter() {
           <ul className="mt-3 grid gap-2">
             {utilityLinks.map((link) => (
               <li key={link.href}>
-                <Link
-                  className="transition-colors hover:text-accent-strong"
-                  href={link.href}
-                >
+                <MainFooterLink href={link.href}>
                   {link.label}
-                </Link>
+                </MainFooterLink>
               </li>
             ))}
             <li>
