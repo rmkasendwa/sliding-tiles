@@ -116,8 +116,10 @@ function GoogleAuthStat({
   value: number | string;
 }) {
   return (
-    <article className="rounded-[7px] border border-line bg-panel px-3 py-2">
-      <p className="text-xs font-extrabold uppercase text-muted">{label}</p>
+    <article className="min-w-0 rounded-[7px] border border-line bg-panel px-3 py-2">
+      <p className="truncate whitespace-nowrap text-xs font-extrabold uppercase text-muted">
+        {label}
+      </p>
       <p className={`mt-1 text-2xl font-black leading-none ${tone}`}>
         {typeof value === 'number' ? value.toLocaleString() : value}
       </p>
