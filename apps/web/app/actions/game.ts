@@ -80,7 +80,12 @@ export async function recordLevelAttempt({
   revalidatePath('/leaderboard');
   revalidatePath('/profile');
 
-  return { ok: true, personalBest: result.personalBest, streak: result.streak };
+  return {
+    achievements: result.achievements,
+    ok: true,
+    personalBest: result.personalBest,
+    streak: result.streak,
+  };
 }
 
 export async function recordDailyChallengeAttempt({

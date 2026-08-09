@@ -179,6 +179,22 @@ export const publicApiSchemas = {
     type: 'object',
   },
   BoardState: schemaFromZod(boardStateSchema),
+  Achievement: {
+    additionalProperties: false,
+    properties: {
+      category: {
+        enum: ['completion', 'speed', 'leaderboard'],
+        type: 'string',
+      },
+      description: { type: 'string' },
+      earnedAt: { format: 'date-time', type: 'string' },
+      icon: { type: 'string' },
+      id: { type: 'string' },
+      name: { type: 'string' },
+    },
+    required: ['category', 'description', 'earnedAt', 'icon', 'id', 'name'],
+    type: 'object',
+  },
   ChangePasswordRequest: schemaFromZod(changePasswordSchema),
   CompletedLevelRequest: schemaFromZod(completedLevelSchema),
   ErrorResponse: {
@@ -274,10 +290,14 @@ export const publicApiSchemas = {
           },
         ],
       },
+      achievements: {
+        items: { $ref: '#/components/schemas/Achievement' },
+        type: 'array',
+      },
       score: { $ref: '#/components/schemas/LeaderboardRecord' },
       streak: { $ref: '#/components/schemas/StreakInfo' },
     },
-    required: ['personalBest', 'score', 'streak'],
+    required: ['achievements', 'personalBest', 'score', 'streak'],
     type: 'object',
   },
   LeaderboardResponse: {
@@ -304,6 +324,10 @@ export const publicApiSchemas = {
   ProfileResponse: {
     additionalProperties: false,
     properties: {
+      achievements: {
+        items: { $ref: '#/components/schemas/Achievement' },
+        type: 'array',
+      },
       gameState: {
         nullable: true,
         oneOf: [{ $ref: '#/components/schemas/GameState' }],
@@ -314,7 +338,7 @@ export const publicApiSchemas = {
       },
       streak: { $ref: '#/components/schemas/StreakInfo' },
     },
-    required: ['gameState', 'scores', 'streak'],
+    required: ['achievements', 'gameState', 'scores', 'streak'],
     type: 'object',
   },
   PublicLeaderboardScore: {

@@ -41,6 +41,7 @@ export const boardStateSchema = z.object({
   startedAt: z.string().datetime(),
   tileGrid: z.array(z.array(z.unknown())),
   totalElapsedTimeMs: z.number().int().nonnegative().optional(),
+  undoCount: z.number().int().nonnegative().optional(),
 });
 
 export const loginSchema = z.object({

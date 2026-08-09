@@ -30,6 +30,7 @@ export class ProfileController {
     schema: {
       ...ref('ProfileResponse'),
       example: {
+        achievements: [],
         gameState: null,
         scores: [scoreExample],
       },

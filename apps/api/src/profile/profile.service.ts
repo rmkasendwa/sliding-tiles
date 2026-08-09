@@ -1,13 +1,25 @@
 import { Injectable } from '@nestjs/common';
 
+import { AchievementsService } from '../achievements/achievements.service';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class ProfileService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly achievementsService: AchievementsService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   async getForUser(userId: string) {
-    const [gameState, scores, streak] = await Promise.all([
+    const [achievements, gameState, scores, streak] = await Promise.all([
+      this.prisma.userAchievement.findMany({
+        orderBy: [{ earnedAt: 'desc' }],
+        select: {
+          achievementId: true,
+          earnedAt: true,
+        },
+        where: { userId },
+      }),
       this.prisma.gameState.findUnique({
         where: { userId },
       }),
@@ -21,6 +33,7 @@ export class ProfileService {
     ]);
 
     return {
+      achievements: this.achievementsService.toAchievementViews(achievements),
       gameState,
       scores,
       streak: {

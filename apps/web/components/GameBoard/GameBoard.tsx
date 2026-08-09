@@ -45,6 +45,7 @@ import {
 } from './constants';
 import {
   GameStage,
+  type AchievementNotice,
   type PersonalBestNotice,
   type StreakNotice,
 } from './GameStage';
@@ -225,6 +226,8 @@ function GameBoardContent({
   const [personalBestNotice, setPersonalBestNotice] =
     useState<PersonalBestNotice | null>(null);
   const [streakNotice, setStreakNotice] = useState<StreakNotice | null>(null);
+  const [achievementNotice, setAchievementNotice] =
+    useState<AchievementNotice | null>(null);
   const [dailyCompletion, setDailyCompletion] = useState<{
     moves: number;
     rank: number | null;
@@ -580,6 +583,7 @@ function GameBoardContent({
     ) => {
       setPersonalBestNotice(null);
       setStreakNotice(null);
+      setAchievementNotice(null);
       const completedTimerSnapshot = completeClock(effectiveTimerState);
       const completedElapsedTimeMs =
         completedTimerSnapshot.activeElapsedTimeMs;
@@ -712,6 +716,15 @@ function GameBoardContent({
                 level: completedBoard.level,
               });
             }
+
+            if (result.achievements?.length) {
+              setAchievementNotice({
+                count: result.achievements.length,
+                names: result.achievements.map(
+                  (achievement) => achievement.name,
+                ),
+              });
+            }
           })
           .catch((error) => {
             console.warn('Could not record completed level.', error);
@@ -768,6 +781,7 @@ function GameBoardContent({
           setBoard(nextBoard);
           setIsCompletionImageVisible(false);
           setPersonalBestNotice(null);
+          setAchievementNotice(null);
           setIsCelebrating(false);
           clearBoardHint();
           levelAdvanceTimeoutRef.current = null;
@@ -1403,6 +1417,7 @@ function GameBoardContent({
         </p>
       ) : null}
       <GameStage
+        achievementNotice={achievementNotice}
         board={board}
         boardEntryAnimationKey={boardEntryAnimationKey}
         boardFrameRef={boardFrameRef}

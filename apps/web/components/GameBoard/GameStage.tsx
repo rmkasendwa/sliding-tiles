@@ -2,7 +2,7 @@
 
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import type { MutableRefObject, PointerEventHandler, RefObject } from 'react';
-import { Flame, Sparkles, Trophy } from 'lucide-react';
+import { BadgeCheck, Flame, Sparkles, Trophy } from 'lucide-react';
 
 import { BoardState, Slot, slotKey } from '@/lib/board';
 
@@ -29,7 +29,13 @@ export type StreakNotice = {
   milestone: number | null;
 };
 
+export type AchievementNotice = {
+  count: number;
+  names: string[];
+};
+
 type GameStageProps = {
+  achievementNotice: AchievementNotice | null;
   board: BoardState;
   boardEntryAnimationKey: number;
   boardFrameRef: RefObject<HTMLElement | null>;
@@ -277,7 +283,34 @@ function StreakBanner({ notice }: { notice: StreakNotice }) {
   );
 }
 
+function AchievementBanner({ notice }: { notice: AchievementNotice }) {
+  const label =
+    notice.count === 1
+      ? notice.names[0]
+      : `${notice.names[0]} + ${notice.count - 1} more`;
+
+  return (
+    <div
+      className="absolute left-1/2 top-[10.75rem] z-40 flex w-[min(26rem,calc(100%-2rem))] -translate-x-1/2 items-start gap-3 rounded-lg border border-info/35 bg-panel/95 p-4 text-foreground shadow-panel backdrop-blur"
+      role="status"
+    >
+      <span className="grid size-10 shrink-0 place-items-center rounded-md bg-info-soft text-info-strong">
+        <BadgeCheck aria-hidden="true" className="size-5" />
+      </span>
+      <span className="min-w-0">
+        <span className="block text-sm font-extrabold text-info-strong">
+          Achievement unlocked
+        </span>
+        <span className="mt-0.5 block text-sm font-bold text-foreground">
+          {label}
+        </span>
+      </span>
+    </div>
+  );
+}
+
 export function GameStage({
+  achievementNotice,
   board,
   boardEntryAnimationKey,
   boardFrameRef,
@@ -473,6 +506,9 @@ export function GameStage({
       ) : null}
       {streakNotice && isCelebrating && !replayResult ? (
         <StreakBanner notice={streakNotice} />
+      ) : null}
+      {achievementNotice && isCelebrating && !replayResult ? (
+        <AchievementBanner notice={achievementNotice} />
       ) : null}
       <GameToolbar
         columns={columns}

@@ -80,6 +80,15 @@ export type ApiStreak = {
   newlyAchievedMilestone?: number | null;
 };
 
+export type ApiAchievement = {
+  category: 'completion' | 'speed' | 'leaderboard';
+  description: string;
+  earnedAt: string;
+  icon: string;
+  id: string;
+  name: string;
+};
+
 export type ApiRun = Omit<ApiScore, 'puzzleConfig'> & {
   canReplay: boolean;
   levelBest: {
@@ -96,6 +105,7 @@ export type ApiRunPage = {
 };
 
 export type ApiCompletionResponse = {
+  achievements: ApiAchievement[];
   personalBest: {
     improvementSeconds: number;
     previousBest: {

@@ -23,6 +23,7 @@ export type BoardState = {
   startedAt: string;
   totalElapsedTimeMs?: number;
   solutionMoves?: Slot[];
+  undoCount?: number;
 };
 
 export function normalizeBoardState(

@@ -1,5 +1,14 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import {
+  BadgeCheck,
+  Crown,
+  Medal,
+  ShieldCheck,
+  Sparkles,
+  Timer,
+  Trophy,
+} from 'lucide-react';
 
 import { ChangePasswordForm } from '@/components/ChangePasswordForm';
 import { ProfileAvatar } from '@/components/ProfileAvatar';
@@ -7,6 +16,7 @@ import { ProfileSettingsForm } from '@/components/ProfileSettingsForm';
 import { RunHistoryList } from '@/components/RunHistoryList';
 import { ThemeSettings } from '@/components/ThemeSettings';
 import {
+  ApiAchievement,
   ApiGameState,
   ApiRunPage,
   ApiScore,
@@ -57,6 +67,21 @@ function formatDateKey(dateKey: string | null) {
   }).format(new Date(`${dateKey}T00:00:00.000Z`));
 }
 
+function AchievementIcon({ icon }: { icon: string }) {
+  const icons = {
+    BadgeCheck,
+    Crown,
+    Medal,
+    ShieldCheck,
+    Sparkles,
+    Timer,
+    Trophy,
+  };
+  const Icon = icons[icon as keyof typeof icons] ?? Trophy;
+
+  return <Icon aria-hidden="true" className="size-5" />;
+}
+
 function formatPace(timeSeconds: number, level: number) {
   const safeLevel = Math.max(level, 1);
   return `${(timeSeconds / safeLevel).toFixed(1)}s/lvl`;
@@ -76,8 +101,10 @@ export default async function ProfilePage() {
     redirect(getLoginUrl(routes.profile));
   }
 
-  const [{ gameState, scores, streak }, recentRunsPage] = await Promise.all([
+  const [{ achievements, gameState, scores, streak }, recentRunsPage] =
+    await Promise.all([
     apiRequest<{
+      achievements: ApiAchievement[];
       gameState: ApiGameState | null;
       scores: ApiScore[];
       streak: ApiStreak;
@@ -167,14 +194,7 @@ export default async function ProfilePage() {
             Math.min(scores.length, 3),
         )
       : null;
-  const achievementBadges = [
-    completedRuns >= 10 ? 'Endurance runner' : null,
-    highestCompletedLevel >= 8 ? 'Deep-level specialist' : null,
-    bestRun && bestRun.timeSeconds <= 120 ? 'Speed frog' : null,
-    cleanestRun && cleanestRun.moves <= cleanestRun.level * 8
-      ? 'Efficiency minded'
-      : null,
-  ].filter((badge): badge is string => Boolean(badge));
+  const recentAchievements = achievements.slice(0, 3);
   const trendRuns = [...scores]
     .slice(0, 5)
     .reverse()
@@ -240,7 +260,7 @@ export default async function ProfilePage() {
             <span className="rounded-full border border-warning/35 bg-warning-soft/78 px-3 py-1 text-xs font-bold uppercase text-warning-strong shadow-sm">
               {streakDayLabel} streak
             </span>
-            {achievementBadges.slice(0, 2).map((badge, index) => (
+            {recentAchievements.slice(0, 2).map((achievement, index) => (
               <span
                 className={[
                   'rounded-full border px-3 py-1 text-xs font-bold uppercase shadow-sm',
@@ -248,9 +268,9 @@ export default async function ProfilePage() {
                     ? 'border-warning/35 bg-warning-soft/78 text-warning-strong'
                     : 'border-clay/24 bg-clay-soft/78 text-clay-strong',
                 ].join(' ')}
-                key={badge}
+                key={achievement.id}
               >
-                {badge}
+                {achievement.name}
               </span>
             ))}
           </div>
@@ -423,6 +443,50 @@ export default async function ProfilePage() {
             </p>
           </article>
         </div>
+      </section>
+
+      <section
+        className="profile-reveal grid gap-4 rounded-xl border border-celebration/20 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-surface)_96%,transparent),color-mix(in_srgb,var(--color-warning-surface)_68%,transparent))] p-4 shadow-panel"
+        style={{ animationDelay: '62ms' }}
+      >
+        <div className="flex items-end justify-between gap-3 border-b border-celebration/20 pb-2">
+          <h2 className="text-[1.12rem] font-bold">Achievements</h2>
+          <span className="text-xs font-bold uppercase tracking-[0.08em] text-celebration">
+            {achievements.length} earned
+          </span>
+        </div>
+        {achievements.length > 0 ? (
+          <div className="grid gap-3 min-[760px]:grid-cols-2 min-[1120px]:grid-cols-3">
+            {achievements.map((achievement) => (
+              <article
+                className="grid grid-cols-[auto_minmax(0,1fr)] gap-3 rounded-lg border border-warning/24 bg-surface/72 p-3"
+                key={achievement.id}
+              >
+                <span className="grid size-10 place-items-center rounded-md bg-warning-soft text-warning-strong">
+                  <AchievementIcon icon={achievement.icon} />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-sm font-extrabold text-foreground">
+                    {achievement.name}
+                  </span>
+                  <span className="mt-0.5 block text-xs leading-relaxed text-muted">
+                    {achievement.description}
+                  </span>
+                  <span className="mt-2 block text-[0.72rem] font-bold uppercase tracking-[0.08em] text-warning-strong">
+                    Earned {formatDateTime(achievement.earnedAt)}
+                  </span>
+                </span>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-[7px] border border-dashed border-line bg-surface/45 p-4">
+            <p className="leading-normal text-muted">
+              Earned badges will appear here automatically as you complete
+              milestone runs.
+            </p>
+          </div>
+        )}
       </section>
 
       <section

@@ -2,6 +2,8 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { z } from 'zod';
 
 import { Prisma } from '@prisma/client';
+import { AchievementsService } from '../achievements/achievements.service';
+import { getConfiguredMaxAvailableLevel } from '../achievements/achievement-definitions';
 import { PrismaService } from '../prisma/prisma.service';
 import { getGravatarUrl } from '../shared/gravatar';
 import {
@@ -104,7 +106,10 @@ export function calculateCompletionTiming(board: BoardStateDto, now = Date.now()
 
 @Injectable()
 export class LeaderboardService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly achievementsService: AchievementsService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   private async updateStreakForCompletion(
     tx: Prisma.TransactionClient,
@@ -450,6 +455,49 @@ export class LeaderboardService {
     };
   }
 
+  private async getLeaderboardRankForScore(
+    tx: Prisma.TransactionClient,
+    score: {
+      completedAt: Date;
+      id: string;
+      level: number;
+      moves: number;
+      timeSeconds: number;
+    },
+  ) {
+    const betterScoreCount = await tx.leaderboard.count({
+      where: {
+        OR: [
+          { level: { gt: score.level } },
+          {
+            level: score.level,
+            timeSeconds: { lt: score.timeSeconds },
+          },
+          {
+            level: score.level,
+            timeSeconds: score.timeSeconds,
+            moves: { lt: score.moves },
+          },
+          {
+            completedAt: { lt: score.completedAt },
+            level: score.level,
+            moves: score.moves,
+            timeSeconds: score.timeSeconds,
+          },
+          {
+            completedAt: score.completedAt,
+            id: { lt: score.id },
+            level: score.level,
+            moves: score.moves,
+            timeSeconds: score.timeSeconds,
+          },
+        ],
+      },
+    });
+
+    return betterScoreCount + 1;
+  }
+
   async recordCompletedLevel(userId: string, data: CompletedLevelDto) {
     const { attemptType, board, completion, puzzleConfig, replayOfId } = data;
     const { pausedDurationSeconds, timeSeconds, totalTimeSeconds } =
@@ -482,7 +530,7 @@ export class LeaderboardService {
     const replayRootId = replaySource?.replayOfId ?? replaySource?.id ?? null;
     const storedPuzzleConfig =
       replaySource?.puzzleConfig ?? puzzleConfig ?? board;
-    const { score, streak } = await this.prisma.$transaction(async (tx) => {
+    const { achievements, score, streak } = await this.prisma.$transaction(async (tx) => {
       const score = await tx.leaderboard.create({
         data: {
           attemptType,
@@ -501,11 +549,38 @@ export class LeaderboardService {
         userId,
         completion,
       );
+      const [originalCompletionCount, highestOriginalCompletion] =
+        await Promise.all([
+          tx.leaderboard.count({
+            where: { attemptType: 'original', userId },
+          }),
+          tx.leaderboard.aggregate({
+            _max: { level: true },
+            where: { attemptType: 'original', userId },
+          }),
+        ]);
+      const leaderboardRank = await this.getLeaderboardRankForScore(tx, score);
+      const achievements =
+        await this.achievementsService.awardEarnedAchievements(tx, userId, {
+          board: {
+            level: board.level,
+            moves: board.moves,
+            timeSeconds,
+            totalTimeSeconds,
+            undoCount: board.undoCount,
+          },
+          completionCount: originalCompletionCount,
+          highestOriginalLevel: highestOriginalCompletion._max.level ?? 0,
+          isOriginalAttempt: attemptType === 'original',
+          leaderboardRank,
+          maxAvailableLevel: getConfiguredMaxAvailableLevel(),
+        });
 
-      return { score, streak };
+      return { achievements, score, streak };
     });
 
     return {
+      achievements,
       personalBest:
         previousBest && timeSeconds < previousBest.timeSeconds
           ? {
