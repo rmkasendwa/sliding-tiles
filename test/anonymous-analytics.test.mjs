@@ -76,6 +76,44 @@ test('accepts legacy anonymousPlayerId payloads', () => {
   assert.equal(result.data.events[0].anonymousId, validEvent.anonymousId);
 });
 
+test('accepts Google auth analytics events with non-sensitive metadata', () => {
+  const result = anonymousAnalyticsBatchSchema.safeParse({
+    events: [
+      {
+        ...validEvent,
+        eventName: 'google_auth_started',
+        metadata: {
+          currentPath: '/login',
+          entryPoint: 'login',
+          previouslyPlayingAnonymously: true,
+          provider: 'google',
+        },
+      },
+      {
+        ...validEvent,
+        eventName: 'google_auth_completed',
+        metadata: {
+          anonymousProgressExisted: true,
+          entryPoint: 'signup',
+          outcome: 'new_account',
+          provider: 'google',
+        },
+      },
+      {
+        ...validEvent,
+        eventName: 'google_auth_failed',
+        metadata: {
+          entryPoint: 'login',
+          failureCategory: 'invalid_state',
+          provider: 'google',
+        },
+      },
+    ],
+  });
+
+  assert.equal(result.success, true);
+});
+
 test('associates authenticated batches with the session user', async () => {
   const createManyCalls = [];
   const service = new AnonymousAnalyticsService(

@@ -37,6 +37,10 @@ export type ApiUser = {
 
 export type AuthResponse = {
   accessToken: string;
+  googleAuthOutcome?:
+    | 'new_account'
+    | 'existing_google_account'
+    | 'linked_existing_account';
   user: ApiUser;
 };
 
@@ -164,6 +168,9 @@ export type AdminAnalyticsEventName =
   | 'signup_started'
   | 'signup_completed'
   | 'login_completed'
+  | 'google_auth_started'
+  | 'google_auth_completed'
+  | 'google_auth_failed'
   | 'game_started'
   | 'game_completed'
   | 'game_abandoned'

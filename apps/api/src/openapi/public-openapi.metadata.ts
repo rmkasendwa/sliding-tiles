@@ -165,6 +165,14 @@ export const publicApiSchemas = {
     additionalProperties: false,
     properties: {
       accessToken: { type: 'string' },
+      googleAuthOutcome: {
+        enum: [
+          'new_account',
+          'existing_google_account',
+          'linked_existing_account',
+        ],
+        type: 'string',
+      },
       user: { $ref: '#/components/schemas/SessionUser' },
     },
     required: ['accessToken', 'user'],

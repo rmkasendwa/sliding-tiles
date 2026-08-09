@@ -202,10 +202,14 @@ export class AuthController {
     if (typeof code !== 'string' || !code.trim()) {
       throw new BadRequestException('A Google authorization code is required.');
     }
-    const user = await this.authService.loginWithGoogle(code.trim());
-    const session = await this.sessionService.createSession(user);
+    const googleLogin = await this.authService.loginWithGoogle(code.trim());
+    const session = await this.sessionService.createSession(googleLogin.user);
     this.sessionService.setSessionCookie(response, session.token, session.expiresAt);
-    return { accessToken: session.token, user };
+    return {
+      accessToken: session.token,
+      googleAuthOutcome: googleLogin.outcome,
+      user: googleLogin.user,
+    };
   }
 
   @Post('forgot-password')

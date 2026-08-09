@@ -4,15 +4,46 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSafeReturnTo } from '@/lib/authRedirect';
 import { getWebBaseUrl } from '@/lib/webBaseUrl';
 
-const STATE_COOKIE = 'google_oauth_state';
-const RETURN_COOKIE = 'google_oauth_return_to';
-const ORIGIN_COOKIE = 'google_oauth_origin';
+import {
+  GOOGLE_OAUTH_ANALYTICS_ID_COOKIE,
+  GOOGLE_OAUTH_ANALYTICS_SESSION_COOKIE,
+  GOOGLE_OAUTH_ANONYMOUS_PROGRESS_COOKIE,
+  GOOGLE_OAUTH_ORIGIN_COOKIE,
+  GOOGLE_OAUTH_RETURN_COOKIE,
+  GOOGLE_OAUTH_STATE_COOKIE,
+  getGoogleAuthEntryPoint,
+  getSafeAnalyticsBoolean,
+  getSafeAnalyticsId,
+  getGoogleAuthPage,
+  recordGoogleAuthAnalytics,
+} from './analytics';
 
 export async function GET(request: NextRequest) {
   const clientId = process.env.GOOGLE_CLIENT_ID?.trim();
   const returnTo = getSafeReturnTo(request.nextUrl.searchParams.get('returnTo'));
-  const origin = request.nextUrl.searchParams.get('origin') === 'register' ? 'register' : 'login';
+  const requestedOrigin = request.nextUrl.searchParams.get('origin') ?? undefined;
+  const origin = getGoogleAuthPage(
+    requestedOrigin,
+  );
+  const analyticsAnonymousId = getSafeAnalyticsId(
+    request.nextUrl.searchParams.get('analyticsAnonymousId'),
+  );
+  const analyticsSessionId = getSafeAnalyticsId(
+    request.nextUrl.searchParams.get('analyticsSessionId'),
+  );
+  const anonymousProgressExisted = getSafeAnalyticsBoolean(
+    request.nextUrl.searchParams.get('anonymousProgressExisted'),
+  );
   if (!clientId) {
+    await recordGoogleAuthAnalytics({
+      anonymousId: analyticsAnonymousId,
+      anonymousProgressExisted,
+      entryPoint: getGoogleAuthEntryPoint(requestedOrigin),
+      eventName: 'google_auth_failed',
+      failureCategory: 'unavailable',
+      request,
+      sessionId: analyticsSessionId,
+    });
     return NextResponse.redirect(new URL(`/${origin}?oauthError=unavailable`, request.url));
   }
 
@@ -36,8 +67,29 @@ export async function GET(request: NextRequest) {
     sameSite: 'lax' as const,
     secure: process.env.NODE_ENV === 'production',
   };
-  response.cookies.set(STATE_COOKIE, state, cookieOptions);
-  response.cookies.set(RETURN_COOKIE, returnTo, cookieOptions);
-  response.cookies.set(ORIGIN_COOKIE, origin, cookieOptions);
+  response.cookies.set(GOOGLE_OAUTH_STATE_COOKIE, state, cookieOptions);
+  response.cookies.set(GOOGLE_OAUTH_RETURN_COOKIE, returnTo, cookieOptions);
+  response.cookies.set(GOOGLE_OAUTH_ORIGIN_COOKIE, origin, cookieOptions);
+  if (analyticsAnonymousId) {
+    response.cookies.set(
+      GOOGLE_OAUTH_ANALYTICS_ID_COOKIE,
+      analyticsAnonymousId,
+      cookieOptions,
+    );
+  }
+  if (analyticsSessionId) {
+    response.cookies.set(
+      GOOGLE_OAUTH_ANALYTICS_SESSION_COOKIE,
+      analyticsSessionId,
+      cookieOptions,
+    );
+  }
+  if (anonymousProgressExisted !== undefined) {
+    response.cookies.set(
+      GOOGLE_OAUTH_ANONYMOUS_PROGRESS_COOKIE,
+      String(anonymousProgressExisted),
+      cookieOptions,
+    );
+  }
   return response;
 }

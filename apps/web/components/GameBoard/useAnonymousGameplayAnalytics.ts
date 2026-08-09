@@ -26,6 +26,9 @@ export type AnonymousGameplayEventName =
   | 'leaderboard_viewed'
   | 'level_unlocked'
   | 'login_completed'
+  | 'google_auth_started'
+  | 'google_auth_completed'
+  | 'google_auth_failed'
   | 'peek_image_clicked'
   | 'peek_image_used'
   | 'profile_viewed'
@@ -84,6 +87,23 @@ function getOrCreatePlayerId() {
   return playerId;
 }
 
+export function getCurrentAnalyticsSessionId(options?: {
+  allowEphemeral?: boolean;
+}) {
+  try {
+    if (!hasStorageConsent() && !options?.allowEphemeral) {
+      return null;
+    }
+
+    inMemorySessionId ??= createId();
+    return inMemorySessionId;
+  } catch {
+    // Analytics identity lookup should never block the primary action.
+  }
+
+  return null;
+}
+
 export function getCurrentAnalyticsIdentity(options?: {
   allowEphemeral?: boolean;
 }) {
@@ -140,7 +160,13 @@ export function trackAnalyticsEvent(
       return;
     }
 
-    inMemorySessionId ??= createId();
+    const sessionId = getCurrentAnalyticsSessionId({
+      allowEphemeral: options?.allowEphemeral,
+    });
+    if (!sessionId) {
+      return;
+    }
+
     postEvents(
       [
         {
@@ -151,7 +177,7 @@ export function trackAnalyticsEvent(
           referrer: document.referrer || undefined,
           screenHeight: window.screen.height,
           screenWidth: window.screen.width,
-          sessionId: inMemorySessionId,
+          sessionId,
           timestamp: new Date().toISOString(),
           userAgent: navigator.userAgent.slice(0, 512),
         },

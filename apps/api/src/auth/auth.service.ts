@@ -23,6 +23,16 @@ const PASSWORD_RESET_TOKEN_DURATION_MS =
   1000 * 60 * PASSWORD_RESET_TOKEN_DURATION_MINUTES;
 const VERIFICATION_EMAIL_COOLDOWN_MS = 1000 * 60;
 
+export type GoogleAuthOutcome =
+  | 'new_account'
+  | 'existing_google_account'
+  | 'linked_existing_account';
+
+export type GoogleLoginResult = {
+  outcome: GoogleAuthOutcome;
+  user: SessionUser;
+};
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -616,7 +626,7 @@ export class AuthService {
     return this.toSessionUser(user);
   }
 
-  async loginWithGoogle(code: string): Promise<SessionUser> {
+  async loginWithGoogle(code: string): Promise<GoogleLoginResult> {
     const clientId = process.env.GOOGLE_CLIENT_ID?.trim();
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim();
     if (!clientId || !clientSecret) {
@@ -674,7 +684,10 @@ export class AuthService {
       },
     });
     if (account) {
-      return this.toSessionUser(account.user);
+      return {
+        outcome: 'existing_google_account',
+        user: this.toSessionUser(account.user),
+      };
     }
 
     const existingUser = await this.prisma.user.findFirst({
@@ -693,7 +706,10 @@ export class AuthService {
           data: { emailVerifiedAt: existingUser.emailVerifiedAt ?? new Date() },
           where: { id: existingUser.id },
         });
-        return this.toSessionUser(user);
+        return {
+          outcome: 'linked_existing_account',
+          user: this.toSessionUser(user),
+        };
       } catch (error) {
         if (
           error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -708,7 +724,12 @@ export class AuthService {
               },
             },
           });
-          if (linked) return this.toSessionUser(linked.user);
+          if (linked) {
+            return {
+              outcome: 'existing_google_account',
+              user: this.toSessionUser(linked.user),
+            };
+          }
         }
         throw error;
       }
@@ -735,7 +756,7 @@ export class AuthService {
             username,
           },
         });
-        return this.toSessionUser(user);
+        return { outcome: 'new_account', user: this.toSessionUser(user) };
       } catch (error) {
         if (
           !(error instanceof Prisma.PrismaClientKnownRequestError) ||
@@ -752,7 +773,12 @@ export class AuthService {
             },
           },
         });
-        if (linked) return this.toSessionUser(linked.user);
+        if (linked) {
+          return {
+            outcome: 'existing_google_account',
+            user: this.toSessionUser(linked.user),
+          };
+        }
         const matchingEmail = await this.prisma.user.findFirst({ where: { email } });
         if (matchingEmail) {
           await this.prisma.oAuthAccount.create({
@@ -762,7 +788,10 @@ export class AuthService {
               userId: matchingEmail.id,
             },
           });
-          return this.toSessionUser(matchingEmail);
+          return {
+            outcome: 'linked_existing_account',
+            user: this.toSessionUser(matchingEmail),
+          };
         }
       }
     }

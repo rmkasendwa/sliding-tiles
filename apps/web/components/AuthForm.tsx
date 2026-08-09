@@ -8,15 +8,21 @@ import {
   useState,
   type ChangeEvent,
   type FormEvent,
+  type MouseEvent,
 } from 'react';
 
 import { login, register } from '@/app/actions/auth';
+import {
+  ANONYMOUS_GAME_STORAGE_KEY,
+  parseAnonymousGameProgress,
+} from '@/lib/anonymousGameStorage';
 import { routes } from '@/lib/routes';
 import { AuthFormState } from '@/lib/validation';
 import Link from 'next/link';
 
 import {
   getCurrentAnalyticsIdentity,
+  getCurrentAnalyticsSessionId,
   trackAnalyticsEvent,
 } from './GameBoard/useAnonymousGameplayAnalytics';
 import { PasswordStrengthMeter } from './PasswordStrengthMeter';
@@ -56,9 +62,15 @@ type UsernameAvailabilityResponse = {
 
 export function AuthForm({ mode, oauthError, returnTo }: AuthFormProps) {
   const isRegister = mode === 'register';
+  const googleEntryPoint = isRegister ? 'signup' : 'login';
   const [clientErrors, setClientErrors] = useState<Record<string, string>>({});
   const [editedFields, setEditedFields] = useState<Record<string, boolean>>({});
   const [dismissServerMessage, setDismissServerMessage] = useState(false);
+  const [googleAuthContext, setGoogleAuthContext] = useState<{
+    analyticsAnonymousId?: string;
+    analyticsSessionId?: string;
+    anonymousProgressExisted?: boolean;
+  }>({});
   const [visiblePasswords, setVisiblePasswords] = useState({
     confirmPassword: false,
     password: false,
@@ -248,6 +260,81 @@ export function AuthForm({ mode, oauthError, returnTo }: AuthFormProps) {
     }));
   };
 
+  const getAnonymousProgressExisted = () => {
+    try {
+      return Boolean(
+        parseAnonymousGameProgress(
+          window.localStorage.getItem(ANONYMOUS_GAME_STORAGE_KEY),
+        ),
+      );
+    } catch {
+      return false;
+    }
+  };
+
+  const getGoogleAuthContext = () => {
+    const analyticsIdentity = getCurrentAnalyticsIdentity({
+      allowEphemeral: true,
+    });
+    const analyticsSessionId = getCurrentAnalyticsSessionId({
+      allowEphemeral: true,
+    });
+
+    return {
+      analyticsAnonymousId: analyticsIdentity?.anonymousId,
+      analyticsSessionId: analyticsSessionId ?? undefined,
+      anonymousProgressExisted: getAnonymousProgressExisted(),
+    };
+  };
+
+  const getGoogleAuthHref = (
+    context: {
+      analyticsAnonymousId?: string;
+      analyticsSessionId?: string;
+      anonymousProgressExisted?: boolean;
+    } = googleAuthContext,
+  ) => {
+    const params = new URLSearchParams({
+      origin: googleEntryPoint,
+      returnTo: returnTo ?? '/play',
+    });
+    if (context.analyticsAnonymousId) {
+      params.set('analyticsAnonymousId', context.analyticsAnonymousId);
+    }
+    if (context.analyticsSessionId) {
+      params.set('analyticsSessionId', context.analyticsSessionId);
+    }
+    if (context.anonymousProgressExisted !== undefined) {
+      params.set(
+        'anonymousProgressExisted',
+        String(context.anonymousProgressExisted),
+      );
+    }
+
+    return `/api/auth/google?${params}`;
+  };
+
+  const handleGoogleAuthClick = (
+    event: MouseEvent<HTMLAnchorElement>,
+  ) => {
+    const nextGoogleAuthContext = getGoogleAuthContext();
+    setGoogleAuthContext(nextGoogleAuthContext);
+    event.currentTarget.href = getGoogleAuthHref(nextGoogleAuthContext);
+    trackAnalyticsEvent(
+      'google_auth_started',
+      {
+        metadata: {
+          currentPath: window.location.pathname,
+          entryPoint: googleEntryPoint,
+          previouslyPlayingAnonymously:
+            nextGoogleAuthContext.anonymousProgressExisted,
+          provider: 'google',
+        },
+      },
+      { allowEphemeral: true, immediate: true },
+    );
+  };
+
   const updateClientValidation = (
     fieldName: keyof FormValues,
     value: string,
@@ -373,6 +460,10 @@ export function AuthForm({ mode, oauthError, returnTo }: AuthFormProps) {
     action,
     {},
   );
+
+  useEffect(() => {
+    setGoogleAuthContext(getGoogleAuthContext());
+  }, []);
 
   useEffect(() => {
     if (!isRegister) {
@@ -519,7 +610,8 @@ export function AuthForm({ mode, oauthError, returnTo }: AuthFormProps) {
 
       <a
         className="inline-flex min-h-11 items-center justify-center gap-3 rounded-[9px] border border-line bg-surface px-3.5 font-bold text-foreground shadow-sm transition-colors hover:bg-panel"
-        href={`/api/auth/google?${new URLSearchParams({ origin: mode, returnTo: returnTo ?? '/play' })}`}
+        href={getGoogleAuthHref()}
+        onClick={handleGoogleAuthClick}
       >
         <svg aria-hidden="true" className="h-5 w-5" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.9h5.4a4.6 4.6 0 0 1-2 3v2.6h3.3c1.9-1.8 2.9-4.4 2.9-7.5Z" />
