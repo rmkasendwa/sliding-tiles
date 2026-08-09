@@ -20,8 +20,10 @@ type GameKeyboardControlsOptions = {
   isInteractionBlocked: boolean;
   movableSlotKeys: ReadonlySet<string>;
   onMove: (slot: Slot) => void;
+  onOpenShortcuts: () => void;
   onReset: () => void;
   onShuffle: () => void;
+  onToggleTheme: () => void;
   onToggleFullscreen: () => void;
 };
 
@@ -30,13 +32,19 @@ export function useGameKeyboardControls({
   isInteractionBlocked,
   movableSlotKeys,
   onMove,
+  onOpenShortcuts,
   onReset,
   onShuffle,
+  onToggleTheme,
   onToggleFullscreen,
 }: GameKeyboardControlsOptions) {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (
+        event.altKey ||
+        event.ctrlKey ||
+        event.metaKey ||
+        event.shiftKey ||
         isEditableKeyboardTarget(event.target) ||
         !window.matchMedia('(hover: hover) and (pointer: fine)').matches ||
         isInteractionBlocked
@@ -55,6 +63,7 @@ export function useGameKeyboardControls({
           case 'd':
             return [row, column - 1];
           case 'ArrowDown':
+          case 's':
             return [row - 1, column];
           case 'ArrowLeft':
           case 'a':
@@ -87,8 +96,19 @@ export function useGameKeyboardControls({
         return;
       }
 
-      switch (event.key.toLowerCase()) {
+      const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+
+      if (key === '?') {
+        event.preventDefault();
+        onOpenShortcuts();
+        return;
+      }
+
+      switch (key) {
         case 'r':
+          if (event.shiftKey) {
+            return;
+          }
           if (isInteractionBlocked) {
             return;
           }
@@ -96,6 +116,9 @@ export function useGameKeyboardControls({
           onReset();
           break;
         case 's':
+          if (!event.shiftKey) {
+            return;
+          }
           if (isInteractionBlocked) {
             return;
           }
@@ -103,13 +126,36 @@ export function useGameKeyboardControls({
           onShuffle();
           break;
         case 'f':
+          if (event.shiftKey) {
+            return;
+          }
+          if (isInteractionBlocked) {
+            return;
+          }
           event.preventDefault();
           onToggleFullscreen();
+          break;
+        case 't':
+          if (event.shiftKey) {
+            return;
+          }
+          if (isInteractionBlocked) {
+            return;
+          }
+          event.preventDefault();
+          onToggleTheme();
           break;
       }
     };
 
     window.addEventListener('keydown', handleShortcut);
     return () => window.removeEventListener('keydown', handleShortcut);
-  }, [isInteractionBlocked, onReset, onShuffle, onToggleFullscreen]);
+  }, [
+    isInteractionBlocked,
+    onOpenShortcuts,
+    onReset,
+    onShuffle,
+    onToggleFullscreen,
+    onToggleTheme,
+  ]);
 }

@@ -29,6 +29,7 @@ import {
   storePuzzleImage,
   synchronizeStoredPuzzleImages,
 } from '@/lib/puzzleImageStorage';
+import { cycleThemePreference } from '@/lib/theme';
 
 import { SoundProvider, useSound } from '../SoundProvider';
 import {
@@ -64,6 +65,7 @@ import { useGameKeyboardControls } from './useGameKeyboardControls';
 import { useGamePersistence } from './useGamePersistence';
 import { useGameTimer } from './useGameTimer';
 import { useInitialGameState } from './useInitialGameState';
+import { KeyboardShortcutsModal } from './KeyboardShortcutsModal';
 
 export type GameBoardProps = {
   dailyChallenge?: {
@@ -155,6 +157,7 @@ function GameBoardContent({
   const puzzleImageObjectUrlRef = useRef<string | null>(null);
   const hasSelectedPuzzleImageRef = useRef(false);
   const [isImagePickerOpen, setIsImagePickerOpen] = useState(false);
+  const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
   const [imagePickerPortalContainer, setImagePickerPortalContainer] =
     useState<HTMLElement | null>(null);
 
@@ -1385,12 +1388,15 @@ function GameBoardContent({
       isCelebrating ||
       isShuffleAnimationRunning ||
       isAutoPlayRunning ||
+      isShortcutsModalOpen ||
       Boolean(dailyCompletion) ||
       Boolean(replayResult),
     movableSlotKeys,
     onMove: moveTile,
+    onOpenShortcuts: () => setIsShortcutsModalOpen(true),
     onReset: resetLevel,
     onShuffle: shuffleLevel,
+    onToggleTheme: cycleThemePreference,
     onToggleFullscreen: toggleBoardFullscreen,
   });
 
@@ -1492,6 +1498,7 @@ function GameBoardContent({
           );
           setIsImagePickerOpen(true);
         }}
+        onOpenShortcuts={() => setIsShortcutsModalOpen(true)}
         onMove={moveTile}
         onOpenDetails={openInfoModal}
         onPeekCancel={stopPeekButtonPreview}
@@ -1535,6 +1542,10 @@ function GameBoardContent({
         playerAvatarUrl={playerAvatarUrl}
         playerName={playerName}
         rows={rows}
+      />
+      <KeyboardShortcutsModal
+        isOpen={isShortcutsModalOpen}
+        onClose={() => setIsShortcutsModalOpen(false)}
       />
       {isImagePickerOpen ? (
         <CustomImagePicker

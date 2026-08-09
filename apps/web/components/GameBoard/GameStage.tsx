@@ -91,6 +91,7 @@ type GameStageProps = {
   onHint: (slot: string | null) => void;
   onInvalidMove: (slotKey: string) => void;
   onOpenImagePicker: () => void;
+  onOpenShortcuts: () => void;
   onMove: (slot: Slot) => void;
   onOpenDetails: () => void;
   onPeekCancel: PointerEventHandler<HTMLButtonElement>;
@@ -356,6 +357,7 @@ export function GameStage({
   onHint,
   onInvalidMove,
   onOpenImagePicker,
+  onOpenShortcuts,
   onMove,
   onOpenDetails,
   onPeekCancel,
@@ -533,6 +535,7 @@ export function GameStage({
         onAutoPlayToggle={onAutoPlayToggle}
         onAutoPlaySpeedChange={onAutoPlaySpeedChange}
         onOpenImagePicker={onOpenImagePicker}
+        onOpenShortcuts={onOpenShortcuts}
         onPeekCancel={onPeekCancel}
         onPeekDown={onPeekDown}
         onPeekLeave={onPeekLeave}

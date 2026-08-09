@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  CircleHelp,
   Gauge,
   LoaderCircle,
   ImagePlus,
@@ -48,6 +49,7 @@ type GameToolbarProps = {
   onAutoPlayToggle: () => void;
   onAutoPlaySpeedChange: (delayMs: number) => void;
   onOpenImagePicker: () => void;
+  onOpenShortcuts: () => void;
   onPeekCancel: PointerEventHandler<HTMLButtonElement>;
   onPeekDown: PointerEventHandler<HTMLButtonElement>;
   onPeekLeave: PointerEventHandler<HTMLButtonElement>;
@@ -82,6 +84,7 @@ export function GameToolbar({
   onAutoPlayToggle,
   onAutoPlaySpeedChange,
   onOpenImagePicker,
+  onOpenShortcuts,
   onPeekCancel,
   onPeekDown,
   onPeekLeave,
@@ -249,7 +252,7 @@ export function GameToolbar({
                     ? 'Shuffling the puzzle'
                     : isShuffleDisabled
                       ? 'Shuffle unavailable'
-                      : 'Shuffle the puzzle (S)'
+                      : 'Shuffle the puzzle (Shift+S)'
                 }
                 type="button"
               />
@@ -350,6 +353,20 @@ export function GameToolbar({
               type="button"
             />
           ) : null}
+          <GameToolButton
+            aria-label="Open keyboard shortcuts"
+            description="Show the desktop keyboard controls for this puzzle."
+            icon={
+              <CircleHelp
+                aria-hidden="true"
+                className="size-4"
+                strokeWidth={2.2}
+              />
+            }
+            onClick={onOpenShortcuts}
+            tooltip="Keyboard shortcuts (?)"
+            type="button"
+          />
           <GameToolButton
             aria-label={
               isBoardFullscreen

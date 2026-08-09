@@ -6,6 +6,7 @@ import { useSyncExternalStore } from 'react';
 import {
   isThemePreference,
   resolveThemePreference,
+  setThemePreference,
   themeOptions,
   THEME_CHANGE_EVENT,
   THEME_STORAGE_KEY,
@@ -70,11 +71,6 @@ function subscribe(onStoreChange: () => void) {
     window.removeEventListener(THEME_CHANGE_EVENT, onStoreChange);
     mediaQuery.removeEventListener('change', onStoreChange);
   };
-}
-
-function setThemePreference(preference: ThemePreference) {
-  window.localStorage.setItem(THEME_STORAGE_KEY, preference);
-  window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
 }
 
 export function useThemeSnapshot(): ThemeSnapshot {
