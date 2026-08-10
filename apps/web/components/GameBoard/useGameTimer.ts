@@ -13,7 +13,7 @@ import {
   type RunningTimerState,
 } from './gameTiming';
 
-function formatElapsedTime(milliseconds: number) {
+export function formatElapsedTime(milliseconds: number) {
   const totalSeconds = Math.max(0, Math.floor(milliseconds / 1000));
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);

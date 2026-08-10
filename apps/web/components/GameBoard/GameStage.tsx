@@ -17,6 +17,10 @@ import { CompletionEffects } from './CompletionEffects';
 import { GameHud } from './GameHud';
 import { GameToolbar } from './GameToolbar';
 import { ReplayResultPanel, type ReplayResult } from './ReplayResultPanel';
+import {
+  ShareResultCard,
+  type ShareResultCardData,
+} from './ShareResultCard';
 
 export type PersonalBestNotice = {
   improvementSeconds: number;
@@ -81,6 +85,7 @@ type GameStageProps = {
   isSoundEnabled: boolean;
   isImagePickerDisabled?: boolean;
   isShuffleDisabled?: boolean;
+  isShareCardOpen: boolean;
   movableSlotKeys: ReadonlySet<string>;
   onAutoPlayToggle: () => void;
   onAutoPlaySpeedChange: (delayMs: number) => void;
@@ -91,6 +96,7 @@ type GameStageProps = {
   onHint: (slot: string | null) => void;
   onInvalidMove: (slotKey: string) => void;
   onOpenImagePicker: () => void;
+  onOpenShareCard: () => void;
   onOpenShortcuts: () => void;
   onMove: (slot: Slot) => void;
   onOpenDetails: () => void;
@@ -101,11 +107,13 @@ type GameStageProps = {
   onReset: () => void;
   onReplayAgain: () => void;
   onShuffle: () => void;
+  onCloseShareCard: () => void;
   onToggleFullscreen: () => void;
   onToggleMuted: () => void;
   personalBestNotice: PersonalBestNotice | null;
   replayResult: ReplayResult | null;
   rows: number;
+  shareCardResult: ShareResultCardData | null;
   streakNotice: StreakNotice | null;
   suppressNextClickRef: MutableRefObject<boolean>;
   tileRotationSeed: number;
@@ -347,6 +355,7 @@ export function GameStage({
   isSoundEnabled,
   isImagePickerDisabled = false,
   isShuffleDisabled = false,
+  isShareCardOpen,
   movableSlotKeys,
   onAutoPlayToggle,
   onAutoPlaySpeedChange,
@@ -357,6 +366,7 @@ export function GameStage({
   onHint,
   onInvalidMove,
   onOpenImagePicker,
+  onOpenShareCard,
   onOpenShortcuts,
   onMove,
   onOpenDetails,
@@ -367,11 +377,13 @@ export function GameStage({
   onReset,
   onReplayAgain,
   onShuffle,
+  onCloseShareCard,
   onToggleFullscreen,
   onToggleMuted,
   personalBestNotice,
   replayResult,
   rows,
+  shareCardResult,
   streakNotice,
   suppressNextClickRef,
   tileRotationSeed,
@@ -530,11 +542,13 @@ export function GameStage({
         isSoundEnabled={isSoundEnabled}
         isImagePickerDisabled={isImagePickerDisabled}
         isShuffleDisabled={isShuffleDisabled}
+        canOpenShareCard={shareCardResult !== null}
         level={board.level}
         moves={board.moves}
         onAutoPlayToggle={onAutoPlayToggle}
         onAutoPlaySpeedChange={onAutoPlaySpeedChange}
         onOpenImagePicker={onOpenImagePicker}
+        onOpenShareCard={onOpenShareCard}
         onOpenShortcuts={onOpenShortcuts}
         onPeekCancel={onPeekCancel}
         onPeekDown={onPeekDown}
@@ -554,6 +568,11 @@ export function GameStage({
           result={replayResult}
         />
       ) : null}
+      <ShareResultCard
+        isOpen={isShareCardOpen}
+        onClose={onCloseShareCard}
+        result={shareCardResult}
+      />
       {isAutoPlaySolvedNoticeVisible ? (
         <AutoPlayResultPanel
           level={board.level}

@@ -11,6 +11,7 @@ import {
   Play,
   RotateCcw,
   Search,
+  Share2,
   Shuffle,
   Volume2,
   VolumeX,
@@ -44,11 +45,13 @@ type GameToolbarProps = {
   isSoundEnabled: boolean;
   isImagePickerDisabled?: boolean;
   isShuffleDisabled?: boolean;
+  canOpenShareCard: boolean;
   level: number;
   moves: number;
   onAutoPlayToggle: () => void;
   onAutoPlaySpeedChange: (delayMs: number) => void;
   onOpenImagePicker: () => void;
+  onOpenShareCard: () => void;
   onOpenShortcuts: () => void;
   onPeekCancel: PointerEventHandler<HTMLButtonElement>;
   onPeekDown: PointerEventHandler<HTMLButtonElement>;
@@ -79,11 +82,13 @@ export function GameToolbar({
   isSoundEnabled,
   isImagePickerDisabled = false,
   isShuffleDisabled = false,
+  canOpenShareCard,
   level,
   moves,
   onAutoPlayToggle,
   onAutoPlaySpeedChange,
   onOpenImagePicker,
+  onOpenShareCard,
   onOpenShortcuts,
   onPeekCancel,
   onPeekDown,
@@ -184,6 +189,22 @@ export function GameToolbar({
         <div className="game-toolbar-dock__tools flex max-w-full shrink-0 flex-wrap items-center justify-end gap-1 text-accent-strong max-[520px]:w-full max-[520px]:justify-center max-[520px]:border-t max-[520px]:border-line max-[520px]:pt-1.5">
           {!shouldHidePlaybackBlockedTools ? (
             <>
+              {canOpenShareCard ? (
+                <GameToolButton
+                  aria-label="Create share card"
+                  description="Generate an image card for your latest completed level."
+                  icon={
+                    <Share2
+                      aria-hidden="true"
+                      className="size-4"
+                      strokeWidth={2.2}
+                    />
+                  }
+                  onClick={onOpenShareCard}
+                  tooltip="Share latest result"
+                  type="button"
+                />
+              ) : null}
               <GameToolButton
                 aria-label="Choose a custom puzzle image"
                 description="Create this tile board from one of your own photos."

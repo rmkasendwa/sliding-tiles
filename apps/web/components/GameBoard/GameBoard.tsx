@@ -63,9 +63,10 @@ import { useBoardPreview } from './useBoardPreview';
 import { useGameInfoModal } from './useGameInfoModal';
 import { useGameKeyboardControls } from './useGameKeyboardControls';
 import { useGamePersistence } from './useGamePersistence';
-import { useGameTimer } from './useGameTimer';
+import { formatElapsedTime, useGameTimer } from './useGameTimer';
 import { useInitialGameState } from './useInitialGameState';
 import { KeyboardShortcutsModal } from './KeyboardShortcutsModal';
+import type { ShareResultCardData } from './ShareResultCard';
 
 export type GameBoardProps = {
   dailyChallenge?: {
@@ -226,6 +227,9 @@ function GameBoardContent({
   const [currentReplayBest, setCurrentReplayBest] =
     useState<ReplayPerformance | null>(replayBest ?? null);
   const [replayResult, setReplayResult] = useState<ReplayResult | null>(null);
+  const [shareCardResult, setShareCardResult] =
+    useState<ShareResultCardData | null>(null);
+  const [isShareCardOpen, setIsShareCardOpen] = useState(false);
   const [personalBestNotice, setPersonalBestNotice] =
     useState<PersonalBestNotice | null>(null);
   const [streakNotice, setStreakNotice] = useState<StreakNotice | null>(null);
@@ -588,6 +592,7 @@ function GameBoardContent({
       setStreakNotice(null);
       setAchievementNotice(null);
       const completedTimerSnapshot = completeClock(effectiveTimerState);
+      const shareCompletedAt = new Date().toISOString();
       const completedElapsedTimeMs =
         completedTimerSnapshot.activeElapsedTimeMs;
       const completedTotalElapsedTimeMs =
@@ -607,6 +612,12 @@ function GameBoardContent({
             previousBest: currentReplayBest ?? latestReplayPerformance,
           }
         : null;
+      const replayImproved =
+        completedReplayResult !== null &&
+        (completedReplayResult.latest.timeSeconds <
+          completedReplayResult.previousBest.timeSeconds ||
+          completedReplayResult.latest.moves <
+            completedReplayResult.previousBest.moves);
       launchCompletionConfetti(completedBoard);
       playSound('complete');
       setIsCompletionImageVisible(true);
@@ -630,6 +641,13 @@ function GameBoardContent({
         return;
       }
 
+      setShareCardResult({
+        completedAt: shareCompletedAt,
+        level: completedBoard.level,
+        moves: completedBoard.moves,
+        personalBestLabel: replayImproved ? 'Replay best improved' : null,
+        timeLabel: formatElapsedTime(completedElapsedTimeMs),
+      });
       trackAnonymousEvent('game_completed', analyticsMetadata);
 
       if (dailyChallenge) {
@@ -718,6 +736,14 @@ function GameBoardContent({
                 improvementSeconds: result.personalBest.improvementSeconds,
                 level: completedBoard.level,
               });
+              setShareCardResult((current) =>
+                current?.completedAt === shareCompletedAt
+                  ? {
+                      ...current,
+                      personalBestLabel: 'New personal best',
+                    }
+                  : current,
+              );
             }
 
             if (result.achievements?.length) {
@@ -1389,6 +1415,7 @@ function GameBoardContent({
       isShuffleAnimationRunning ||
       isAutoPlayRunning ||
       isShortcutsModalOpen ||
+      isShareCardOpen ||
       Boolean(dailyCompletion) ||
       Boolean(replayResult),
     movableSlotKeys,
@@ -1479,6 +1506,7 @@ function GameBoardContent({
         isSoundEnabled={isSoundEnabled}
         isImagePickerDisabled={Boolean(dailyChallenge)}
         isShuffleDisabled={Boolean(dailyChallenge)}
+        isShareCardOpen={isShareCardOpen}
         movableSlotKeys={movableSlotKeys}
         onAutoPlayToggle={toggleAutoPlay}
         onAutoPlaySpeedChange={updateAutoPlaySpeed}
@@ -1498,6 +1526,7 @@ function GameBoardContent({
           );
           setIsImagePickerOpen(true);
         }}
+        onOpenShareCard={() => setIsShareCardOpen(true)}
         onOpenShortcuts={() => setIsShortcutsModalOpen(true)}
         onMove={moveTile}
         onOpenDetails={openInfoModal}
@@ -1508,11 +1537,13 @@ function GameBoardContent({
         onReset={resetLevel}
         onReplayAgain={replayAgain}
         onShuffle={shuffleLevel}
+        onCloseShareCard={() => setIsShareCardOpen(false)}
         onToggleFullscreen={() => void toggleBoardFullscreen()}
         onToggleMuted={toggleMuted}
         personalBestNotice={personalBestNotice}
         replayResult={replayResult}
         rows={rows}
+        shareCardResult={shareCardResult}
         streakNotice={streakNotice}
         suppressNextClickRef={suppressNextClickRef}
         tileRotationSeed={tileRotationSeed}
