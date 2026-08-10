@@ -1,6 +1,13 @@
 'use client';
 
-import { History, LogOut, ShieldCheck, Trophy, User } from 'lucide-react';
+import {
+  BarChart3,
+  History,
+  LogOut,
+  ShieldCheck,
+  Trophy,
+  User,
+} from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -300,6 +307,24 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
               />
             ) : null}
           </Link>
+          <Link
+            aria-current={
+              isRouteActive(pathname, routes.statistics) ? 'page' : undefined
+            }
+            className={getDrawerLinkClass(
+              isRouteActive(pathname, routes.statistics),
+            )}
+            href={routes.statistics}
+            onClick={closeDrawer}
+          >
+            <span>Statistics</span>
+            {isRouteActive(pathname, routes.statistics) ? (
+              <span
+                className="h-2 w-2 rounded-full bg-accent"
+                aria-hidden="true"
+              />
+            ) : null}
+          </Link>
           {isAdmin ? (
             <Link
               aria-current={
@@ -469,6 +494,18 @@ export function MainHeaderNav({ logout, session }: MainHeaderNavProps) {
                         aria-hidden="true"
                       />
                       Run History
+                    </Link>
+                    <Link
+                      className="flex min-h-11 items-center gap-2.5 rounded-[10px] px-3 text-[0.95rem] transition-colors hover:bg-accent/8"
+                      href={routes.statistics}
+                      onClick={closeAccountMenu}
+                      role="menuitem"
+                    >
+                      <BarChart3
+                        className="h-4 w-4 text-muted"
+                        aria-hidden="true"
+                      />
+                      Statistics
                     </Link>
                     <Link
                       className="flex min-h-11 items-center gap-2.5 rounded-[10px] px-3 text-[0.95rem] transition-colors hover:bg-accent/8"

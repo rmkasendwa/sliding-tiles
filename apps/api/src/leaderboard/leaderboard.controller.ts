@@ -228,6 +228,20 @@ export class LeaderboardController {
     );
   }
 
+  @Get('mine/statistics')
+  @UseGuards(AuthGuard)
+  @AuthenticatedApi()
+  @ApiOperation({ summary: 'Get current user performance statistics' })
+  @ApiOkResponse({ description: 'Your performance statistics.' })
+  @ApiUnauthorizedResponse({
+    description: 'Authentication is required.',
+    schema: ref('ErrorResponse'),
+  })
+  getStatisticsForUser(@Req() request: AuthenticatedRequest) {
+    const user = getAuthenticatedUser(request);
+    return this.leaderboardService.getStatisticsForUser(user.id);
+  }
+
   @Get('mine')
   @UseGuards(AuthGuard)
   @AuthenticatedApi()

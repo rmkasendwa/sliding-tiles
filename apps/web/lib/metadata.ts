@@ -106,6 +106,12 @@ export const pageMetadataConfig = {
     path: routes.runs,
     title: 'Run History',
   },
+  statistics: {
+    description:
+      'Track your Sliding Tiles levels completed, moves, play time, personal bests, replay count, streaks, and improvement trends.',
+    path: routes.statistics,
+    title: 'Statistics',
+  },
   register: {
     description:
       'Create a Sliding Tiles account to save puzzle progress, track runs, and climb the competitive leaderboard.',

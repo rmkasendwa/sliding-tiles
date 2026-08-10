@@ -79,6 +79,7 @@ export async function recordLevelAttempt({
 
   revalidatePath('/leaderboard');
   revalidatePath('/profile');
+  revalidatePath('/statistics');
 
   return {
     achievements: result.achievements,
@@ -116,6 +117,7 @@ export async function recordDailyChallengeAttempt({
       method: 'POST',
     },
   );
+  revalidatePath('/statistics');
 
   return {
     ok: true,

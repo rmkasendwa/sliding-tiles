@@ -95,6 +95,14 @@ export const ogPages = {
     tagline: 'Replay, compare, improve.',
     title: 'Run History',
   },
+  statistics: {
+    description:
+      'A clear look at completions, pace, moves, streaks, and the shape of your improvement.',
+    eyebrow: 'Player progress',
+    file: 'runs.png',
+    tagline: 'Track the cleaner solves.',
+    title: 'Statistics',
+  },
   terms: {
     description:
       'Simple rules for fair play, honest records, and a leaderboard worth chasing.',

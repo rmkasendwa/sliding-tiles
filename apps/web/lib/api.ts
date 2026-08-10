@@ -104,6 +104,49 @@ export type ApiRunPage = {
   totalCount: number;
 };
 
+export type ApiUserStatistics = {
+  averages: {
+    moves: number | null;
+    timeSeconds: number | null;
+  };
+  bests: {
+    moves: {
+      completedAt: string;
+      id: string;
+      level: number;
+      moves: number;
+      timeSeconds: number;
+    } | null;
+    time: {
+      completedAt: string;
+      id: string;
+      level: number;
+      moves: number;
+      timeSeconds: number;
+    } | null;
+  };
+  counts: {
+    levelsCompleted: number;
+    replayCount: number;
+    totalRuns: number;
+  };
+  streak: Omit<ApiStreak, 'newlyAchievedMilestone'>;
+  totals: {
+    moves: number;
+    playTimeSeconds: number;
+  };
+  trend: Array<{
+    attemptType: 'original' | 'replay';
+    completedAt: string;
+    completionNumber: number;
+    id: string;
+    level: number;
+    moves: number;
+    timeSeconds: number;
+    totalTimeSeconds: number | null;
+  }>;
+};
+
 export type ApiCompletionResponse = {
   achievements: ApiAchievement[];
   personalBest: {

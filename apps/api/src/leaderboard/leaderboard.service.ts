@@ -295,6 +295,134 @@ export class LeaderboardService {
     };
   }
 
+  async getStatisticsForUser(userId: string) {
+    const [
+      totals,
+      originalCount,
+      replayCount,
+      bestTime,
+      bestMoves,
+      streak,
+      recentAttempts,
+    ] = await Promise.all([
+      this.prisma.leaderboard.aggregate({
+        _avg: {
+          moves: true,
+          timeSeconds: true,
+        },
+        _count: {
+          _all: true,
+        },
+        _sum: {
+          moves: true,
+          timeSeconds: true,
+          totalTimeSeconds: true,
+        },
+        where: { userId },
+      }),
+      this.prisma.leaderboard.count({
+        where: { attemptType: 'original', userId },
+      }),
+      this.prisma.leaderboard.count({
+        where: { attemptType: 'replay', userId },
+      }),
+      this.prisma.leaderboard.findFirst({
+        orderBy: [
+          { timeSeconds: 'asc' },
+          { moves: 'asc' },
+          { completedAt: 'asc' },
+        ],
+        select: {
+          completedAt: true,
+          id: true,
+          level: true,
+          moves: true,
+          timeSeconds: true,
+        },
+        where: { userId },
+      }),
+      this.prisma.leaderboard.findFirst({
+        orderBy: [
+          { moves: 'asc' },
+          { timeSeconds: 'asc' },
+          { completedAt: 'asc' },
+        ],
+        select: {
+          completedAt: true,
+          id: true,
+          level: true,
+          moves: true,
+          timeSeconds: true,
+        },
+        where: { userId },
+      }),
+      this.prisma.userStreak.findUnique({
+        select: {
+          currentStreak: true,
+          lastCompletionLocalDate: true,
+          lastCompletionTimeZone: true,
+          longestStreak: true,
+        },
+        where: { userId },
+      }),
+      this.prisma.leaderboard.findMany({
+        orderBy: [{ completedAt: 'desc' }, { id: 'desc' }],
+        select: {
+          attemptType: true,
+          completedAt: true,
+          id: true,
+          level: true,
+          moves: true,
+          timeSeconds: true,
+          totalTimeSeconds: true,
+        },
+        take: 20,
+        where: { userId },
+      }),
+    ]);
+    const trendAttempts = [...recentAttempts].reverse();
+    const trend = trendAttempts
+      .map((attempt, index) => ({
+        attemptType: attempt.attemptType as 'original' | 'replay',
+        completedAt: attempt.completedAt,
+        completionNumber:
+          Math.max(totals._count._all - trendAttempts.length, 0) + index + 1,
+        id: attempt.id,
+        level: attempt.level,
+        moves: attempt.moves,
+        timeSeconds: attempt.timeSeconds,
+        totalTimeSeconds: attempt.totalTimeSeconds,
+      }));
+
+    return {
+      averages: {
+        moves: totals._avg.moves,
+        timeSeconds: totals._avg.timeSeconds,
+      },
+      bests: {
+        moves: bestMoves,
+        time: bestTime,
+      },
+      counts: {
+        levelsCompleted: originalCount,
+        replayCount,
+        totalRuns: totals._count._all,
+      },
+      streak: streak ?? {
+        currentStreak: 0,
+        lastCompletionLocalDate: null,
+        lastCompletionTimeZone: null,
+        longestStreak: 0,
+      },
+      totals: {
+        moves: totals._sum.moves ?? 0,
+        playTimeSeconds:
+          totals._sum.totalTimeSeconds ?? totals._sum.timeSeconds ?? 0,
+      },
+      trend,
+    };
+  }
+
   async list(take = 20) {
     const scores = await this.prisma.leaderboard.findMany({
       select: {
