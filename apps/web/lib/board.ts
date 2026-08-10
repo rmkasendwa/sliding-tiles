@@ -11,6 +11,11 @@ export type Tile = {
 
 export type TileGrid = Tile[][];
 
+export type MoveHistoryEntry = {
+  elapsedTimeMs: number;
+  slot: Slot;
+};
+
 export type BoardState = {
   level: number;
   dimensions: Slot;
@@ -19,6 +24,7 @@ export type BoardState = {
   movableSlots: Slot[];
   moves: number;
   elapsedTimeMs: number;
+  moveHistory?: MoveHistoryEntry[];
   pausedDurationMs?: number;
   startedAt: string;
   totalElapsedTimeMs?: number;
@@ -32,6 +38,7 @@ export function normalizeBoardState(
   return {
     ...board,
     elapsedTimeMs: 'elapsedTimeMs' in board ? board.elapsedTimeMs : 0,
+    moveHistory: 'moveHistory' in board ? board.moveHistory : undefined,
     pausedDurationMs:
       'pausedDurationMs' in board ? board.pausedDurationMs : undefined,
     totalElapsedTimeMs:
@@ -46,6 +53,7 @@ export function resetBoardAttempt(
   return {
     ...board,
     elapsedTimeMs: 0,
+    moveHistory: [],
     moves: 0,
     pausedDurationMs: 0,
     startedAt,

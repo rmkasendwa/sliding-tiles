@@ -11,6 +11,7 @@ import { DAILY_CHALLENGE_SUBMITTED_EVENT } from '@/components/DailyChallengePodi
 import type { AnonymousTimerStatus } from '@/lib/anonymousGameStorage';
 import {
   BoardState,
+  MoveHistoryEntry,
   Slot,
   createBoardState,
   getDimensionsForLevel,
@@ -78,6 +79,11 @@ export type GameBoardProps = {
   playerAvatarUrl?: string | null;
   playerName?: string;
   replayBest?: ReplayPerformance;
+  replayGhostRun?: {
+    moveHistory: MoveHistoryEntry[];
+    moves: number;
+    timeSeconds: number;
+  } | null;
   replayOfId?: string | null;
   soundEnabled?: boolean;
 };
@@ -91,6 +97,20 @@ function getLocalCompletion() {
   };
 }
 
+function buildGhostBoard(
+  startBoard: BoardState,
+  moveHistory: MoveHistoryEntry[],
+  elapsedTimeMs: number,
+) {
+  return moveHistory
+    .filter((move) => move.elapsedTimeMs <= elapsedTimeMs)
+    .reduce(
+      (ghostBoard, move) =>
+        moveBoardTile(ghostBoard, move.slot, { countMove: false }),
+      resetBoardAttempt(startBoard, startBoard.startedAt),
+    );
+}
+
 function GameBoardContent({
   dailyChallenge,
   initialAttemptStartBoard,
@@ -101,6 +121,7 @@ function GameBoardContent({
   playerAvatarUrl,
   playerName,
   replayBest,
+  replayGhostRun,
   replayOfId,
 }: GameBoardProps & {
   initialAttemptStartBoard?: BoardState;
@@ -226,6 +247,9 @@ function GameBoardContent({
   );
   const [currentReplayBest, setCurrentReplayBest] =
     useState<ReplayPerformance | null>(replayBest ?? null);
+  const [isGhostPlaybackEnabled, setIsGhostPlaybackEnabled] = useState(
+    Boolean(replayGhostRun?.moveHistory.length),
+  );
   const [replayResult, setReplayResult] = useState<ReplayResult | null>(null);
   const [shareCardResult, setShareCardResult] =
     useState<ShareResultCardData | null>(null);
@@ -854,13 +878,10 @@ function GameBoardContent({
       }
 
       const currentBoard = isAutoPlayMove ? boardRef.current : board;
-      const nextBoard = moveBoardTile(currentBoard, slot, {
+      const movedBoard = moveBoardTile(currentBoard, slot, {
         countMove: !isAutoPlayMove,
       });
-      boardRef.current = nextBoard;
-      setBoard(nextBoard);
-
-      if (nextBoard !== currentBoard) {
+      if (movedBoard !== currentBoard) {
         const moveTimeMs = Date.now();
         const effectiveTimerState = isAutoPlayMove || isAutoPlayCompletion
           ? {
@@ -875,6 +896,21 @@ function GameBoardContent({
             effectiveTimerState.activeStartedAtMs -
             effectiveTimerState.pausedDurationMs,
         );
+        const nextBoard = isAutoPlayMove
+          ? movedBoard
+          : {
+              ...movedBoard,
+              moveHistory: [
+                ...(currentBoard.moveHistory ?? []),
+                {
+                  elapsedTimeMs: Math.round(currentElapsedTimeMs),
+                  slot,
+                },
+              ],
+            };
+        boardRef.current = nextBoard;
+        setBoard(nextBoard);
+
         if (!isAutoPlayMove) {
           trackAnonymousEvent(
             'tile_dragged',
@@ -1081,6 +1117,31 @@ function GameBoardContent({
       puzzleImage.width / puzzleImage.height,
     ),
   );
+  const ghostBoard = useMemo(() => {
+    if (
+      !isGhostPlaybackEnabled ||
+      !replayGhostRun?.moveHistory.length ||
+      !activeReplayOfId ||
+      isShuffleAnimationRunning ||
+      isBoardEntering
+    ) {
+      return null;
+    }
+
+    return buildGhostBoard(
+      attemptStartBoard,
+      replayGhostRun.moveHistory,
+      elapsedTimeMs,
+    );
+  }, [
+    activeReplayOfId,
+    attemptStartBoard,
+    elapsedTimeMs,
+    isBoardEntering,
+    isGhostPlaybackEnabled,
+    isShuffleAnimationRunning,
+    replayGhostRun,
+  ]);
 
   useEffect(() => {
     return () => {
@@ -1466,6 +1527,9 @@ function GameBoardContent({
         }
         elapsedTimeLabel={elapsedTimeLabel}
         totalElapsedTimeLabel={totalElapsedTimeLabel}
+        ghostBoard={ghostBoard}
+        ghostRun={replayGhostRun ?? null}
+        isGhostPlaybackEnabled={isGhostPlaybackEnabled}
         hintedSlot={hintedSlot}
         imageAspectRatio={imageAspectRatio}
         imageUrl={puzzleImage.url}
@@ -1539,6 +1603,9 @@ function GameBoardContent({
         onShuffle={shuffleLevel}
         onCloseShareCard={() => setIsShareCardOpen(false)}
         onToggleFullscreen={() => void toggleBoardFullscreen()}
+        onToggleGhostPlayback={() =>
+          setIsGhostPlaybackEnabled((isEnabled) => !isEnabled)
+        }
         onToggleMuted={toggleMuted}
         personalBestNotice={personalBestNotice}
         replayResult={replayResult}

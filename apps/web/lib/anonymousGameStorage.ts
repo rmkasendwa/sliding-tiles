@@ -31,6 +31,14 @@ const boardSchema = z.object({
   elapsedTimeMs: z.number().finite().nonnegative(),
   emptySlot: slotSchema,
   level: z.number().int().positive(),
+  moveHistory: z
+    .array(
+      z.object({
+        elapsedTimeMs: z.number().finite().nonnegative(),
+        slot: slotSchema,
+      }),
+    )
+    .optional(),
   movableSlots: z.array(slotSchema),
   moves: z.number().int().nonnegative(),
   pausedDurationMs: z.number().finite().nonnegative().optional(),

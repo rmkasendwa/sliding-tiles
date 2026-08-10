@@ -28,6 +28,17 @@ export const boardStateSchema = z.object({
   ]),
   elapsedTimeMs: z.number().int().nonnegative().default(0),
   level: z.number().int().positive(),
+  moveHistory: z
+    .array(
+      z.object({
+        elapsedTimeMs: z.number().int().nonnegative(),
+        slot: z.tuple([
+          z.number().int().nonnegative(),
+          z.number().int().nonnegative(),
+        ]),
+      }),
+    )
+    .optional(),
   movableSlots: z.array(
     z.tuple([z.number().int().nonnegative(), z.number().int().nonnegative()]),
   ),

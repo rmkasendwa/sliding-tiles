@@ -17,6 +17,11 @@ type CompletedDailyChallengeDto = z.infer<
   typeof completedDailyChallengeSchema
 >;
 type CompletedLevelDto = z.infer<typeof completedLevelSchema>;
+type GhostRunDto = {
+  moveHistory: NonNullable<BoardStateDto['moveHistory']>;
+  moves: number;
+  timeSeconds: number;
+};
 
 const STREAK_MILESTONES = [7, 30, 100, 365] as const;
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
@@ -34,6 +39,16 @@ function getDateKeyDelta(previousDateKey: string, nextDateKey: string) {
   }
 
   return Math.round((nextTime - previousTime) / ONE_DAY_MS);
+}
+
+function getReplayBoardConfig(value: Prisma.JsonValue | null) {
+  if (!value) {
+    return null;
+  }
+
+  const parsedBoard = boardStateSchema.safeParse(value);
+
+  return parsedBoard.success ? parsedBoard.data : null;
 }
 
 export function calculateStreakUpdate({
@@ -547,13 +562,12 @@ export class LeaderboardService {
       );
     }
 
-    const parsedBoard = boardStateSchema.safeParse(score.puzzleConfig);
-    if (!parsedBoard.success) {
+    const board = getReplayBoardConfig(score.puzzleConfig);
+    if (!board) {
       throw new BadRequestException(
         'Replay snapshot is no longer readable for this completed level.',
       );
     }
-    const board = parsedBoard.data;
     const replayRootId = score.replayOfId ?? score.id;
     const attempts = await this.prisma.leaderboard.findMany({
       where: {
@@ -562,9 +576,32 @@ export class LeaderboardService {
       },
       select: {
         moves: true,
+        puzzleConfig: true,
         timeSeconds: true,
       },
     });
+    const ghostRun = attempts.reduce<GhostRunDto | null>((best, attempt) => {
+      const config = getReplayBoardConfig(attempt.puzzleConfig);
+      const moveHistory = config?.moveHistory;
+
+      if (!moveHistory?.length) {
+        return best;
+      }
+
+      if (
+        !best ||
+        attempt.timeSeconds < best.timeSeconds ||
+        (attempt.timeSeconds === best.timeSeconds && attempt.moves < best.moves)
+      ) {
+        return {
+          moveHistory,
+          moves: attempt.moves,
+          timeSeconds: attempt.timeSeconds,
+        };
+      }
+
+      return best;
+    }, null);
 
     return {
       bestMoves: Math.min(...attempts.map((attempt) => attempt.moves)),
@@ -574,11 +611,13 @@ export class LeaderboardService {
       board: {
         ...board,
         elapsedTimeMs: 0,
+        moveHistory: [],
         moves: 0,
         pausedDurationMs: 0,
         startedAt: new Date().toISOString(),
         totalElapsedTimeMs: 0,
       } satisfies BoardStateDto,
+      ghostRun,
       replayOfId: replayRootId,
     };
   }
@@ -656,8 +695,12 @@ export class LeaderboardService {
     }
 
     const replayRootId = replaySource?.replayOfId ?? replaySource?.id ?? null;
-    const storedPuzzleConfig =
-      replaySource?.puzzleConfig ?? puzzleConfig ?? board;
+    const storedPuzzleConfig = {
+      ...(puzzleConfig ??
+        getReplayBoardConfig(replaySource?.puzzleConfig ?? null) ??
+        board),
+      moveHistory: board.moveHistory,
+    };
     const { achievements, score, streak } = await this.prisma.$transaction(async (tx) => {
       const score = await tx.leaderboard.create({
         data: {
@@ -737,7 +780,10 @@ export class LeaderboardService {
             level: board.level,
             moves: board.moves,
             pausedDurationSeconds,
-            puzzleConfig: (puzzleConfig ?? board) as unknown as Prisma.InputJsonValue,
+            puzzleConfig: {
+              ...(puzzleConfig ?? board),
+              moveHistory: board.moveHistory,
+            } as unknown as Prisma.InputJsonValue,
             timeSeconds,
             totalTimeSeconds,
             userId,

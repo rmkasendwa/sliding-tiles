@@ -49,6 +49,11 @@ type GameStageProps = {
   continueLevel: number;
   elapsedTimeLabel: string;
   totalElapsedTimeLabel: string;
+  ghostBoard: BoardState | null;
+  ghostRun: {
+    moves: number;
+    timeSeconds: number;
+  } | null;
   hintedSlot: string | null;
   imageAspectRatio: number;
   imageUrl: string;
@@ -57,6 +62,7 @@ type GameStageProps = {
   isCelebrating: boolean;
   isCompletionImageVisible: boolean;
   isFocusPaused: boolean;
+  isGhostPlaybackEnabled: boolean;
   isMuted: boolean;
   isAutoPlayActive: boolean;
   isAutoPlayBlocked: boolean;
@@ -109,6 +115,7 @@ type GameStageProps = {
   onShuffle: () => void;
   onCloseShareCard: () => void;
   onToggleFullscreen: () => void;
+  onToggleGhostPlayback: () => void;
   onToggleMuted: () => void;
   personalBestNotice: PersonalBestNotice | null;
   replayResult: ReplayResult | null;
@@ -329,6 +336,8 @@ export function GameStage({
   continueLevel,
   elapsedTimeLabel,
   totalElapsedTimeLabel,
+  ghostBoard,
+  ghostRun,
   hintedSlot,
   imageAspectRatio,
   imageUrl,
@@ -337,6 +346,7 @@ export function GameStage({
   isCelebrating,
   isCompletionImageVisible,
   isFocusPaused,
+  isGhostPlaybackEnabled,
   isMuted,
   isAutoPlayActive,
   isAutoPlayBlocked,
@@ -379,6 +389,7 @@ export function GameStage({
   onShuffle,
   onCloseShareCard,
   onToggleFullscreen,
+  onToggleGhostPlayback,
   onToggleMuted,
   personalBestNotice,
   replayResult,
@@ -494,6 +505,37 @@ export function GameStage({
           suppressNextClickRef={suppressNextClickRef}
           tileRotationSeed={tileRotationSeed}
         />
+        {ghostBoard ? (
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 z-20 opacity-45 mix-blend-screen"
+          >
+            <BoardTilesLayer
+              board={ghostBoard}
+              boardEntryAnimationKey={0}
+              columns={columns}
+              emptySlotHintTile={null}
+              hintedSlot={null}
+              imageUrl={imageUrl}
+              invalidMoveTile={{ key: 0, slotKey: null }}
+              isAutoPlayActive={true}
+              isBoardEntering={false}
+              isResetting={false}
+              isReturningFromSolvedHint={false}
+              isShowingHintPlaceholder={false}
+              isShowingSolvedHint={false}
+              movableSlotKeys={new Set()}
+              onHint={() => undefined}
+              onInvalidMove={() => undefined}
+              onMove={() => undefined}
+              onSlotHintEnd={() => undefined}
+              onSlotHintStart={() => undefined}
+              rows={rows}
+              suppressNextClickRef={suppressNextClickRef}
+              tileRotationSeed={tileRotationSeed}
+            />
+          </div>
+        ) : null}
         <div
           aria-hidden="true"
           className="absolute z-6"
@@ -528,9 +570,11 @@ export function GameStage({
         columns={columns}
         elapsedTimeLabel={elapsedTimeLabel}
         totalElapsedTimeLabel={totalElapsedTimeLabel}
+        ghostRun={ghostRun}
         isBoardFullscreen={isBoardFullscreen}
         isCelebrating={isCelebrating}
         isFocusPaused={isFocusPaused}
+        isGhostPlaybackEnabled={isGhostPlaybackEnabled}
         isMuted={isMuted}
         isAutoPlayActive={isAutoPlayActive}
         isAutoPlayBlocked={isAutoPlayBlocked}
@@ -557,6 +601,7 @@ export function GameStage({
         onReset={onReset}
         onShuffle={onShuffle}
         onToggleFullscreen={onToggleFullscreen}
+        onToggleGhostPlayback={onToggleGhostPlayback}
         onToggleMuted={onToggleMuted}
         rows={rows}
       />

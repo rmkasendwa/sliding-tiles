@@ -120,7 +120,7 @@ export function useGameTimer(
 
     const interval = window.setInterval(() => {
       setClockNowMs(Date.now());
-    }, 1000);
+    }, 100);
 
     return () => window.clearInterval(interval);
   }, [isClockRunning]);

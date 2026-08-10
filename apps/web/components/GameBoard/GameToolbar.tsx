@@ -2,6 +2,8 @@
 
 import {
   CircleHelp,
+  Eye,
+  EyeOff,
   Gauge,
   LoaderCircle,
   ImagePlus,
@@ -24,9 +26,14 @@ type GameToolbarProps = {
   columns: number;
   elapsedTimeLabel: string;
   totalElapsedTimeLabel: string;
+  ghostRun: {
+    moves: number;
+    timeSeconds: number;
+  } | null;
   isBoardFullscreen: boolean;
   isCelebrating: boolean;
   isFocusPaused: boolean;
+  isGhostPlaybackEnabled: boolean;
   isMuted: boolean;
   isAutoPlayActive: boolean;
   isAutoPlayBlocked: boolean;
@@ -60,6 +67,7 @@ type GameToolbarProps = {
   onReset: () => void;
   onShuffle: () => void;
   onToggleFullscreen: () => void;
+  onToggleGhostPlayback: () => void;
   onToggleMuted: () => void;
   rows: number;
 };
@@ -68,9 +76,11 @@ export function GameToolbar({
   columns,
   elapsedTimeLabel,
   totalElapsedTimeLabel,
+  ghostRun,
   isBoardFullscreen,
   isCelebrating,
   isFocusPaused,
+  isGhostPlaybackEnabled,
   isMuted,
   isAutoPlayActive,
   isAutoPlayBlocked,
@@ -97,11 +107,13 @@ export function GameToolbar({
   onReset,
   onShuffle,
   onToggleFullscreen,
+  onToggleGhostPlayback,
   onToggleMuted,
   rows,
 }: GameToolbarProps) {
   const FullscreenIcon = isBoardFullscreen ? Minimize2 : Maximize2;
   const SoundIcon = isMuted ? VolumeX : Volume2;
+  const GhostIcon = isGhostPlaybackEnabled ? Eye : EyeOff;
   const AutoPlayIcon = isAutoPlaySolving
     ? LoaderCircle
     : isAutoPlayActive
@@ -161,6 +173,16 @@ export function GameToolbar({
           role="status"
         >
           {autoPlayStatusMessage}
+        </div>
+      ) : null}
+      {ghostRun && !isAutoPlayAssisted ? (
+        <div
+          aria-live="polite"
+          className="board-overlay absolute left-1/2 top-4 z-40 max-w-[min(24rem,calc(100%-2rem))] -translate-x-1/2 rounded-[7px] border px-3 py-2 text-center text-xs font-bold leading-snug text-accent-strong max-[480px]:top-17"
+          role="status"
+        >
+          Ghost {isGhostPlaybackEnabled ? 'visible' : 'hidden'} · Best{' '}
+          {ghostRun.moves} moves · {Math.max(1, ghostRun.timeSeconds)}s
         </div>
       ) : null}
       <div className="game-toolbar-dock absolute inset-x-4 bottom-4 z-40 flex items-end justify-between gap-2 max-[520px]:grid max-[520px]:grid-cols-1 max-[520px]:gap-1.5 max-[520px]:rounded-[7px] max-[520px]:border max-[520px]:p-1.5">
@@ -297,6 +319,36 @@ export function GameToolbar({
               }
               onClick={onToggleMuted}
               tooltip={isMuted ? 'Enable game sounds' : 'Mute game sounds'}
+              type="button"
+            />
+          ) : null}
+          {ghostRun ? (
+            <GameToolButton
+              aria-label={
+                isGhostPlaybackEnabled
+                  ? 'Hide personal best ghost'
+                  : 'Show personal best ghost'
+              }
+              aria-pressed={isGhostPlaybackEnabled}
+              className={
+                isGhostPlaybackEnabled ? 'bg-accent/15 text-accent-strong' : ''
+              }
+              description={
+                isGhostPlaybackEnabled
+                  ? 'Hide the personal best ghost replay.'
+                  : 'Show the personal best ghost replay.'
+              }
+              icon={
+                <GhostIcon
+                  aria-hidden="true"
+                  className="size-4"
+                  strokeWidth={2.2}
+                />
+              }
+              onClick={onToggleGhostPlayback}
+              tooltip={
+                isGhostPlaybackEnabled ? 'Hide ghost replay' : 'Show ghost replay'
+              }
               type="button"
             />
           ) : null}

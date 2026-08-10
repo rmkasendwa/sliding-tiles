@@ -1,6 +1,11 @@
 import { GameBoard } from '@/components/GameBoard';
 import { ApiGameState, apiRequest } from '@/lib/api';
-import { BoardState, createBoardState, normalizeBoardState } from '@/lib/board';
+import {
+  BoardState,
+  MoveHistoryEntry,
+  createBoardState,
+  normalizeBoardState,
+} from '@/lib/board';
 import { pageMetadata } from '@/lib/metadata';
 import { getSession } from '@/lib/session';
 
@@ -21,6 +26,11 @@ export default async function PlayPage({ searchParams }: PlayPageProps) {
           bestMoves: number;
           bestTimeSeconds: number;
           board: BoardState;
+          ghostRun: {
+            moveHistory: MoveHistoryEntry[];
+            moves: number;
+            timeSeconds: number;
+          } | null;
           replayOfId: string;
         }>(
           `/leaderboard/completions/${encodeURIComponent(replayId)}/replay`,
@@ -53,6 +63,7 @@ export default async function PlayPage({ searchParams }: PlayPageProps) {
               }
             : undefined
         }
+        replayGhostRun={replayState?.ghostRun}
         replayOfId={replayState?.replayOfId}
       />
     </section>
