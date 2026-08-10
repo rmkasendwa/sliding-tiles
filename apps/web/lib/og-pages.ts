@@ -99,7 +99,7 @@ export const ogPages = {
     description:
       'A clear look at completions, pace, moves, streaks, and the shape of your improvement.',
     eyebrow: 'Player progress',
-    file: 'runs.png',
+    file: 'statistics.png',
     tagline: 'Track the cleaner solves.',
     title: 'Statistics',
   },
