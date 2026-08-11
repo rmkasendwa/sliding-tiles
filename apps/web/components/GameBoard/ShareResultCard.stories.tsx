@@ -1,56 +1,70 @@
-import type { StoryDefault } from '@ladle/react';
 import type { ReactNode } from 'react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { ShareResultCardCanvas } from './ShareResultCard';
 
-export default {
+const meta = {
+  component: ShareResultCardCanvas,
   title: 'Game Board / Share Result Card',
-} satisfies StoryDefault;
+} satisfies Meta<typeof ShareResultCardCanvas>;
 
-export const PersonalBest = () => (
-  <StoryFrame>
-    <ShareResultCardCanvas
-      result={{
-        completedAt: '2026-08-11T12:24:00.000Z',
-        level: 12,
-        moves: 84,
-        personalBestLabel: 'New personal best',
-        siteDomain: 'slidingtiles.app',
-        timeLabel: '01:18',
-      }}
-    />
-  </StoryFrame>
-);
+export default meta;
 
-export const ReplayBest = () => (
-  <StoryFrame>
-    <ShareResultCardCanvas
-      result={{
-        completedAt: '2026-08-11T12:24:00.000Z',
-        level: 7,
-        moves: 49,
-        personalBestLabel: 'Replay best improved',
-        siteDomain: 'slidingtiles.app',
-        timeLabel: '00:42',
-      }}
-    />
-  </StoryFrame>
-);
+type Story = StoryObj<typeof meta>;
 
-export const RegularWin = () => (
-  <StoryFrame>
-    <ShareResultCardCanvas
-      result={{
-        completedAt: '2026-08-11T12:24:00.000Z',
-        level: 3,
-        moves: 31,
-        personalBestLabel: null,
-        siteDomain: 'slidingtiles.app',
-        timeLabel: '00:26',
-      }}
-    />
-  </StoryFrame>
-);
+export const PersonalBest: Story = {
+  args: {
+    result: {
+      completedAt: '2026-08-11T12:24:00.000Z',
+      level: 12,
+      moves: 84,
+      personalBestLabel: 'New personal best',
+      siteDomain: 'slidingtiles.app',
+      timeLabel: '01:18',
+    },
+  },
+  render: (args) => (
+    <StoryFrame>
+      <ShareResultCardCanvas {...args} />
+    </StoryFrame>
+  ),
+};
+
+export const ReplayBest: Story = {
+  args: {
+    result: {
+      completedAt: '2026-08-11T12:24:00.000Z',
+      level: 7,
+      moves: 49,
+      personalBestLabel: 'Replay best improved',
+      siteDomain: 'slidingtiles.app',
+      timeLabel: '00:42',
+    },
+  },
+  render: (args) => (
+    <StoryFrame>
+      <ShareResultCardCanvas {...args} />
+    </StoryFrame>
+  ),
+};
+
+export const RegularWin: Story = {
+  args: {
+    result: {
+      completedAt: '2026-08-11T12:24:00.000Z',
+      level: 3,
+      moves: 31,
+      personalBestLabel: null,
+      siteDomain: 'slidingtiles.app',
+      timeLabel: '00:26',
+    },
+  },
+  render: (args) => (
+    <StoryFrame>
+      <ShareResultCardCanvas {...args} />
+    </StoryFrame>
+  ),
+};
 
 function StoryFrame({ children }: { children: ReactNode }) {
   return (
