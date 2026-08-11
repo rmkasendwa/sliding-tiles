@@ -375,7 +375,7 @@ export function drawShareCard(
     ['Completed', completedDate],
   ] as const;
   stats.forEach(([label, value], index) => {
-    const width = index === 2 ? 286 : 142;
+    const width = index === 2 ? 248 : 142;
     const x = index === 0 ? 112 : index === 1 ? 286 : 460;
     const y = 438;
     const statGradient = context.createLinearGradient(x, y, x + width, y + 70);
