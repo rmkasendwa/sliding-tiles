@@ -670,6 +670,7 @@ function GameBoardContent({
         level: completedBoard.level,
         moves: completedBoard.moves,
         personalBestLabel: replayImproved ? 'Replay best improved' : null,
+        siteDomain: window.location.host.replace(/^www\./, ''),
         timeLabel: formatElapsedTime(completedElapsedTimeMs),
       });
       trackAnonymousEvent('game_completed', analyticsMetadata);

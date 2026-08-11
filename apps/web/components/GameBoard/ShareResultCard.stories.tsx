@@ -15,6 +15,7 @@ export const PersonalBest = () => (
         level: 12,
         moves: 84,
         personalBestLabel: 'New personal best',
+        siteDomain: 'slidingtiles.app',
         timeLabel: '01:18',
       }}
     />
@@ -29,6 +30,7 @@ export const ReplayBest = () => (
         level: 7,
         moves: 49,
         personalBestLabel: 'Replay best improved',
+        siteDomain: 'slidingtiles.app',
         timeLabel: '00:42',
       }}
     />
@@ -43,6 +45,7 @@ export const RegularWin = () => (
         level: 3,
         moves: 31,
         personalBestLabel: null,
+        siteDomain: 'slidingtiles.app',
         timeLabel: '00:26',
       }}
     />

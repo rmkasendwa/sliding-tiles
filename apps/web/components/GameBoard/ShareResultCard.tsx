@@ -8,6 +8,7 @@ export type ShareResultCardData = {
   level: number;
   moves: number;
   personalBestLabel: string | null;
+  siteDomain?: string;
   timeLabel: string;
 };
 
@@ -73,6 +74,53 @@ function fillRoundedRect(
   context.fill();
 }
 
+function strokeRoundedRect(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+  strokeStyle: CanvasFillStrokeStyles['strokeStyle'],
+  lineWidth: number,
+) {
+  drawRoundedRect(context, x, y, width, height, radius);
+  context.strokeStyle = strokeStyle;
+  context.lineWidth = lineWidth;
+  context.stroke();
+}
+
+function withShadow(
+  context: CanvasRenderingContext2D,
+  options: {
+    blur: number;
+    color: string;
+    offsetX?: number;
+    offsetY?: number;
+  },
+  draw: () => void,
+) {
+  context.save();
+  context.shadowBlur = options.blur;
+  context.shadowColor = options.color;
+  context.shadowOffsetX = options.offsetX ?? 0;
+  context.shadowOffsetY = options.offsetY ?? 0;
+  draw();
+  context.restore();
+}
+
+function getShareCardDomain(result: ShareResultCardData) {
+  if (result.siteDomain) {
+    return result.siteDomain.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  }
+
+  if (typeof window !== 'undefined' && window.location.host) {
+    return window.location.host.replace(/^www\./, '');
+  }
+
+  return 'slidingtiles.app';
+}
+
 export function drawShareCard(
   canvas: HTMLCanvasElement,
   result: ShareResultCardData,
@@ -90,198 +138,250 @@ export function drawShareCard(
   }).format(new Date(result.completedAt));
   const serial = `LV-${String(result.level).padStart(3, '0')}-${String(result.moves).padStart(3, '0')}`;
   const badgeText = result.personalBestLabel ?? 'Level completed';
+  const siteDomain = getShareCardDomain(result);
 
   context.clearRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
-  context.fillStyle = '#070908';
-  context.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
-
-  const cardGradient = context.createLinearGradient(0, 0, CARD_WIDTH, CARD_HEIGHT);
-  cardGradient.addColorStop(0, '#f8d56d');
-  cardGradient.addColorStop(0.12, '#fff1a8');
-  cardGradient.addColorStop(0.28, '#b87414');
-  cardGradient.addColorStop(0.52, '#3a2208');
-  cardGradient.addColorStop(0.72, '#e4ad39');
-  cardGradient.addColorStop(1, '#7b2f12');
-  context.fillStyle = cardGradient;
-  context.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
-
-  const darkVignette = context.createRadialGradient(580, 280, 120, 580, 280, 780);
-  darkVignette.addColorStop(0, 'rgba(30, 16, 3, 0)');
-  darkVignette.addColorStop(0.64, 'rgba(30, 16, 3, 0.12)');
-  darkVignette.addColorStop(1, 'rgba(3, 5, 4, 0.62)');
-  context.fillStyle = darkVignette;
-  context.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
-
-  const warmGlow = context.createRadialGradient(250, 90, 24, 250, 90, 440);
-  warmGlow.addColorStop(0, 'rgba(255, 249, 194, 0.72)');
-  warmGlow.addColorStop(0.5, 'rgba(255, 211, 84, 0.2)');
-  warmGlow.addColorStop(1, 'rgba(255, 211, 84, 0)');
-  context.fillStyle = warmGlow;
-  context.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
-
-  const enamelGlow = context.createRadialGradient(885, 278, 20, 885, 278, 420);
-  enamelGlow.addColorStop(0, 'rgba(60, 239, 212, 0.38)');
-  enamelGlow.addColorStop(0.52, 'rgba(95, 85, 255, 0.16)');
-  enamelGlow.addColorStop(1, 'rgba(95, 85, 255, 0)');
-  context.fillStyle = enamelGlow;
-  context.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
-
-  const roseGlow = context.createRadialGradient(1030, 522, 20, 1030, 522, 360);
-  roseGlow.addColorStop(0, 'rgba(255, 85, 148, 0.26)');
-  roseGlow.addColorStop(1, 'rgba(255, 85, 148, 0)');
-  context.fillStyle = roseGlow;
+  const backdropGradient = context.createLinearGradient(0, 0, CARD_WIDTH, CARD_HEIGHT);
+  backdropGradient.addColorStop(0, '#0d4037');
+  backdropGradient.addColorStop(0.52, '#10231f');
+  backdropGradient.addColorStop(1, '#2e4e32');
+  context.fillStyle = backdropGradient;
   context.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
 
   context.save();
-  context.globalAlpha = 0.08;
-  context.strokeStyle = '#fff6bd';
-  context.lineWidth = 3;
-  for (let x = -180; x < CARD_WIDTH + 260; x += 92) {
+  context.globalAlpha = 0.16;
+  context.strokeStyle = '#bdeca0';
+  context.lineWidth = 2;
+  for (let x = -190; x < CARD_WIDTH + 220; x += 78) {
     context.beginPath();
-    context.moveTo(x, -40);
-    context.lineTo(x + 290, CARD_HEIGHT + 40);
+    context.moveTo(x, -20);
+    context.lineTo(x + 240, CARD_HEIGHT + 20);
     context.stroke();
   }
-  context.globalAlpha = 0.1;
-  context.strokeStyle = '#140a02';
-  context.lineWidth = 2;
-  for (let y = 80; y < CARD_HEIGHT + 120; y += 84) {
+  context.globalAlpha = 0.11;
+  context.strokeStyle = '#fff3b5';
+  for (let y = 56; y < CARD_HEIGHT + 120; y += 96) {
     context.beginPath();
-    context.moveTo(-80, y);
-    context.lineTo(CARD_WIDTH + 80, y - 160);
+    context.moveTo(-50, y);
+    context.lineTo(CARD_WIDTH + 50, y - 148);
     context.stroke();
   }
   context.restore();
 
-  const outerStroke = context.createLinearGradient(60, 54, 1140, 576);
-  outerStroke.addColorStop(0, '#fff8c9');
-  outerStroke.addColorStop(0.24, '#f0b73a');
-  outerStroke.addColorStop(0.5, '#fff6b7');
-  outerStroke.addColorStop(0.78, '#b56f18');
-  outerStroke.addColorStop(1, '#fff0a2');
-  drawRoundedRect(context, 50, 50, CARD_WIDTH - 100, CARD_HEIGHT - 100, 48);
-  context.strokeStyle = outerStroke;
-  context.lineWidth = 8;
-  context.stroke();
-
-  fillRoundedRect(context, 78, 78, CARD_WIDTH - 156, CARD_HEIGHT - 156, 34, 'rgba(12, 9, 5, 0.24)');
-  drawRoundedRect(context, 78, 78, CARD_WIDTH - 156, CARD_HEIGHT - 156, 34);
-  context.strokeStyle = 'rgba(255, 245, 181, 0.32)';
-  context.lineWidth = 2;
-  context.stroke();
-
-  const headerPanel = context.createLinearGradient(92, 92, 760, 196);
-  headerPanel.addColorStop(0, 'rgba(255, 246, 174, 0.22)');
-  headerPanel.addColorStop(1, 'rgba(24, 12, 3, 0.3)');
-  fillRoundedRect(context, 92, 92, 650, 118, 24, headerPanel);
-
-  const chipGradient = context.createLinearGradient(112, 111, 256, 191);
-  chipGradient.addColorStop(0, '#fff7bf');
-  chipGradient.addColorStop(0.25, '#d38c18');
-  chipGradient.addColorStop(0.55, '#ffe681');
-  chipGradient.addColorStop(1, '#8e5a12');
-  fillRoundedRect(context, 112, 110, 138, 82, 18, chipGradient);
-  context.strokeStyle = 'rgba(45, 23, 3, 0.62)';
-  context.lineWidth = 3;
-  context.stroke();
-  context.strokeStyle = 'rgba(255, 250, 206, 0.62)';
-  context.lineWidth = 2;
-  for (let x = 142; x <= 222; x += 40) {
-    context.beginPath();
-    context.moveTo(x, 122);
-    context.lineTo(x, 180);
-    context.stroke();
-  }
-  for (let y = 138; y <= 164; y += 26) {
-    context.beginPath();
-    context.moveTo(124, y);
-    context.lineTo(238, y);
-    context.stroke();
-  }
-
-  context.fillStyle = '#241305';
-  context.font = `900 30px ${FONT_STACK}`;
-  drawTextWithTracking(context, 'SLIDING TILES', 286, 134, 2.2);
-  context.fillStyle = 'rgba(36, 19, 5, 0.66)';
-  context.font = `800 18px ${FONT_STACK}`;
-  drawTextWithTracking(context, 'VICTORY CARD', 288, 170, 3.4);
-
-  fillRoundedRect(context, 815, 94, 278, 56, 18, 'rgba(13, 9, 4, 0.28)');
-  context.textAlign = 'right';
-  context.font = `900 24px ${FONT_STACK}`;
-  context.fillStyle = '#fff3ae';
-  context.fillText(serial, 1068, 131);
-  context.textAlign = 'left';
-
-  const levelGradient = context.createLinearGradient(96, 256, 662, 372);
-  levelGradient.addColorStop(0, '#1a0c02');
-  levelGradient.addColorStop(0.5, '#3b1d04');
-  levelGradient.addColorStop(1, '#120701');
-  context.fillStyle = 'rgba(255, 238, 142, 0.18)';
-  context.font = `900 132px ${FONT_STACK}`;
-  context.fillText(`LEVEL ${result.level}`, 104, 368);
-  context.fillStyle = levelGradient;
-  context.font = `900 126px ${FONT_STACK}`;
-  context.fillText(`LEVEL ${result.level}`, 96, 356);
-
-  const badgeWidth = Math.min(
-    448,
-    Math.max(312, context.measureText(badgeText).width + 70),
+  const shellGradient = context.createLinearGradient(44, 44, 1156, 586);
+  shellGradient.addColorStop(0, '#fffaf1');
+  shellGradient.addColorStop(0.5, '#eff7e4');
+  shellGradient.addColorStop(1, '#f4e3b6');
+  withShadow(
+    context,
+    { blur: 80, color: 'rgba(70, 45, 11, 0.28)', offsetY: 24 },
+    () => fillRoundedRect(context, 56, 56, 1088, 492, 34, shellGradient),
   );
-  const badgeGradient = context.createLinearGradient(98, 392, 98 + badgeWidth, 452);
-  badgeGradient.addColorStop(0, '#1e0e04');
-  badgeGradient.addColorStop(0.55, '#5a3308');
-  badgeGradient.addColorStop(1, '#1e0e04');
-  fillRoundedRect(context, 98, 392, badgeWidth, 62, 20, badgeGradient);
-  drawRoundedRect(context, 98, 392, badgeWidth, 62, 20);
-  context.strokeStyle = result.personalBestLabel
-    ? 'rgba(255, 234, 119, 0.88)'
-    : 'rgba(255, 234, 119, 0.42)';
-  context.lineWidth = 2;
-  context.stroke();
-  context.fillStyle = result.personalBestLabel ? '#ffe77a' : '#fff2b4';
-  context.font = `900 24px ${FONT_STACK}`;
-  context.fillText(fitText(context, badgeText, badgeWidth - 62), 128, 431);
 
-  const markX = 784;
-  const markY = 184;
-  const tileSize = 72;
-  const tileGap = 14;
-  fillRoundedRect(context, 752, 162, 330, 314, 34, 'rgba(13, 10, 7, 0.22)');
-  drawRoundedRect(context, 752, 162, 330, 314, 34);
-  context.strokeStyle = 'rgba(255, 245, 181, 0.18)';
-  context.lineWidth = 2;
-  context.stroke();
-  context.fillStyle = 'rgba(255, 241, 169, 0.92)';
-  context.font = `900 17px ${FONT_STACK}`;
-  drawTextWithTracking(context, 'PUZZLE SEALED', 790, 448, 2.4);
+  context.save();
+  drawRoundedRect(context, 56, 56, 1088, 492, 34);
+  context.clip();
 
-  const tileColors = [
-    ['#fbffb5', '#6df1c5'],
-    ['#56f1dc', '#2dbdc4'],
-    ['#6ed1ff', '#6d6aff'],
-    ['#3be2c6', '#2abaaa'],
-    ['#55c9ff', '#5a77f0'],
-    ['#806cff', '#c750df'],
-    ['#55cdf2', '#4b95f3'],
-    ['#7a66ff', '#a954f0'],
-  ] as const;
-  tileColors.forEach(([from, to], index) => {
-    const column = index % 3;
+  const topGlow = context.createRadialGradient(270, 40, 20, 270, 40, 430);
+  topGlow.addColorStop(0, 'rgba(255, 246, 177, 0.58)');
+  topGlow.addColorStop(1, 'rgba(255, 246, 177, 0)');
+  context.fillStyle = topGlow;
+  context.fillRect(56, 56, 1088, 492);
+
+  const goldGlow = context.createRadialGradient(1030, 540, 30, 1030, 540, 380);
+  goldGlow.addColorStop(0, 'rgba(240, 197, 103, 0.3)');
+  goldGlow.addColorStop(1, 'rgba(240, 197, 103, 0)');
+  context.fillStyle = goldGlow;
+  context.fillRect(56, 56, 1088, 492);
+
+  const brushedGold = context.createLinearGradient(80, 88, 1120, 532);
+  brushedGold.addColorStop(0, 'rgba(255, 247, 190, 0.32)');
+  brushedGold.addColorStop(0.5, 'rgba(255, 235, 143, 0.14)');
+  brushedGold.addColorStop(1, 'rgba(196, 129, 31, 0.18)');
+  context.save();
+  context.globalCompositeOperation = 'multiply';
+  context.fillStyle = brushedGold;
+  context.fillRect(56, 56, 1088, 492);
+  context.restore();
+
+  context.restore();
+
+  const goldStroke = context.createLinearGradient(56, 56, 1144, 574);
+  goldStroke.addColorStop(0, '#fff4b8');
+  goldStroke.addColorStop(0.24, '#d9a13a');
+  goldStroke.addColorStop(0.52, '#fff7c5');
+  goldStroke.addColorStop(0.78, '#b7781f');
+  goldStroke.addColorStop(1, '#f6d981');
+  strokeRoundedRect(
+    context,
+    56,
+    56,
+    1088,
+    492,
+    34,
+    goldStroke,
+    4,
+  );
+  strokeRoundedRect(
+    context,
+    80,
+    82,
+    1038,
+    438,
+    26,
+    'rgba(23, 79, 67, 0.18)',
+    2,
+  );
+
+  const brandGradient = context.createLinearGradient(112, 102, 194, 184);
+  brandGradient.addColorStop(0, '#fff7c4');
+  brandGradient.addColorStop(0.34, '#f0c567');
+  brandGradient.addColorStop(0.68, '#d7f78e');
+  brandGradient.addColorStop(1, '#8bc15f');
+  withShadow(
+    context,
+    { blur: 22, color: 'rgba(240, 197, 103, 0.28)', offsetY: 8 },
+    () => fillRoundedRect(context, 112, 104, 82, 82, 22, brandGradient),
+  );
+  strokeRoundedRect(
+    context,
+    112,
+    104,
+    82,
+    82,
+    22,
+    'rgba(255, 255, 255, 0.52)',
+    2,
+  );
+  context.fillStyle = '#174f43';
+  context.font = `800 42px ${FONT_STACK}`;
+  context.fillText('ST', 128, 158);
+
+  context.fillStyle = '#174f43';
+  context.font = `800 24px ${FONT_STACK}`;
+  context.fillText('Sliding Tiles', 216, 146);
+
+  context.fillStyle = 'rgba(23, 79, 67, 0.64)';
+  context.font = `800 18px ${FONT_STACK}`;
+  context.fillText(serial, 216, 176);
+
+  const victoryGradient = context.createLinearGradient(112, 224, 612, 344);
+  victoryGradient.addColorStop(0, '#09221d');
+  victoryGradient.addColorStop(0.58, '#174f43');
+  victoryGradient.addColorStop(1, '#8a621c');
+  context.fillStyle = victoryGradient;
+  context.font = `900 88px ${FONT_STACK}`;
+  context.fillText(`Level ${result.level}`, 112, 318);
+
+  context.fillStyle = '#8a621c';
+  context.font = `800 38px ${FONT_STACK}`;
+  context.fillText('Puzzle solved clean.', 116, 380);
+
+  context.fillStyle = 'rgba(23, 79, 67, 0.72)';
+  context.font = `700 26px ${FONT_STACK}`;
+  context.fillText(fitText(context, badgeText, 520), 116, 430);
+
+  const boardX = 716;
+  const boardY = 118;
+  const boardSize = 352;
+  context.save();
+  context.translate(boardX + boardSize / 2, boardY + boardSize / 2);
+  context.rotate(-0.052);
+  context.translate(-boardSize / 2, -boardSize / 2);
+  withShadow(
+    context,
+    { blur: 42, color: 'rgba(0, 0, 0, 0.36)', offsetY: 24 },
+    () => fillRoundedRect(context, 0, 0, boardSize, boardSize, 28, '#1e3029'),
+  );
+  strokeRoundedRect(
+    context,
+    0,
+    0,
+    boardSize,
+    boardSize,
+    28,
+    'rgba(23, 79, 67, 0.18)',
+    8,
+  );
+
+  const tileSize = 94;
+  const gap = 12;
+  const values = ['1', '2', '3', '4', '5', '6', '7', '8'];
+  values.forEach((value, index) => {
     const row = Math.floor(index / 3);
-    const x = markX + column * (tileSize + tileGap);
-    const y = markY + row * (tileSize + tileGap);
-    const tileGradient = context.createLinearGradient(x, y, x + tileSize, y + tileSize);
-    tileGradient.addColorStop(0, from);
-    tileGradient.addColorStop(1, to);
-    fillRoundedRect(context, x, y, tileSize, tileSize, 17, tileGradient);
-    context.strokeStyle = 'rgba(255, 251, 218, 0.74)';
-    context.lineWidth = 3;
-    context.stroke();
-    context.fillStyle = 'rgba(33, 24, 16, 0.58)';
-    context.font = `900 23px ${FONT_STACK}`;
-    context.fillText(String(index + 1), x + 27, y + 46);
+    const column = index % 3;
+    const x = 16 + column * (tileSize + gap);
+    const y = 16 + row * (tileSize + gap);
+    const tileGradient = context.createLinearGradient(x, y, x, y + tileSize);
+    if (value === '5') {
+      tileGradient.addColorStop(0, '#e7ffa9');
+      tileGradient.addColorStop(1, '#b9ef64');
+    } else {
+      tileGradient.addColorStop(0, '#fffaf1');
+      tileGradient.addColorStop(0.72, '#f3ead2');
+      tileGradient.addColorStop(1, '#e7ce8b');
+    }
+    withShadow(
+      context,
+      { blur: 16, color: 'rgba(0, 0, 0, 0.2)', offsetY: 10 },
+      () => fillRoundedRect(context, x, y, tileSize, tileSize, 20, tileGradient),
+    );
+    context.fillStyle = '#174f43';
+    context.font = `800 48px ${FONT_STACK}`;
+    context.fillText(value, x + 35, y + 62);
   });
+  fillRoundedRect(
+    context,
+    16 + 2 * (tileSize + gap),
+    16 + 2 * (tileSize + gap),
+    tileSize,
+    tileSize,
+    20,
+    'rgba(11, 18, 16, 0.5)',
+  );
+  strokeRoundedRect(
+    context,
+    16 + 2 * (tileSize + gap),
+    16 + 2 * (tileSize + gap),
+    tileSize,
+    tileSize,
+    20,
+    'rgba(255, 250, 241, 0.22)',
+    2,
+  );
+  context.restore();
+
+  const badgeX = 856;
+  const badgeY = 424;
+  withShadow(
+    context,
+    { blur: 28, color: 'rgba(0, 0, 0, 0.24)', offsetY: 16 },
+    () => {
+      const badgeGradient = context.createLinearGradient(
+        badgeX,
+        badgeY,
+        badgeX + 216,
+        badgeY + 58,
+      );
+      badgeGradient.addColorStop(0, '#fffaf1');
+      badgeGradient.addColorStop(0.55, '#f0c567');
+      badgeGradient.addColorStop(1, '#fff3b1');
+      fillRoundedRect(context, badgeX, badgeY, 216, 58, 999, badgeGradient);
+    },
+  );
+  strokeRoundedRect(
+    context,
+    badgeX,
+    badgeY,
+    216,
+    58,
+    999,
+    'rgba(255, 250, 241, 0.58)',
+    2,
+  );
+  context.fillStyle = '#174f43';
+  context.font = `900 24px ${FONT_STACK}`;
+  context.fillText('Victory Card', badgeX + 28, badgeY + 38);
 
   const stats = [
     ['Time', result.timeLabel],
@@ -289,39 +389,34 @@ export function drawShareCard(
     ['Completed', completedDate],
   ] as const;
   stats.forEach(([label, value], index) => {
-    const width = index === 2 ? 330 : 220;
-    const x = index === 0 ? 98 : index === 1 ? 346 : 594;
-    const y = 488;
-    fillRoundedRect(context, x, y, width, 88, 18, 'rgba(12, 8, 4, 0.34)');
-    drawRoundedRect(context, x, y, width, 88, 18);
-    context.strokeStyle = 'rgba(255, 239, 166, 0.34)';
-    context.lineWidth = 2;
-    context.stroke();
-    context.fillStyle = '#f4bd42';
-    context.font = `900 15px ${FONT_STACK}`;
-    drawTextWithTracking(context, label.toUpperCase(), x + 22, y + 30, 1.8);
-    context.fillStyle = '#fff3b5';
-    context.font = `900 34px ${FONT_STACK}`;
-    context.fillText(fitText(context, value, width - 44), x + 22, y + 68);
+    const width = index === 2 ? 286 : 142;
+    const x = index === 0 ? 112 : index === 1 ? 286 : 460;
+    const y = 438;
+    const statGradient = context.createLinearGradient(x, y, x + width, y + 70);
+    statGradient.addColorStop(0, 'rgba(255, 255, 255, 0.34)');
+    statGradient.addColorStop(1, 'rgba(240, 197, 103, 0.16)');
+    fillRoundedRect(context, x, y, width, 64, 18, statGradient);
+    strokeRoundedRect(
+      context,
+      x,
+      y,
+      width,
+      64,
+      18,
+      'rgba(23, 79, 67, 0.1)',
+      1,
+    );
+    context.fillStyle = '#66716a';
+    context.font = `800 14px ${FONT_STACK}`;
+    context.fillText(label.toUpperCase(), x + 16, y + 24);
+    context.fillStyle = '#174f43';
+    context.font = `900 24px ${FONT_STACK}`;
+    context.fillText(fitText(context, value, width - 32), x + 16, y + 51);
   });
 
-  context.textAlign = 'right';
-  context.fillStyle = 'rgba(255, 243, 181, 0.9)';
+  context.fillStyle = 'rgba(189, 236, 160, 0.5)';
   context.font = `900 22px ${FONT_STACK}`;
-  context.fillText('slidingtiles.app', 1096, 594);
-  context.textAlign = 'left';
-
-  context.save();
-  context.globalCompositeOperation = 'screen';
-  const gloss = context.createLinearGradient(0, 22, CARD_WIDTH, 310);
-  gloss.addColorStop(0, 'rgba(255, 255, 230, 0.34)');
-  gloss.addColorStop(0.28, 'rgba(255, 255, 230, 0.05)');
-  gloss.addColorStop(0.5, 'rgba(255, 255, 230, 0.24)');
-  gloss.addColorStop(0.74, 'rgba(255, 255, 230, 0.03)');
-  gloss.addColorStop(1, 'rgba(255, 255, 230, 0.16)');
-  context.fillStyle = gloss;
-  context.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
-  context.restore();
+  context.fillText(siteDomain, 112, 604);
 }
 
 function canvasToBlob(canvas: HTMLCanvasElement) {
