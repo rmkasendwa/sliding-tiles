@@ -29,20 +29,6 @@ function drawRoundedRect(
   context.roundRect(x, y, width, height, radius);
 }
 
-function drawTextWithTracking(
-  context: CanvasRenderingContext2D,
-  text: string,
-  x: number,
-  y: number,
-  tracking: number,
-) {
-  let cursor = x;
-  for (const character of text) {
-    context.fillText(character, cursor, y);
-    cursor += context.measureText(character).width + tracking;
-  }
-}
-
 function fitText(
   context: CanvasRenderingContext2D,
   text: string,
@@ -53,7 +39,10 @@ function fitText(
   }
 
   let nextText = text;
-  while (nextText.length > 1 && context.measureText(`${nextText}...`).width > maxWidth) {
+  while (
+    nextText.length > 1 &&
+    context.measureText(`${nextText}...`).width > maxWidth
+  ) {
     nextText = nextText.slice(0, -1);
   }
 
@@ -141,7 +130,12 @@ export function drawShareCard(
   const siteDomain = getShareCardDomain(result);
 
   context.clearRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
-  const backdropGradient = context.createLinearGradient(0, 0, CARD_WIDTH, CARD_HEIGHT);
+  const backdropGradient = context.createLinearGradient(
+    0,
+    0,
+    CARD_WIDTH,
+    CARD_HEIGHT,
+  );
   backdropGradient.addColorStop(0, '#0d4037');
   backdropGradient.addColorStop(0.52, '#10231f');
   backdropGradient.addColorStop(1, '#2e4e32');
@@ -175,24 +169,24 @@ export function drawShareCard(
   withShadow(
     context,
     { blur: 80, color: 'rgba(70, 45, 11, 0.28)', offsetY: 24 },
-    () => fillRoundedRect(context, 56, 56, 1088, 492, 34, shellGradient),
+    () => fillRoundedRect(context, 56, 44, 1088, 500, 34, shellGradient),
   );
 
   context.save();
-  drawRoundedRect(context, 56, 56, 1088, 492, 34);
+  drawRoundedRect(context, 56, 44, 1088, 500, 34);
   context.clip();
 
   const topGlow = context.createRadialGradient(270, 40, 20, 270, 40, 430);
   topGlow.addColorStop(0, 'rgba(255, 246, 177, 0.58)');
   topGlow.addColorStop(1, 'rgba(255, 246, 177, 0)');
   context.fillStyle = topGlow;
-  context.fillRect(56, 56, 1088, 492);
+  context.fillRect(56, 44, 1088, 500);
 
   const goldGlow = context.createRadialGradient(1030, 540, 30, 1030, 540, 380);
   goldGlow.addColorStop(0, 'rgba(240, 197, 103, 0.3)');
   goldGlow.addColorStop(1, 'rgba(240, 197, 103, 0)');
   context.fillStyle = goldGlow;
-  context.fillRect(56, 56, 1088, 492);
+  context.fillRect(56, 44, 1088, 500);
 
   const brushedGold = context.createLinearGradient(80, 88, 1120, 532);
   brushedGold.addColorStop(0, 'rgba(255, 247, 190, 0.32)');
@@ -201,7 +195,7 @@ export function drawShareCard(
   context.save();
   context.globalCompositeOperation = 'multiply';
   context.fillStyle = brushedGold;
-  context.fillRect(56, 56, 1088, 492);
+  context.fillRect(56, 44, 1088, 500);
   context.restore();
 
   context.restore();
@@ -212,22 +206,13 @@ export function drawShareCard(
   goldStroke.addColorStop(0.52, '#fff7c5');
   goldStroke.addColorStop(0.78, '#b7781f');
   goldStroke.addColorStop(1, '#f6d981');
-  strokeRoundedRect(
-    context,
-    56,
-    56,
-    1088,
-    492,
-    34,
-    goldStroke,
-    4,
-  );
+  strokeRoundedRect(context, 56, 44, 1088, 500, 34, goldStroke, 4);
   strokeRoundedRect(
     context,
     80,
-    82,
+    70,
     1038,
-    438,
+    446,
     26,
     'rgba(23, 79, 67, 0.18)',
     2,
@@ -324,7 +309,8 @@ export function drawShareCard(
     withShadow(
       context,
       { blur: 16, color: 'rgba(0, 0, 0, 0.2)', offsetY: 10 },
-      () => fillRoundedRect(context, x, y, tileSize, tileSize, 20, tileGradient),
+      () =>
+        fillRoundedRect(context, x, y, tileSize, tileSize, 20, tileGradient),
     );
     context.fillStyle = '#174f43';
     context.font = `800 48px ${FONT_STACK}`;
@@ -396,16 +382,7 @@ export function drawShareCard(
     statGradient.addColorStop(0, 'rgba(255, 255, 255, 0.34)');
     statGradient.addColorStop(1, 'rgba(240, 197, 103, 0.16)');
     fillRoundedRect(context, x, y, width, 64, 18, statGradient);
-    strokeRoundedRect(
-      context,
-      x,
-      y,
-      width,
-      64,
-      18,
-      'rgba(23, 79, 67, 0.1)',
-      1,
-    );
+    strokeRoundedRect(context, x, y, width, 64, 18, 'rgba(23, 79, 67, 0.1)', 1);
     context.fillStyle = '#66716a';
     context.font = `800 14px ${FONT_STACK}`;
     context.fillText(label.toUpperCase(), x + 16, y + 24);
@@ -416,7 +393,7 @@ export function drawShareCard(
 
   context.fillStyle = 'rgba(189, 236, 160, 0.5)';
   context.font = `900 22px ${FONT_STACK}`;
-  context.fillText(siteDomain, 112, 604);
+  context.fillText(siteDomain, 112, 574);
 }
 
 function canvasToBlob(canvas: HTMLCanvasElement) {
@@ -512,7 +489,7 @@ export function ShareResultCard({
   };
 
   return (
-    <div className="absolute inset-0 z-[60] grid place-items-center bg-black/70 p-4 backdrop-blur-sm">
+    <div className="absolute inset-0 z-60 grid place-items-center bg-black/70 p-4 backdrop-blur-sm">
       <div
         aria-labelledby="share-result-title"
         aria-modal="true"
@@ -540,7 +517,7 @@ export function ShareResultCard({
 
         <canvas
           aria-label={`Sliding Tiles Level ${result.level} share card`}
-          className="mt-4 block aspect-[1200/630] w-full rounded-md border border-line bg-background"
+          className="mt-4 block aspect-1200/630 w-full rounded-md border border-line bg-background"
           ref={canvasRef}
         />
 
@@ -594,7 +571,7 @@ export function ShareResultCardCanvas({
     <canvas
       aria-label={`Sliding Tiles Level ${result.level} share card preview`}
       className={[
-        'block aspect-[1200/630] w-full rounded-lg bg-background shadow-panel',
+        'block aspect-1200/630 w-full rounded-lg bg-background shadow-panel',
         className,
       ]
         .filter(Boolean)
