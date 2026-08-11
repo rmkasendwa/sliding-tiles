@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "components:build": "storybook build -o ../../dist/storybook",
-    "components:dev": "storybook dev -p 6006",
+    "components:dev": "node scripts/storybook-dev.mjs",
     "og": "node scripts/generate-og-images.mjs",
     "prebuild": "npm run og",
     "build": "next build",

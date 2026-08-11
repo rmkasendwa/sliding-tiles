@@ -39,6 +39,8 @@ cp .env.example .env
 - Keep `DATABASE_URL` as-is when using the included Docker database.
 - Set `WEB_PORT` if you want the web app on a non-default port. It defaults to
   `3000`.
+- Set `STORYBOOK_PORT` if you want Storybook on a non-default port. It defaults
+  to `6006`.
 - Set `NEXT_ALLOWED_DEV_ORIGINS` to your computer's LAN IP when testing the
   dev server from another device, such as a phone.
 - Set `API_CORS_ORIGINS` to the web origins that may call the NestJS API. Keep
@@ -99,6 +101,7 @@ PORT=4000 npm run web:dev
 npm run dev          # prepare infrastructure/database, then start API and web
 npm run api:dev      # start only the NestJS API on API_PORT, default 4001
 npm run web:dev      # start only the Next.js web app from apps/web
+npm run components:dev # start Storybook on STORYBOOK_PORT, default 6006
 npm run lint         # lint the full repository
 npm run typecheck    # typecheck apps/web and apps/api
 npm run build        # generate Prisma, build API, then build web
