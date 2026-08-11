@@ -16,6 +16,8 @@
     "web:build:ci": "next build apps/web",
     "web:start": "next start apps/web",
     "web:typecheck": "tsc --noEmit -p apps/web/tsconfig.json",
+    "components:dev": "npm --workspace apps/web run components:dev",
+    "components:build": "npm --workspace apps/web run components:build",
     "api:build": "nest build api",
     "api:dev": "nest start api --watch",
     "api:start": "nest start api",

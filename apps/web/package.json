@@ -2,11 +2,16 @@
   "name": "@sliding-tiles/web",
   "private": true,
   "scripts": {
+    "components:build": "ladle build --stories \"components/**/*.stories.tsx\" --viteConfig ladle.vite.config.ts --outDir ../../dist/components",
+    "components:dev": "ladle serve --stories \"components/**/*.stories.tsx\" --viteConfig ladle.vite.config.ts --port 61000",
     "og": "node scripts/generate-og-images.mjs",
     "prebuild": "npm run og",
     "build": "next build",
     "dev": "next dev",
     "start": "next start",
     "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@ladle/react": "^5.1.1"
   }
 }
