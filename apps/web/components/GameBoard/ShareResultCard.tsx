@@ -3,9 +3,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { Download, Share2, X } from 'lucide-react';
 
+import { getDimensionsForLevel } from '@/lib/board';
+
 export type ShareResultCardData = {
   completedAt: string;
-  dimensions: [number, number];
   level: number;
   moves: number;
   personalBestLabel: string | null;
@@ -122,7 +123,9 @@ function drawDimensionBoard(
   context: CanvasRenderingContext2D,
   result: ShareResultCardData,
 ) {
-  const { columns, rows } = getSafeDimensions(result.dimensions);
+  const { columns, rows } = getSafeDimensions(
+    getDimensionsForLevel(result.level),
+  );
   const frameMaxWidth = 378;
   const frameMaxHeight = 352;
   const frameAspectRatio = columns / rows;

@@ -1,8 +1,6 @@
 import type { ReactNode } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import { getDimensionsForLevel } from '@/lib/board';
-
 import { ShareResultCardCanvas } from './ShareResultCard';
 
 const meta = {
@@ -18,7 +16,6 @@ export const PersonalBest: Story = {
   args: {
     result: {
       completedAt: '2026-08-11T12:24:00.000Z',
-      dimensions: getDimensionsForLevel(12),
       level: 12,
       moves: 84,
       personalBestLabel: 'New personal best',
@@ -37,7 +34,6 @@ export const ReplayBest: Story = {
   args: {
     result: {
       completedAt: '2026-08-11T12:24:00.000Z',
-      dimensions: getDimensionsForLevel(7),
       level: 7,
       moves: 49,
       personalBestLabel: 'Replay best improved',
@@ -56,7 +52,6 @@ export const RegularWin: Story = {
   args: {
     result: {
       completedAt: '2026-08-11T12:24:00.000Z',
-      dimensions: getDimensionsForLevel(3),
       level: 3,
       moves: 31,
       personalBestLabel: null,
@@ -75,7 +70,6 @@ export const StarterRectangle: Story = {
   args: {
     result: {
       completedAt: '2026-08-11T12:24:00.000Z',
-      dimensions: getDimensionsForLevel(1),
       level: 1,
       moves: 12,
       personalBestLabel: 'First clean solve',
@@ -90,12 +84,11 @@ export const StarterRectangle: Story = {
   ),
 };
 
-export const TallCustomGrid: Story = {
+export const WideMidLevel: Story = {
   args: {
     result: {
       completedAt: '2026-08-11T12:24:00.000Z',
-      dimensions: [4, 6],
-      level: 14,
+      level: 11,
       moves: 156,
       personalBestLabel: 'New personal best',
       siteDomain: 'slidingtiles.app',
@@ -113,7 +106,6 @@ export const DenseLateLevel: Story = {
   args: {
     result: {
       completedAt: '2026-08-11T12:24:00.000Z',
-      dimensions: getDimensionsForLevel(16),
       level: 16,
       moves: 240,
       personalBestLabel: 'Level completed',
