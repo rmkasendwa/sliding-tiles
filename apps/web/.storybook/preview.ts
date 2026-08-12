@@ -1,4 +1,5 @@
 import type { Preview } from '@storybook/react-vite';
+import { MINIMAL_VIEWPORTS } from 'storybook/viewport';
 
 import '../app/globals.css';
 
@@ -15,6 +16,10 @@ const preview: Preview = {
       expanded: true,
     },
     layout: 'fullscreen',
+    viewport: {
+      defaultViewport: 'responsive',
+      viewports: MINIMAL_VIEWPORTS,
+    },
   },
 };
 
