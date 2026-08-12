@@ -20,3 +20,4 @@ cypress
 .env
 .DS_Store
 **/.DS_Store
+*.log

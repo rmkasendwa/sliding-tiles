@@ -667,6 +667,7 @@ function GameBoardContent({
 
       setShareCardResult({
         completedAt: shareCompletedAt,
+        dimensions: completedBoard.dimensions,
         level: completedBoard.level,
         moves: completedBoard.moves,
         personalBestLabel: replayImproved ? 'Replay best improved' : null,

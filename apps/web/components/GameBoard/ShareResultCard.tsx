@@ -5,6 +5,7 @@ import { Download, Share2, X } from 'lucide-react';
 
 export type ShareResultCardData = {
   completedAt: string;
+  dimensions: [number, number];
   level: number;
   moves: number;
   personalBestLabel: string | null;
@@ -108,6 +109,215 @@ function getShareCardDomain(result: ShareResultCardData) {
   }
 
   return 'slidingtiles.app';
+}
+
+function getSafeDimensions([columns, rows]: [number, number]) {
+  return {
+    columns: Math.max(2, Math.min(12, Math.trunc(columns))),
+    rows: Math.max(2, Math.min(12, Math.trunc(rows))),
+  };
+}
+
+function drawDimensionBoard(
+  context: CanvasRenderingContext2D,
+  result: ShareResultCardData,
+) {
+  const { columns, rows } = getSafeDimensions(result.dimensions);
+  const frameMaxWidth = 378;
+  const frameMaxHeight = 352;
+  const frameAspectRatio = columns / rows;
+  const boardWidth =
+    frameAspectRatio >= frameMaxWidth / frameMaxHeight
+      ? frameMaxWidth
+      : frameMaxHeight * frameAspectRatio;
+  const boardHeight = boardWidth / frameAspectRatio;
+  const boardX = 722 + (frameMaxWidth - boardWidth) / 2;
+  const boardY = 110 + (frameMaxHeight - boardHeight) / 2;
+  const padding = Math.max(12, Math.min(18, boardWidth * 0.046));
+  const gap = Math.max(5, Math.min(12, boardWidth / columns / 8));
+  const tileWidth =
+    (boardWidth - padding * 2 - gap * (columns - 1)) / columns;
+  const tileHeight = (boardHeight - padding * 2 - gap * (rows - 1)) / rows;
+  const tileRadius = Math.max(
+    6,
+    Math.min(20, Math.min(tileWidth, tileHeight) * 0.22),
+  );
+  const emptyColumn = columns - 1;
+  const emptyRow = rows - 1;
+  const tileCount = columns * rows;
+  const highlightPosition = Math.max(
+    1,
+    Math.min(tileCount - 2, Math.floor(tileCount / 2)),
+  );
+  const shouldLabelAllTiles = tileWidth >= 46 && tileHeight >= 42;
+
+  context.save();
+  context.translate(boardX + boardWidth / 2, boardY + boardHeight / 2);
+  context.rotate(-0.052);
+  context.translate(-boardWidth / 2, -boardHeight / 2);
+  withShadow(
+    context,
+    { blur: 42, color: 'rgba(0, 0, 0, 0.36)', offsetY: 24 },
+    () =>
+      fillRoundedRect(
+        context,
+        0,
+        0,
+        boardWidth,
+        boardHeight,
+        28,
+        '#1e3029',
+      ),
+  );
+  strokeRoundedRect(
+    context,
+    0,
+    0,
+    boardWidth,
+    boardHeight,
+    28,
+    'rgba(23, 79, 67, 0.18)',
+    8,
+  );
+
+  for (let row = 0; row < rows; row++) {
+    for (let column = 0; column < columns; column++) {
+      const position = row * columns + column + 1;
+      const x = padding + column * (tileWidth + gap);
+      const y = padding + row * (tileHeight + gap);
+      const isEmptySlot = row === emptyRow && column === emptyColumn;
+      const isHighlighted = position === highlightPosition;
+
+      if (isEmptySlot) {
+        fillRoundedRect(
+          context,
+          x,
+          y,
+          tileWidth,
+          tileHeight,
+          tileRadius,
+          'rgba(11, 18, 16, 0.5)',
+        );
+        strokeRoundedRect(
+          context,
+          x,
+          y,
+          tileWidth,
+          tileHeight,
+          tileRadius,
+          'rgba(255, 250, 241, 0.22)',
+          2,
+        );
+        continue;
+      }
+
+      const tileGradient = context.createLinearGradient(
+        x,
+        y,
+        x,
+        y + tileHeight,
+      );
+      if (isHighlighted) {
+        tileGradient.addColorStop(0, '#e7ffa9');
+        tileGradient.addColorStop(1, '#b9ef64');
+      } else {
+        tileGradient.addColorStop(0, '#fffaf1');
+        tileGradient.addColorStop(0.72, '#f3ead2');
+        tileGradient.addColorStop(1, '#e7ce8b');
+      }
+      withShadow(
+        context,
+        {
+          blur: Math.min(16, Math.max(8, tileWidth * 0.18)),
+          color: 'rgba(0, 0, 0, 0.2)',
+          offsetY: Math.min(10, Math.max(5, tileHeight * 0.12)),
+        },
+        () =>
+          fillRoundedRect(
+            context,
+            x,
+            y,
+            tileWidth,
+            tileHeight,
+            tileRadius,
+            tileGradient,
+          ),
+      );
+
+      const shouldLabelTile =
+        shouldLabelAllTiles ||
+        position <= 3 ||
+        position === highlightPosition ||
+        position === tileCount - 1;
+
+      if (shouldLabelTile) {
+        const label = String(position);
+        const fontSize = Math.max(
+          14,
+          Math.min(48, Math.min(tileWidth, tileHeight) * 0.48),
+        );
+        context.fillStyle = '#174f43';
+        context.font = `800 ${fontSize}px ${FONT_STACK}`;
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.fillText(label, x + tileWidth / 2, y + tileHeight / 2 + 1);
+        context.textAlign = 'start';
+        context.textBaseline = 'alphabetic';
+      }
+    }
+  }
+
+  context.restore();
+
+  const dimensionBadgeWidth = 112;
+  const dimensionBadgeHeight = 42;
+  const dimensionBadgeX = boardX + boardWidth - dimensionBadgeWidth + 10;
+  const dimensionBadgeY = boardY - 14;
+  withShadow(
+    context,
+    { blur: 18, color: 'rgba(0, 0, 0, 0.22)', offsetY: 10 },
+    () => {
+      const dimensionGradient = context.createLinearGradient(
+        dimensionBadgeX,
+        dimensionBadgeY,
+        dimensionBadgeX + dimensionBadgeWidth,
+        dimensionBadgeY + dimensionBadgeHeight,
+      );
+      dimensionGradient.addColorStop(0, '#fffaf1');
+      dimensionGradient.addColorStop(0.58, '#d7f78e');
+      dimensionGradient.addColorStop(1, '#f0c567');
+      fillRoundedRect(
+        context,
+        dimensionBadgeX,
+        dimensionBadgeY,
+        dimensionBadgeWidth,
+        dimensionBadgeHeight,
+        999,
+        dimensionGradient,
+      );
+    },
+  );
+  strokeRoundedRect(
+    context,
+    dimensionBadgeX,
+    dimensionBadgeY,
+    dimensionBadgeWidth,
+    dimensionBadgeHeight,
+    999,
+    'rgba(255, 250, 241, 0.62)',
+    2,
+  );
+  context.fillStyle = '#174f43';
+  context.font = `900 20px ${FONT_STACK}`;
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  context.fillText(
+    `${columns}x${rows}`,
+    dimensionBadgeX + dimensionBadgeWidth / 2,
+    dimensionBadgeY + dimensionBadgeHeight / 2 + 1,
+  );
+  context.textAlign = 'start';
+  context.textBaseline = 'alphabetic';
 }
 
 export function drawShareCard(
@@ -266,76 +476,7 @@ export function drawShareCard(
   context.font = `700 26px ${FONT_STACK}`;
   context.fillText(fitText(context, badgeText, 520), 116, 430);
 
-  const boardX = 716;
-  const boardY = 118;
-  const boardSize = 352;
-  context.save();
-  context.translate(boardX + boardSize / 2, boardY + boardSize / 2);
-  context.rotate(-0.052);
-  context.translate(-boardSize / 2, -boardSize / 2);
-  withShadow(
-    context,
-    { blur: 42, color: 'rgba(0, 0, 0, 0.36)', offsetY: 24 },
-    () => fillRoundedRect(context, 0, 0, boardSize, boardSize, 28, '#1e3029'),
-  );
-  strokeRoundedRect(
-    context,
-    0,
-    0,
-    boardSize,
-    boardSize,
-    28,
-    'rgba(23, 79, 67, 0.18)',
-    8,
-  );
-
-  const tileSize = 94;
-  const gap = 12;
-  const values = ['1', '2', '3', '4', '5', '6', '7', '8'];
-  values.forEach((value, index) => {
-    const row = Math.floor(index / 3);
-    const column = index % 3;
-    const x = 16 + column * (tileSize + gap);
-    const y = 16 + row * (tileSize + gap);
-    const tileGradient = context.createLinearGradient(x, y, x, y + tileSize);
-    if (value === '5') {
-      tileGradient.addColorStop(0, '#e7ffa9');
-      tileGradient.addColorStop(1, '#b9ef64');
-    } else {
-      tileGradient.addColorStop(0, '#fffaf1');
-      tileGradient.addColorStop(0.72, '#f3ead2');
-      tileGradient.addColorStop(1, '#e7ce8b');
-    }
-    withShadow(
-      context,
-      { blur: 16, color: 'rgba(0, 0, 0, 0.2)', offsetY: 10 },
-      () =>
-        fillRoundedRect(context, x, y, tileSize, tileSize, 20, tileGradient),
-    );
-    context.fillStyle = '#174f43';
-    context.font = `800 48px ${FONT_STACK}`;
-    context.fillText(value, x + 35, y + 62);
-  });
-  fillRoundedRect(
-    context,
-    16 + 2 * (tileSize + gap),
-    16 + 2 * (tileSize + gap),
-    tileSize,
-    tileSize,
-    20,
-    'rgba(11, 18, 16, 0.5)',
-  );
-  strokeRoundedRect(
-    context,
-    16 + 2 * (tileSize + gap),
-    16 + 2 * (tileSize + gap),
-    tileSize,
-    tileSize,
-    20,
-    'rgba(255, 250, 241, 0.22)',
-    2,
-  );
-  context.restore();
+  drawDimensionBoard(context, result);
 
   const badgeX = 856;
   const badgeY = 424;
