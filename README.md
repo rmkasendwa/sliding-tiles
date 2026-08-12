@@ -64,8 +64,9 @@ npm run dev
 
 This waits for PostgreSQL and local object storage, creates the development
 bucket, applies all committed database migrations, generates the Prisma Client,
-and then starts the NestJS API and Next.js web app. Open the URL for your
-`WEB_PORT`, such as `http://localhost:3000`.
+and then starts the NestJS API, Next.js web app, and Storybook. Open the URL for
+your `WEB_PORT`, such as `http://localhost:3000`, and Storybook at your
+`STORYBOOK_PORT`, such as `http://localhost:6006`.
 
 6. Bootstrap the first admin only after that person has created an account
    through the normal Sliding Tiles registration flow. There is no default
@@ -87,6 +88,7 @@ To run each service manually after the database is already running:
 ```bash
 npm run api:dev
 npm run web:dev
+npm run components:dev
 ```
 
 When using the manual web command, pass a port inline or set it in your shell:
@@ -98,7 +100,7 @@ PORT=4000 npm run web:dev
 ## Development commands
 
 ```bash
-npm run dev          # prepare infrastructure/database, then start API and web
+npm run dev          # prepare infrastructure/database, then start API, web, and Storybook
 npm run api:dev      # start only the NestJS API on API_PORT, default 4001
 npm run web:dev      # start only the Next.js web app from apps/web
 npm run components:dev # start Storybook on STORYBOOK_PORT, default 6006

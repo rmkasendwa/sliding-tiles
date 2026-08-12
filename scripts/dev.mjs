@@ -5,6 +5,7 @@ import { createConnection } from 'node:net';
 
 const webPort = process.env.WEB_PORT || process.env.PORT || '3000';
 const apiPort = process.env.API_PORT || '4001';
+const storybookPort = process.env.STORYBOOK_PORT || '6006';
 const processes = new Set();
 let shuttingDown = false;
 const npmCli = process.env.npm_execpath;
@@ -185,6 +186,7 @@ try {
   await Promise.all([
     assertPortAvailable('Web', webPort),
     assertPortAvailable('API', apiPort),
+    assertPortAvailable('Storybook', storybookPort),
   ]);
 
   await runStep('Starting local infrastructure', 'docker', [
@@ -214,11 +216,12 @@ try {
     npmArgs('run', '--silent', 'db:generate'),
   );
 
-  console.log('\n[dev] Starting API and web development servers');
+  console.log('\n[dev] Starting API, web, and Storybook development servers');
   run(npmCommand, npmArgs('run', '--silent', 'api:dev'));
   run(npmCommand, npmArgs('run', '--silent', 'web:dev'), {
     env: { PORT: webPort },
   });
+  run(npmCommand, npmArgs('run', '--silent', 'components:dev'));
 } catch (error) {
   console.error(`\n[dev] ${error.message}`);
   await shutdown(1);
