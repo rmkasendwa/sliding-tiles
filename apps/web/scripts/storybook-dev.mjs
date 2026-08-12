@@ -17,7 +17,7 @@ if (!Number.isInteger(port) || port < 1 || port > 65535) {
   throw new Error('STORYBOOK_PORT must be a number between 1 and 65535.');
 }
 
-const storybook = spawn('storybook', ['dev', '-p', String(port)], {
+const storybook = spawn('storybook', ['dev', '-p', String(port), '--no-open'], {
   env: process.env,
   stdio: 'inherit',
 });
