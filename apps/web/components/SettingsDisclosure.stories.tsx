@@ -27,7 +27,7 @@ const meta = {
   component: SettingsDisclosure,
   decorators: [
     (Story) => (
-      <main className="grid min-h-screen place-items-center bg-night p-6">
+      <main className="grid min-h-screen place-items-center bg-background p-6">
         <div className="w-full max-w-xl">
           <Story />
         </div>

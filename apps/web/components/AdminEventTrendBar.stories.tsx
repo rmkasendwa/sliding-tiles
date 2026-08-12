@@ -13,7 +13,7 @@ const meta = {
   component: AdminEventTrendBar,
   decorators: [
     (Story) => (
-      <main className="grid min-h-screen place-items-center bg-night p-6">
+      <main className="grid min-h-screen place-items-center bg-background p-6">
         <div className="grid w-full max-w-xl gap-4 rounded-[8px] border border-line bg-surface p-5 shadow-card-lift">
           <div className="flex h-48 items-end gap-2 border-b border-line px-2">
             <Story />

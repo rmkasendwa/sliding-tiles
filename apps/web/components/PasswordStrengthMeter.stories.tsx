@@ -9,7 +9,7 @@ const meta = {
   component: PasswordStrengthMeter,
   decorators: [
     (Story) => (
-      <main className="grid min-h-screen place-items-center bg-night p-6">
+      <main className="grid min-h-screen place-items-center bg-background p-6">
         <div className="w-full max-w-sm rounded-[8px] border border-line bg-surface p-5 shadow-card-lift">
           <label className="grid gap-2 text-sm font-bold text-foreground">
             Password

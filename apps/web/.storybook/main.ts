@@ -13,6 +13,8 @@ const config: StorybookConfig = {
     config.resolve.alias = {
       ...(config.resolve.alias ?? {}),
       '@': path.resolve(__dirname, '..'),
+      'next/image': path.resolve(__dirname, 'mocks/next-image.tsx'),
+      'next/link': path.resolve(__dirname, 'mocks/next-link.tsx'),
     };
 
     return config;

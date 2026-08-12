@@ -122,7 +122,7 @@ export const DenseLateLevel: Story = {
 
 function StoryFrame({ children }: { children: ReactNode }) {
   return (
-    <main className="grid min-h-screen place-items-center bg-night p-6">
+    <main className="grid min-h-screen place-items-center bg-background p-6">
       <div className="w-full max-w-5xl">{children}</div>
     </main>
   );
