@@ -10,7 +10,7 @@ RUN apt-get update && \
 FROM base AS deps
 WORKDIR /app
 
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json .npmrc ./
 COPY apps/web/package.json apps/web/package.json
 RUN --mount=type=cache,target=/root/.npm npm ci --legacy-peer-deps
 
