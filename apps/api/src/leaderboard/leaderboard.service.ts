@@ -22,6 +22,19 @@ type GhostRunDto = {
   moves: number;
   timeSeconds: number;
 };
+type MovementHeatmapCell = {
+  intensity: number;
+  moveCount: number;
+  slot: [number, number];
+};
+type MovementHeatmapTransition = {
+  count: number;
+  from: [number, number];
+  intensity: number;
+  to: [number, number];
+};
+
+const HEATMAP_SAMPLE_SIZE = 150;
 
 const STREAK_MILESTONES = [7, 30, 100, 365] as const;
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
@@ -49,6 +62,14 @@ function getReplayBoardConfig(value: Prisma.JsonValue | null) {
   const parsedBoard = boardStateSchema.safeParse(value);
 
   return parsedBoard.success ? parsedBoard.data : null;
+}
+
+function getSlotFromKey(key: string): [number, number] | null {
+  const [row, column] = key.split(',').map(Number);
+
+  return Number.isInteger(row) && Number.isInteger(column)
+    ? [row, column]
+    : null;
 }
 
 export function calculateStreakUpdate({
@@ -673,6 +694,123 @@ export class LeaderboardService {
       } satisfies BoardStateDto,
       ghostRun,
       replayOfId: replayRootId,
+    };
+  }
+
+  async getMovementHeatmaps(levels: number[]) {
+    const requestedLevels = [...new Set(levels)]
+      .filter((level) => Number.isInteger(level) && level > 0)
+      .slice(0, 8);
+
+    const heatmaps = await Promise.all(
+      requestedLevels.map(async (level) => {
+        const attempts = await this.prisma.leaderboard.findMany({
+          orderBy: [{ completedAt: 'desc' }, { id: 'desc' }],
+          select: {
+            puzzleConfig: true,
+          },
+          take: HEATMAP_SAMPLE_SIZE,
+          where: {
+            attemptType: 'original',
+            level,
+            puzzleConfig: { not: Prisma.DbNull },
+          },
+        });
+        const moveCounts = new Map<string, number>();
+        const transitionCounts = new Map<string, number>();
+        let dimensions: [number, number] | null = null;
+        let sampleSize = 0;
+        let totalMoves = 0;
+
+        attempts.forEach((attempt) => {
+          const board = getReplayBoardConfig(attempt.puzzleConfig);
+          const moveHistory = board?.moveHistory;
+
+          if (!board || !moveHistory?.length) {
+            return;
+          }
+
+          dimensions ??= board.dimensions;
+          sampleSize += 1;
+          totalMoves += moveHistory.length;
+
+          moveHistory.forEach((move, index) => {
+            const key = move.slot.join(',');
+            moveCounts.set(key, (moveCounts.get(key) ?? 0) + 1);
+
+            const nextMove = moveHistory[index + 1];
+            if (nextMove) {
+              const transitionKey = `${key}>${nextMove.slot.join(',')}`;
+              transitionCounts.set(
+                transitionKey,
+                (transitionCounts.get(transitionKey) ?? 0) + 1,
+              );
+            }
+          });
+        });
+
+        const [columns, rows] = dimensions ?? [0, 0];
+        const maxTileMoves = Math.max(0, ...moveCounts.values());
+        const cells: MovementHeatmapCell[] = Array.from(
+          { length: rows * columns },
+          (_, index) => {
+            const slot: [number, number] = [
+              Math.floor(index / columns),
+              index % columns,
+            ];
+            const moveCount = moveCounts.get(slot.join(',')) ?? 0;
+
+            return {
+              intensity: maxTileMoves > 0 ? moveCount / maxTileMoves : 0,
+              moveCount,
+              slot,
+            };
+          },
+        );
+        const maxTransitionCount = Math.max(0, ...transitionCounts.values());
+        const transitions: MovementHeatmapTransition[] = Array.from(
+          transitionCounts.entries(),
+        )
+          .map(([key, count]) => {
+            const [fromKey, toKey] = key.split('>');
+            const from = getSlotFromKey(fromKey);
+            const to = getSlotFromKey(toKey);
+
+            return from && to
+              ? {
+                  count,
+                  from,
+                  intensity:
+                    maxTransitionCount > 0 ? count / maxTransitionCount : 0,
+                  to,
+                }
+              : null;
+          })
+          .filter(
+            (transition): transition is MovementHeatmapTransition =>
+              Boolean(transition),
+          )
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 24);
+
+        return {
+          averageMoves:
+            sampleSize > 0 ? Math.round((totalMoves / sampleSize) * 10) / 10 : 0,
+          cells,
+          dimensions: dimensions ?? [0, 0],
+          level,
+          maxTileMoves,
+          sampleSize,
+          totalMoves,
+          transitions,
+        };
+      }),
+    );
+
+    return {
+      generatedAt: new Date().toISOString(),
+      heatmaps,
+      sampleLimitPerLevel: HEATMAP_SAMPLE_SIZE,
     };
   }
 

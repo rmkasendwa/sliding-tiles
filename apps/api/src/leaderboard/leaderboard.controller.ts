@@ -137,6 +137,29 @@ export class LeaderboardController {
     );
   }
 
+  @Get('heatmaps')
+  @ApiOperation({ summary: 'Aggregate tile movement heatmaps by level' })
+  @ApiQuery({
+    description:
+      'Comma-separated level numbers to aggregate. Values are deduplicated and capped at 8 levels.',
+    example: '1,2,3',
+    name: 'levels',
+    required: false,
+    schema: { type: 'string' },
+  })
+  @ApiOkResponse({ description: 'Movement heatmaps for requested levels.' })
+  getMovementHeatmaps(@Query('levels') levels?: string) {
+    const parsedLevels =
+      levels
+        ?.split(',')
+        .map((level) => Number(level.trim()))
+        .filter((level) => Number.isInteger(level) && level > 0) ?? [];
+
+    return this.leaderboardService.getMovementHeatmaps(
+      parsedLevels.length ? parsedLevels : [1, 2, 3],
+    );
+  }
+
   @Post('daily/completions')
   @UseGuards(AuthGuard)
   @AuthenticatedApi()

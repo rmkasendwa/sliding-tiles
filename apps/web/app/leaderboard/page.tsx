@@ -2,9 +2,15 @@ import { Trophy } from 'lucide-react';
 import Link from 'next/link';
 
 import { CurrentUserBadge } from '@/components/CurrentUserBadge';
+import { MovementHeatmapPanel } from '@/components/MovementHeatmapPanel';
 import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { RelativeTimestamp } from '@/components/RelativeTimestap';
-import { ApiScore, apiRequest, getApiMessage } from '@/lib/api';
+import {
+  ApiMovementHeatmapResponse,
+  ApiScore,
+  apiRequest,
+  getApiMessage,
+} from '@/lib/api';
 import { pageMetadata } from '@/lib/metadata';
 import { routes } from '@/lib/routes';
 import { getSession } from '@/lib/session';
@@ -86,6 +92,7 @@ export default async function LeaderboardPage() {
   const session = await getSession();
   let renderedAt = 0;
   let scores: ApiScore[] = [];
+  let movementHeatmaps: ApiMovementHeatmapResponse | null = null;
   let loadError: string | null = null;
 
   try {
@@ -97,6 +104,20 @@ export default async function LeaderboardPage() {
     scores = response.scores;
   } catch (error) {
     loadError = getApiMessage(error) ?? 'Unable to load leaderboard right now.';
+  }
+
+  if (scores.length > 0) {
+    const heatmapLevels = [...new Set(scores.map((score) => score.level))]
+      .sort((a, b) => b - a)
+      .slice(0, 5);
+
+    try {
+      movementHeatmaps = await apiRequest<ApiMovementHeatmapResponse>(
+        `/leaderboard/heatmaps?levels=${heatmapLevels.join(',')}`,
+      );
+    } catch {
+      movementHeatmaps = null;
+    }
   }
 
   const uniquePlayers = new Set(scores.map((score) => score.userId)).size;
@@ -336,6 +357,13 @@ export default async function LeaderboardPage() {
         <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-rose-800">
           {loadError}
         </div>
+      ) : null}
+
+      {movementHeatmaps?.heatmaps.length ? (
+        <MovementHeatmapPanel
+          heatmaps={movementHeatmaps.heatmaps}
+          sampleLimitPerLevel={movementHeatmaps.sampleLimitPerLevel}
+        />
       ) : null}
 
       {scores.length > 0 ? (

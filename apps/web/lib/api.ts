@@ -218,6 +218,32 @@ export type ApiDailyChallengeCompletionResponse = {
   totalCount: number;
 };
 
+export type ApiMovementHeatmap = {
+  averageMoves: number;
+  cells: Array<{
+    intensity: number;
+    moveCount: number;
+    slot: [number, number];
+  }>;
+  dimensions: [number, number];
+  level: number;
+  maxTileMoves: number;
+  sampleSize: number;
+  totalMoves: number;
+  transitions: Array<{
+    count: number;
+    from: [number, number];
+    intensity: number;
+    to: [number, number];
+  }>;
+};
+
+export type ApiMovementHeatmapResponse = {
+  generatedAt: string;
+  heatmaps: ApiMovementHeatmap[];
+  sampleLimitPerLevel: number;
+};
+
 export type AdminUser = {
   createdAt: string;
   email: string;
