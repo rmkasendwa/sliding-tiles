@@ -22,3 +22,7 @@ export const routes = {
 } as const;
 
 export type AppRoute = (typeof routes)[keyof typeof routes];
+
+export function runRoute(runId: string) {
+  return `${routes.runs}/${encodeURIComponent(runId)}`;
+}

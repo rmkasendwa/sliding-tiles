@@ -474,6 +474,60 @@ export class LeaderboardService {
     };
   }
 
+  async getPublicRun(runId: string) {
+    const score = await this.prisma.leaderboard.findUnique({
+      select: {
+        attemptType: true,
+        completedAt: true,
+        id: true,
+        level: true,
+        moves: true,
+        pausedDurationSeconds: true,
+        puzzleConfig: true,
+        replayOfId: true,
+        timeSeconds: true,
+        totalTimeSeconds: true,
+        userId: true,
+        user: {
+          select: {
+            email: true,
+            name: true,
+            username: true,
+          },
+        },
+      },
+      where: { id: runId },
+    });
+
+    if (!score) {
+      throw new NotFoundException('Shared run not found.');
+    }
+
+    const board = getReplayBoardConfig(score.puzzleConfig);
+
+    const { puzzleConfig, ...publicScore } = score;
+
+    return {
+      ...publicScore,
+      puzzle: board
+        ? {
+            dimensions: board.dimensions,
+            level: board.level,
+            tileCount: board.tileGrid.flat().length,
+          }
+        : {
+            dimensions: null,
+            level: score.level,
+            tileCount: null,
+          },
+      user: {
+        avatarUrl: getGravatarUrl(score.user.email),
+        name: score.user.name,
+        username: score.user.username,
+      },
+    };
+  }
+
   async listDaily(challengeDate: string, take = 50) {
     const scores = await this.prisma.dailyChallengeScore.findMany({
       select: {

@@ -228,6 +228,22 @@ export class LeaderboardController {
     );
   }
 
+  @Get('runs/:runId')
+  @ApiOperation({ summary: 'Get a publicly shared run' })
+  @ApiParam({
+    name: 'runId',
+    required: true,
+    schema: { type: 'string' },
+  })
+  @ApiOkResponse({ description: 'Public run details.' })
+  @ApiNotFoundResponse({
+    description: 'The shared run was not found.',
+    schema: ref('ErrorResponse'),
+  })
+  getPublicRun(@Param('runId') runId: string) {
+    return this.leaderboardService.getPublicRun(runId);
+  }
+
   @Get('mine/statistics')
   @UseGuards(AuthGuard)
   @AuthenticatedApi()

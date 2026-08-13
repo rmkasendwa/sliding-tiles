@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 
 import type { ApiRun } from '@/lib/api';
-import { routes } from '@/lib/routes';
+import { routes, runRoute } from '@/lib/routes';
 
 function formatDuration(totalSeconds: number) {
   const safeSeconds = Math.max(0, Math.floor(totalSeconds));
@@ -138,6 +138,12 @@ export function RunHistoryList({
                     Replay unavailable
                   </span>
                 )}
+                <Link
+                  className="inline-flex min-h-9 items-center justify-center rounded-[7px] border border-line bg-panel px-3 text-sm font-bold text-foreground transition-colors hover:bg-accent/10"
+                  href={runRoute(run.id)}
+                >
+                  View Shared Run
+                </Link>
               </div>
             </div>
           </article>

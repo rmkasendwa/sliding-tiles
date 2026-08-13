@@ -85,6 +85,7 @@ export async function recordLevelAttempt({
     achievements: result.achievements,
     ok: true,
     personalBest: result.personalBest,
+    score: result.score,
     streak: result.streak,
   };
 }

@@ -30,6 +30,7 @@ import {
   storePuzzleImage,
   synchronizeStoredPuzzleImages,
 } from '@/lib/puzzleImageStorage';
+import { runRoute } from '@/lib/routes';
 import { cycleThemePreference } from '@/lib/theme';
 
 import { SoundProvider, useSound } from '../SoundProvider';
@@ -303,6 +304,9 @@ function GameBoardContent({
     [board, elapsedTimeMs],
   );
   const analyticsMetadataRef = useRef(getAnalyticsMetadata());
+  const getAbsoluteRunUrl = useCallback((runId: string) => {
+    return new URL(runRoute(runId), window.location.origin).toString();
+  }, []);
   useEffect(() => {
     analyticsMetadataRef.current = getAnalyticsMetadata();
   }, [getAnalyticsMetadata]);
@@ -755,6 +759,16 @@ function GameBoardContent({
               longestStreak: result.streak.longestStreak,
               milestone: result.streak.newlyAchievedMilestone ?? null,
             });
+            if (result.score?.id) {
+              setShareCardResult((current) =>
+                current?.completedAt === shareCompletedAt
+                  ? {
+                      ...current,
+                      shareUrl: getAbsoluteRunUrl(result.score.id),
+                    }
+                  : current,
+              );
+            }
 
             if (!activeReplayOfId && result.personalBest) {
               setPersonalBestNotice({
@@ -766,6 +780,9 @@ function GameBoardContent({
                   ? {
                       ...current,
                       personalBestLabel: 'New personal best',
+                      shareUrl: result.score?.id
+                        ? getAbsoluteRunUrl(result.score.id)
+                        : current.shareUrl,
                     }
                   : current,
               );

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Download, Share2, X } from 'lucide-react';
+import { Copy, Download, Share2, X } from 'lucide-react';
 
 import { getDimensionsForLevel } from '@/lib/board';
 
@@ -10,6 +10,7 @@ export type ShareResultCardData = {
   level: number;
   moves: number;
   personalBestLabel: string | null;
+  shareUrl?: string;
   siteDomain?: string;
   timeLabel: string;
 };
@@ -564,6 +565,7 @@ export function ShareResultCard({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSharing, setIsSharing] = useState(false);
+  const [copyLabel, setCopyLabel] = useState('Copy link');
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -571,6 +573,7 @@ export function ShareResultCard({
 
     drawShareCard(canvas, result);
     setErrorMessage(null);
+    setCopyLabel('Copy link');
   }, [isOpen, result]);
 
   if (!isOpen || !result) {
@@ -613,6 +616,7 @@ export function ShareResultCard({
         files: [file],
         text: `I completed Level ${result.level} in ${result.timeLabel} with ${result.moves} moves.`,
         title: 'Sliding Tiles result',
+        url: result.shareUrl,
       };
 
       if (!navigator.canShare?.(shareData)) {
@@ -629,6 +633,23 @@ export function ShareResultCard({
       }
     } finally {
       setIsSharing(false);
+    }
+  };
+
+  const copyShareLink = async () => {
+    if (!result.shareUrl) {
+      setErrorMessage('The share link is still being prepared.');
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(result.shareUrl);
+      setCopyLabel('Copied');
+      setErrorMessage(null);
+      window.setTimeout(() => setCopyLabel('Copy link'), 1800);
+    } catch (error) {
+      console.warn('Could not copy share link.', error);
+      setErrorMessage('The share link could not be copied in this browser.');
     }
   };
 
@@ -671,7 +692,13 @@ export function ShareResultCard({
           </p>
         ) : null}
 
-        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+        {result.shareUrl ? (
+          <p className="mt-3 truncate rounded-md border border-line bg-surface/70 px-3 py-2 text-xs font-bold text-muted">
+            {result.shareUrl}
+          </p>
+        ) : null}
+
+        <div className="mt-4 grid gap-2 sm:grid-cols-3">
           <button
             className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-extrabold text-primary-contrast shadow-button-primary transition-colors hover:bg-primary-strong disabled:cursor-wait disabled:opacity-60"
             disabled={isSharing}
@@ -680,6 +707,15 @@ export function ShareResultCard({
           >
             <Share2 aria-hidden="true" className="size-4" />
             Share
+          </button>
+          <button
+            className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-md border border-line bg-panel px-4 py-2.5 text-sm font-extrabold text-foreground transition-colors hover:bg-accent/10 disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={!result.shareUrl}
+            onClick={() => void copyShareLink()}
+            type="button"
+          >
+            <Copy aria-hidden="true" className="size-4" />
+            {copyLabel}
           </button>
           <button
             className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-md border border-line bg-panel px-4 py-2.5 text-sm font-extrabold text-foreground transition-colors hover:bg-accent/10"

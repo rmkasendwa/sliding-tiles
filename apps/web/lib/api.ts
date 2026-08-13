@@ -108,6 +108,19 @@ export type ApiRun = Omit<ApiScore, 'puzzleConfig'> & {
   replayComparison: string | null;
 };
 
+export type ApiPublicRun = Omit<ApiScore, 'puzzleConfig' | 'user'> & {
+  puzzle: {
+    dimensions: [number, number] | null;
+    level: number;
+    tileCount: number | null;
+  };
+  user: {
+    avatarUrl: string;
+    name: string;
+    username: string;
+  };
+};
+
 export type ApiRunPage = {
   nextCursor: string | null;
   scores: ApiRun[];
