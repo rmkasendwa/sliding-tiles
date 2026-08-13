@@ -2,7 +2,7 @@ export default function RunsLoading() {
   return (
     <section
       aria-label="Loading run history"
-      className="page-rail mx-auto grid max-w-240 gap-5 py-6 sm:py-8"
+      className="page-rail mx-auto grid max-w-300 gap-5 py-6 sm:py-8"
       role="status"
     >
       <header className="grid gap-3 border-b border-line pb-4">

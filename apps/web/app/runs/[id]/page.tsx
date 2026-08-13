@@ -118,7 +118,7 @@ export default async function SharedRunPage({ params }: SharedRunPageProps) {
   ).toString();
 
   return (
-    <section className="page-rail mx-auto grid w-full max-w-240 gap-5 py-5">
+    <section className="page-rail mx-auto grid w-full max-w-300 gap-5 py-5">
       <header className="grid gap-4 border-b border-line pb-5">
         <p className="text-xs font-extrabold uppercase text-accent-strong">
           Shared run
