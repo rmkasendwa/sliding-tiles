@@ -89,6 +89,16 @@ export type ApiAchievement = {
   name: string;
 };
 
+export type ApiAchievementProgress = Omit<ApiAchievement, 'earnedAt'> & {
+  earnedAt: string | null;
+  progress: {
+    current: number;
+    label: string;
+    target: number;
+  } | null;
+  unlocked: boolean;
+};
+
 export type ApiRun = Omit<ApiScore, 'puzzleConfig'> & {
   canReplay: boolean;
   levelBest: {

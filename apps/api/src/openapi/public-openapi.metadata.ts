@@ -195,6 +195,49 @@ export const publicApiSchemas = {
     required: ['category', 'description', 'earnedAt', 'icon', 'id', 'name'],
     type: 'object',
   },
+  AchievementProgress: {
+    additionalProperties: false,
+    properties: {
+      current: { minimum: 0, type: 'number' },
+      label: { type: 'string' },
+      target: { minimum: 1, type: 'number' },
+    },
+    required: ['current', 'label', 'target'],
+    type: 'object',
+  },
+  AchievementProgressRecord: {
+    additionalProperties: false,
+    properties: {
+      category: {
+        enum: ['completion', 'speed', 'leaderboard'],
+        type: 'string',
+      },
+      description: { type: 'string' },
+      earnedAt: {
+        nullable: true,
+        oneOf: [{ format: 'date-time', type: 'string' }],
+      },
+      icon: { type: 'string' },
+      id: { type: 'string' },
+      name: { type: 'string' },
+      progress: {
+        nullable: true,
+        oneOf: [{ $ref: '#/components/schemas/AchievementProgress' }],
+      },
+      unlocked: { type: 'boolean' },
+    },
+    required: [
+      'category',
+      'description',
+      'earnedAt',
+      'icon',
+      'id',
+      'name',
+      'progress',
+      'unlocked',
+    ],
+    type: 'object',
+  },
   ChangePasswordRequest: schemaFromZod(changePasswordSchema),
   CompletedLevelRequest: schemaFromZod(completedLevelSchema),
   ErrorResponse: {
@@ -328,6 +371,10 @@ export const publicApiSchemas = {
         items: { $ref: '#/components/schemas/Achievement' },
         type: 'array',
       },
+      achievementProgress: {
+        items: { $ref: '#/components/schemas/AchievementProgressRecord' },
+        type: 'array',
+      },
       gameState: {
         nullable: true,
         oneOf: [{ $ref: '#/components/schemas/GameState' }],
@@ -338,7 +385,13 @@ export const publicApiSchemas = {
       },
       streak: { $ref: '#/components/schemas/StreakInfo' },
     },
-    required: ['achievements', 'gameState', 'scores', 'streak'],
+    required: [
+      'achievements',
+      'achievementProgress',
+      'gameState',
+      'scores',
+      'streak',
+    ],
     type: 'object',
   },
   PublicLeaderboardScore: {

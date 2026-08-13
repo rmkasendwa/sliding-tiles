@@ -16,6 +16,18 @@ export type AchievementView = {
   name: string;
 };
 
+export type AchievementProgress = {
+  current: number;
+  label: string;
+  target: number;
+};
+
+export type AchievementProgressView = Omit<AchievementView, 'earnedAt'> & {
+  earnedAt: Date | null;
+  progress: AchievementProgress | null;
+  unlocked: boolean;
+};
+
 export type AchievementContext = {
   board: {
     level: number;
@@ -25,6 +37,8 @@ export type AchievementContext = {
     undoCount?: number;
   };
   completionCount: number;
+  bestActiveTimeSeconds?: number | null;
+  hasNoUndoCompletion?: boolean;
   highestOriginalLevel: number;
   isOriginalAttempt: boolean;
   leaderboardRank: number | null;
@@ -39,7 +53,27 @@ type AchievementDefinition = {
   isEarned: (context: AchievementContext) => boolean;
   metadata?: (context: AchievementContext) => Prisma.InputJsonValue;
   name: string;
+  progress?: (context: AchievementContext) => AchievementProgress | null;
 };
+
+function completionProgress(
+  current: number,
+  target: number,
+): AchievementProgress {
+  return {
+    current: Math.min(current, target),
+    label: `${Math.min(current, target)} / ${target} original levels`,
+    target,
+  };
+}
+
+function formatDuration(totalSeconds: number) {
+  const safeSeconds = Math.max(0, Math.floor(totalSeconds));
+  const minutes = Math.floor(safeSeconds / 60);
+  const seconds = safeSeconds % 60;
+
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
 
 export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
   {
@@ -50,6 +84,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     isEarned: ({ completionCount, isOriginalAttempt }) =>
       isOriginalAttempt && completionCount >= 1,
     name: 'First Puzzle Completed',
+    progress: ({ completionCount }) => completionProgress(completionCount, 1),
   },
   {
     category: 'completion',
@@ -59,6 +94,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     isEarned: ({ completionCount, isOriginalAttempt }) =>
       isOriginalAttempt && completionCount >= 10,
     name: 'Complete 10 Levels',
+    progress: ({ completionCount }) => completionProgress(completionCount, 10),
   },
   {
     category: 'completion',
@@ -68,6 +104,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     isEarned: ({ completionCount, isOriginalAttempt }) =>
       isOriginalAttempt && completionCount >= 100,
     name: 'Complete 100 Levels',
+    progress: ({ completionCount }) => completionProgress(completionCount, 100),
   },
   {
     category: 'completion',
@@ -77,6 +114,11 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     isEarned: ({ board, isOriginalAttempt }) =>
       isOriginalAttempt && (board.undoCount ?? 0) === 0,
     name: 'Complete a Level Without Undo',
+    progress: ({ hasNoUndoCompletion }) => ({
+      current: hasNoUndoCompletion ? 1 : 0,
+      label: hasNoUndoCompletion ? 'Clean run complete' : 'Clean run pending',
+      target: 1,
+    }),
   },
   {
     category: 'speed',
@@ -86,6 +128,27 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     isEarned: ({ board, isOriginalAttempt }) =>
       isOriginalAttempt && board.timeSeconds < 30,
     name: 'Complete a Level Under 30 Seconds',
+    progress: ({ bestActiveTimeSeconds }) => {
+      if (
+        bestActiveTimeSeconds === null ||
+        bestActiveTimeSeconds === undefined
+      ) {
+        return {
+          current: 0,
+          label: 'No timed run yet',
+          target: 30,
+        };
+      }
+
+      return {
+        current:
+          bestActiveTimeSeconds < 30
+            ? 30
+            : Math.max(0, 60 - bestActiveTimeSeconds),
+        label: `Best ${formatDuration(bestActiveTimeSeconds)} / under 00:30`,
+        target: 30,
+      };
+    },
   },
   {
     category: 'leaderboard',
@@ -96,6 +159,19 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
       leaderboardRank !== null && leaderboardRank <= 10,
     metadata: ({ leaderboardRank }) => ({ leaderboardRank }),
     name: 'Reach Top 10 on Leaderboard',
+    progress: ({ leaderboardRank }) => ({
+      current:
+        leaderboardRank === null
+          ? 0
+          : leaderboardRank <= 10
+            ? 10
+            : Math.max(0, 20 - leaderboardRank),
+      label:
+        leaderboardRank === null
+          ? 'No ranked run yet'
+          : `Best rank #${leaderboardRank} / top 10`,
+      target: 10,
+    }),
   },
   {
     category: 'completion',
@@ -106,6 +182,10 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
       maxAvailableLevel !== null && highestOriginalLevel >= maxAvailableLevel,
     metadata: ({ maxAvailableLevel }) => ({ maxAvailableLevel }),
     name: 'Finish All Available Levels',
+    progress: ({ highestOriginalLevel, maxAvailableLevel }) =>
+      maxAvailableLevel === null
+        ? null
+        : completionProgress(highestOriginalLevel, maxAvailableLevel),
   },
 ];
 
@@ -132,4 +212,31 @@ export function evaluateAchievements(
     achievementId: definition.id,
     metadata: definition.metadata?.(context),
   }));
+}
+
+export function getAchievementProgressViews(
+  context: AchievementContext,
+  earnedAchievements: Array<{ achievementId: string; earnedAt: Date }>,
+): AchievementProgressView[] {
+  const earnedById = new Map(
+    earnedAchievements.map((achievement) => [
+      achievement.achievementId,
+      achievement.earnedAt,
+    ]),
+  );
+
+  return ACHIEVEMENT_DEFINITIONS.map((definition) => {
+    const earnedAt = earnedById.get(definition.id) ?? null;
+
+    return {
+      category: definition.category,
+      description: definition.description,
+      earnedAt,
+      icon: definition.icon,
+      id: definition.id,
+      name: definition.name,
+      progress: definition.progress?.(context) ?? null,
+      unlocked: earnedAt !== null,
+    };
+  });
 }

@@ -17,6 +17,7 @@ import { RunHistoryList } from '@/components/RunHistoryList';
 import { ThemeSettings } from '@/components/ThemeSettings';
 import {
   ApiAchievement,
+  ApiAchievementProgress,
   ApiGameState,
   ApiRunPage,
   ApiScore,
@@ -101,16 +102,20 @@ export default async function ProfilePage() {
     redirect(getLoginUrl(routes.profile));
   }
 
-  const [{ achievements, gameState, scores, streak }, recentRunsPage] =
+  const [
+    { achievementProgress, achievements, gameState, scores, streak },
+    recentRunsPage,
+  ] =
     await Promise.all([
-    apiRequest<{
-      achievements: ApiAchievement[];
-      gameState: ApiGameState | null;
-      scores: ApiScore[];
-      streak: ApiStreak;
-    }>('/profile'),
-    apiRequest<ApiRunPage>('/leaderboard/mine?take=5'),
-  ]);
+      apiRequest<{
+        achievementProgress: ApiAchievementProgress[];
+        achievements: ApiAchievement[];
+        gameState: ApiGameState | null;
+        scores: ApiScore[];
+        streak: ApiStreak;
+      }>('/profile'),
+      apiRequest<ApiRunPage>('/leaderboard/mine?take=5'),
+    ]);
   const recentRuns = recentRunsPage.scores;
 
   const completedRuns = scores.length;
@@ -195,6 +200,17 @@ export default async function ProfilePage() {
         )
       : null;
   const recentAchievements = achievements.slice(0, 3);
+  const displayedAchievements =
+    achievementProgress.length > 0
+      ? achievementProgress
+      : achievements.map((achievement) => ({
+          ...achievement,
+          progress: null,
+          unlocked: true,
+        }));
+  const unlockedAchievementCount = displayedAchievements.filter(
+    (achievement) => achievement.unlocked,
+  ).length;
   const trendRuns = [...scores]
     .slice(0, 5)
     .reverse()
@@ -452,32 +468,83 @@ export default async function ProfilePage() {
         <div className="flex items-end justify-between gap-3 border-b border-celebration/20 pb-2">
           <h2 className="text-[1.12rem] font-bold">Achievements</h2>
           <span className="text-xs font-bold uppercase tracking-[0.08em] text-celebration">
-            {achievements.length} earned
+            {unlockedAchievementCount} / {displayedAchievements.length} earned
           </span>
         </div>
-        {achievements.length > 0 ? (
+        {displayedAchievements.length > 0 ? (
           <div className="grid gap-3 min-[760px]:grid-cols-2 min-[1120px]:grid-cols-3">
-            {achievements.map((achievement) => (
-              <article
-                className="grid grid-cols-[auto_minmax(0,1fr)] gap-3 rounded-lg border border-warning/24 bg-surface/72 p-3"
-                key={achievement.id}
-              >
-                <span className="grid size-10 place-items-center rounded-md bg-warning-soft text-warning-strong">
-                  <AchievementIcon icon={achievement.icon} />
-                </span>
-                <span className="min-w-0">
-                  <span className="block text-sm font-extrabold text-foreground">
-                    {achievement.name}
+            {displayedAchievements.map((achievement) => {
+              const progressPercent = achievement.progress
+                ? Math.max(
+                    0,
+                    Math.min(
+                      100,
+                      (achievement.progress.current /
+                        achievement.progress.target) *
+                        100,
+                    ),
+                  )
+                : achievement.unlocked
+                  ? 100
+                  : 0;
+
+              return (
+                <article
+                  className={[
+                    'grid grid-cols-[auto_minmax(0,1fr)] gap-3 rounded-lg border p-3',
+                    achievement.unlocked
+                      ? 'border-warning/24 bg-surface/72'
+                      : 'border-line bg-surface/48 opacity-85',
+                  ].join(' ')}
+                  key={achievement.id}
+                >
+                  <span
+                    className={[
+                      'grid size-10 place-items-center rounded-md',
+                      achievement.unlocked
+                        ? 'bg-warning-soft text-warning-strong'
+                        : 'bg-muted/12 text-muted',
+                    ].join(' ')}
+                  >
+                    <AchievementIcon icon={achievement.icon} />
                   </span>
-                  <span className="mt-0.5 block text-xs leading-relaxed text-muted">
-                    {achievement.description}
+                  <span className="min-w-0">
+                    <span className="block text-sm font-extrabold text-foreground">
+                      {achievement.name}
+                    </span>
+                    <span className="mt-0.5 block text-xs leading-relaxed text-muted">
+                      {achievement.description}
+                    </span>
+                    <span
+                      className={[
+                        'mt-2 block text-[0.72rem] font-bold uppercase tracking-[0.08em]',
+                        achievement.unlocked
+                          ? 'text-warning-strong'
+                          : 'text-muted',
+                      ].join(' ')}
+                    >
+                      {achievement.earnedAt
+                        ? `Earned ${formatDateTime(achievement.earnedAt)}`
+                        : (achievement.progress?.label ?? 'Locked')}
+                    </span>
+                    {achievement.progress ? (
+                      <span
+                        aria-label={`${achievement.name} progress: ${achievement.progress.label}`}
+                        className="mt-2 block h-2 overflow-hidden rounded-full bg-line"
+                      >
+                        <span
+                          className={[
+                            'block h-full rounded-full',
+                            achievement.unlocked ? 'bg-warning' : 'bg-accent',
+                          ].join(' ')}
+                          style={{ width: `${progressPercent}%` }}
+                        />
+                      </span>
+                    ) : null}
                   </span>
-                  <span className="mt-2 block text-[0.72rem] font-bold uppercase tracking-[0.08em] text-warning-strong">
-                    Earned {formatDateTime(achievement.earnedAt)}
-                  </span>
-                </span>
-              </article>
-            ))}
+                </article>
+              );
+            })}
           </div>
         ) : (
           <div className="rounded-[7px] border border-dashed border-line bg-surface/45 p-4">
