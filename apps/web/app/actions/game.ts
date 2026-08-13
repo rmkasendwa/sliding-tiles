@@ -118,8 +118,6 @@ export async function recordDailyChallengeAttempt({
       method: 'POST',
     },
   );
-  revalidatePath('/statistics');
-
   return {
     ok: true,
     rank: result.rank,
