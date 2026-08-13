@@ -17,10 +17,20 @@ if (!Number.isInteger(port) || port < 1 || port > 65535) {
   throw new Error('STORYBOOK_PORT must be a number between 1 and 65535.');
 }
 
-const storybook = spawn('storybook', ['dev', '-p', String(port), '--no-open'], {
-  env: process.env,
-  stdio: 'inherit',
-});
+const npmCli = process.env.npm_execpath;
+
+if (!npmCli) {
+  throw new Error('Run this command through npm.');
+}
+
+const storybook = spawn(
+  process.execPath,
+  [npmCli, 'exec', '--', 'storybook', 'dev', '-p', String(port), '--no-open'],
+  {
+    env: process.env,
+    stdio: 'inherit',
+  },
+);
 
 storybook.on('exit', (code, signal) => {
   if (signal) {
