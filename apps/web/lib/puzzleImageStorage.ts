@@ -275,7 +275,7 @@ async function synchronize() {
   );
   await importStoredPuzzleImages(downloads);
 
-  if (selectedContentHash) {
+  if (selectedContentHash && !localSelection?.image) {
     const synchronizedImages = await loadStoredPuzzleImages();
     const selectedImage = synchronizedImages.find(
       (image) => image.contentHash === selectedContentHash,
